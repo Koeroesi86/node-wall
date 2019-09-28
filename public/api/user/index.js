@@ -1,5 +1,5 @@
 const uuid = require('uuid/v4');
-const NodeMailer = require('nodemailer');
+const { URL } = require('url');
 const moment = require('moment');
 const cookie = require('cookie');
 const createDatabase = require('lib/utils/createDatabase');
