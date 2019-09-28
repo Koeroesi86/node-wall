@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@koeroesi86/node-lambda-invoke@^1.0.9-5e55de5":
-  version "1.0.9-5e55de5"
-  resolved "https://registry.yarnpkg.com/@koeroesi86/node-lambda-invoke/-/node-lambda-invoke-1.0.9-5e55de5.tgz#ca501b196cc34d4738211f0d23448efdb6d091a6"
-  integrity sha512-uXa7XQuAoiA8KipmJ9DHDY3yw7edsOYPz703oANpZcGkD86qLH09hLLTMk3eS6XXcu2HRE+PXWMYCDdYTrznDA==
+"@koeroesi86/node-lambda-invoke@^1.0.18-b7bb012":
+  version "1.0.18-b7bb012"
+  resolved "https://registry.yarnpkg.com/@koeroesi86/node-lambda-invoke/-/node-lambda-invoke-1.0.18-b7bb012.tgz#076d84e17bd313090e9fe632b92c4998c5c9d71a"
+  integrity sha512-7DNBQN3LUs0P6Qa38YL9K98m483RcTpHYvoJE7fHgG7ocoedogWO+Lk1GkTve/ZUDvDphRp6dziN60/lycD0RA==
   dependencies:
     dotenv "^6.2.0"
     moment "^2.24.0"
@@ -13,12 +13,12 @@
     rimraf "^2.6.3"
     uuid "^3.3.2"
 
-"@koeroesi86/node-webserver@^19.9.40-8296fd9":
-  version "19.9.40-8296fd9"
-  resolved "https://registry.yarnpkg.com/@koeroesi86/node-webserver/-/node-webserver-19.9.40-8296fd9.tgz#02152e61508a26a490090c41824316ba3a3d3399"
-  integrity sha512-ygS+u+2BvFosrSTzLl2yZ3BmGmIh34mHu91yCN69u+wCsa9P7GusG4Ac+aTYJwrFYVebxsf+cJDQmppYlsBzhQ==
+"@koeroesi86/node-webserver@^19.9.44-ccd7ac3":
+  version "19.9.44-ccd7ac3"
+  resolved "https://registry.yarnpkg.com/@koeroesi86/node-webserver/-/node-webserver-19.9.44-ccd7ac3.tgz#9db2cee106fa511d4309a3d1958a25029de6c715"
+  integrity sha512-mKQcRlmRKP0Ocdk9/r1tcRUt2kGG8/FDzOF4a8NdrErx5FaFESSwFUMtI2DgY88YfG/3yly1gUNS+s/ZnEHhgA==
   dependencies:
-    "@koeroesi86/node-lambda-invoke" "^1.0.9-5e55de5"
+    "@koeroesi86/node-lambda-invoke" "^1.0.18-b7bb012"
     body-parser "^1.19.0"
     chalk "^2.4.2"
     connect "^3.6.6"

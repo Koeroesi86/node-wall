@@ -14,14 +14,14 @@
     "cookie": "^0.4.0",
     "dotenv": "^8.1.0",
     "knex": "^0.19.4",
+    "lib": "link:./lib",
     "match-all": "^1.2.5",
     "moment": "^2.24.0",
     "nodemailer": "^6.3.0",
     "sqlite3": "^4.1.0",
-    "uuid": "^3.3.3",
-    "lib": "link:./lib"
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "@koeroesi86/node-webserver": "^19.9.40-8296fd9"
+    "@koeroesi86/node-webserver": "^19.9.44-ccd7ac3"
   }
 }

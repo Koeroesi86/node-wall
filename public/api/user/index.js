@@ -6,6 +6,7 @@ const createDatabase = require('lib/utils/createDatabase');
 const getUserInfo = require('lib/utils/getUserInfoFromSession');
 const generateCode = require('lib/utils/generateCode');
 const verifyLoginTemplate = require('lib/templates/email/verifyLogin');
+const createMailer = require('lib/utils/createMailer');
 
 const keepAliveTimeout = 5000;
 const keepAliveCallback = () => {
@@ -19,10 +20,7 @@ const getResponseHeaders = (headers = {}) => ({
   ...headers,
 });
 
-// TODO: configure to real server
-const transporter = NodeMailer.createTransport({
-  jsonTransport: true,
-});
+const transporter = createMailer();
 
 process.on('message', async event => {
   clearTimeout(keepAliveTimer);
@@ -125,7 +123,7 @@ process.on('message', async event => {
         const user = {
           id: uuid(),
           name: payload.name || null,
-          role: 'user',
+          role: 'admin', //should be 'user'
         };
         await knex.insert(user).into('users');
 
@@ -147,11 +145,11 @@ process.on('message', async event => {
       await knex.insert(session).into('users_session');
 
       if (payload.type === 'email') {
-        const verifyUrl = new URL('http://uzeno.localhost/login/email');
+        const verifyUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login/email`);
         verifyUrl.searchParams.set('code', session.secret);
         verifyUrl.searchParams.set('session', session.id);
         transporter.sendMail({
-          from: 'sender@example.com',
+          from: process.env.NODEMAILER_USER || 'sender@example.com',
           to: payload.value,
           subject: 'Bejelentkezés',
           encoding: 'utf-8',
@@ -161,19 +159,32 @@ process.on('message', async event => {
             verifyUrl: verifyUrl.toString(),
           }),
         }, (err, info) => {
-          console.log(info.envelope);
-          console.log(info.messageId);
-          console.log(JSON.parse(info.message));
-        });
+          if (info) {
+            if (info.envelope) console.log('envelope', info.envelope);
+            if (info.messageId) console.log('messageId', info.messageId);
+            if (info.message) console.log('message', JSON.parse(info.message));
+          }
 
-        const expires = moment().add(1, 'year');
-        process.send({
-          statusCode: 200,
-          headers: getResponseHeaders({
-            'Set-Cookie': `sessionId=${session.id}; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`
-          }),
-          body: JSON.stringify({ sessionId: session.id }, null, 2),
-          isBase64Encoded: false,
+          if (!info && err && err.responseCode > 500) {
+            console.log('err', err);
+            process.send({
+              statusCode: 400,
+              headers: getResponseHeaders({}),
+              body: '',
+              isBase64Encoded: false,
+            });
+          } else {
+            console.log('mail sent to', payload.value);
+            const expires = moment().add(1, 'year');
+            process.send({
+              statusCode: 200,
+              headers: getResponseHeaders({
+                'Set-Cookie': `sessionId=${session.id}; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`
+              }),
+              body: JSON.stringify({ sessionId: session.id }, null, 2),
+              isBase64Encoded: false,
+            });
+          }
         });
       }
     }
