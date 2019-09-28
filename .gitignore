@@ -1,0 +1,6 @@
+.idea
+node_modules
+!lib/data/.gitkeep
+lib/data/*.sqlite
+!lib/data/post/.gitkeep
+lib/data/post/*

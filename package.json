@@ -1,0 +1,27 @@
+{
+  "name": "uzenofal",
+  "version": "1.0.0",
+  "description": "",
+  "main": "config.js",
+  "scripts": {
+    "knex": "knex",
+    "dev": "node-webserver --config=\"D:\\Chris\\Documents\\Developement\\uzenofal\\dev.configuration.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cookie": "^0.4.0",
+    "dotenv": "^8.1.0",
+    "knex": "^0.19.4",
+    "match-all": "^1.2.5",
+    "moment": "^2.24.0",
+    "nodemailer": "^6.3.0",
+    "sqlite3": "^4.1.0",
+    "uuid": "^3.3.3",
+    "lib": "link:./lib"
+  },
+  "devDependencies": {
+    "@koeroesi86/node-webserver": "^19.9.40-8296fd9"
+  }
+}
