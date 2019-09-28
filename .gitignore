@@ -5,3 +5,4 @@ lib/data/*.sqlite
 !lib/data/post/.gitkeep
 lib/data/post/*
 config.js
+.env
