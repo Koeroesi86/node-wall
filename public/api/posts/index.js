@@ -56,7 +56,7 @@ process.on('message', async event => {
           const tagMatches = matchAll(content, /#([a-z0-9]+)/gi).toArray();
           for (let i = 0; i < tagMatches.length; i++) {
             const tagRaw = tagMatches[i];
-            const existingTag = await knex('tags').select('id', 'type').where('name', tagRaw);
+            const existingTag = await knex('tags').select('id', 'type').where('name', tagRaw).first();
             if (existingTag) {
               tagMatches.splice(i, 1);
               content = content.replace(`#${tagRaw}`, `#!${existingTag.id}`);
