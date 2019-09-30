@@ -12,6 +12,17 @@ class LoginPage extends HTMLElement {
           display: none;
         }
         
+        login-page .note {
+          font-size: 12px;
+          margin: 6px 0;
+        }
+        
+        login-page .note a {
+          font-size: 12px;
+          margin: 6px 0;
+          color: inherit;
+        }
+        
         login-page .inputGroup {
           display: flex;
           flex-direction: row;
@@ -56,6 +67,10 @@ class LoginPage extends HTMLElement {
       </style>
       <div class="activateSession hidden">
         <h3>Aktiválás</h3>
+        <div class="note">
+          Kérlek add meg az aktiváló kódot amit e-mailben kaptál. Ellenőrizd a levélszemét mappában is, ha nem találod.<br />
+          Amennyiben nem kaptál e-mailt <a href="/logout">kattints ide a kilépéshez</a>.
+        </div>
         <div class="inputGroup">
           <input type="text" maxlength="6" placeholder="Belépő kód" class="input" />
           <button type="button" class="button">
@@ -65,6 +80,9 @@ class LoginPage extends HTMLElement {
       </div>
       <div class="createSession hidden">
         <h3>Bejelentkezés</h3>
+        <div class="note">
+          Kérlek add meg az e-mail címed a belépéshez.
+        </div>
         <div class="inputGroup">
           <input type="email" placeholder="Email cím" class="input" name="email" />
           <button type="button" class="button">

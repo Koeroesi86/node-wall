@@ -148,6 +148,8 @@ process.on('message', async event => {
         const verifyUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login/email`);
         verifyUrl.searchParams.set('code', session.secret);
         verifyUrl.searchParams.set('session', session.id);
+        const activateUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login`);
+        activateUrl.searchParams.set('session', session.id);
         transporter.sendMail({
           from: process.env.NODEMAILER_USER || 'sender@example.com',
           to: payload.value,
@@ -156,6 +158,7 @@ process.on('message', async event => {
           html: verifyLoginTemplate({
             title: 'Bejelentkezés',
             code: session.secret,
+            activateUrl: activateUrl.toString(),
             verifyUrl: verifyUrl.toString(),
           }),
         }, (err, info) => {

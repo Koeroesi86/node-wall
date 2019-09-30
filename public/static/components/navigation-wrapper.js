@@ -31,6 +31,8 @@ class NavigationWrapper extends HTMLElement {
         navigation-wrapper a.current{
           color: #fff;
           background: rgba(255, 255, 255, .1);
+          cursor: pointer;
+          outline: 0;
         }
         
         navigation-wrapper .user span,
@@ -141,67 +143,87 @@ class NavigationWrapper extends HTMLElement {
       if (request.readyState === 4) {
         if (request.status === 200) {
           const userInfo = JSON.parse(request.responseText);
-          if (userInfo.user && userInfo.session.status === 'active') {
+          if (userInfo.user) {
             const userName = userInfo.user.name ? userInfo.user.name : 'Névtelen idegen';
-
             this.userPanel.classList.remove('hidden');
-            if (userInfo.user.role === 'admin') {
-              this.userPanel.innerHTML += `
+
+            if (userInfo.session.status === 'active') {
+              if (userInfo.user.role === 'admin') {
+                this.userPanel.innerHTML += `
                 <a href="/moderation">
                   <i class="fas fa-dungeon"></i>
                   <span>Moderáció</span>
                 </a>
               `;
+              }
+
+              this.userPanel.innerHTML += `
+                <a title="Bejelentkezve mint ${userName}" class="userNameWrapper" tabindex="0">
+                  <i class="far fa-user"></i>
+                  <span>
+                    ${userName}
+                  </span>
+                  <div class="renameUserWrapper hidden" tabindex="0">
+                    <input type="text" value="${userInfo.user.name || ''}" name="name" class="name" placeholder="Megjelenítendő név" />
+                    <button type="button" class="button">
+                      Mentés
+                    </button>
+                  </div>
+                </a>
+              `;
+
+              setTimeout(() => {
+                const userNameWrapper = this.userPanel.querySelector('.userNameWrapper');
+                const renameUserWrapper = this.userPanel.querySelector('.renameUserWrapper');
+                const renameInput = renameUserWrapper.querySelector('.name');
+                userNameWrapper.addEventListener('click', e => {
+                  e.stopPropagation();
+                  e.preventDefault();
+
+                  renameUserWrapper.classList.toggle('hidden');
+                });
+                userNameWrapper.addEventListener('focusout', e => {
+                  e.stopPropagation();
+                  e.preventDefault();
+
+                  if (userNameWrapper !== e.relatedTarget && !userNameWrapper.contains(e.relatedTarget)) {
+                    renameUserWrapper.classList.add('hidden');
+                  }
+                }, false);
+                renameUserWrapper.addEventListener('click', e => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                });
+                renameUserWrapper.querySelector('.button').addEventListener('click', e => {
+                  e.stopPropagation();
+                  e.preventDefault();
+
+                  this.renameUser(renameInput.value);
+                });
+              }, 10);
+            } else if (userInfo.session.status === 'pending') {
+              if (window.location.pathname !== '/login') {
+                window.location.replace(`/login?session=${userInfo.session.id}`);
+              }
+              this.userPanel.innerHTML = `
+                <a href="/login?session=${userInfo.session.id}" title="Bejelentkezés véglegesítése" class="login">
+                  <i class="far fa-user"></i>
+                  <span>Bejelentkezés</span>
+                </a>
+              `;
             }
 
             this.userPanel.innerHTML += `
-              <a href="javascript:void(0);" title="Bejelentkezve mint ${userName}" class="userNameWrapper">
-                <i class="far fa-user"></i>
-                <span>
-                  ${userName}
-                </span>
-                <div class="renameUserWrapper hidden" tabindex="0">
-                  <input type="text" value="${userInfo.user.name || ''}" name="name" class="name" placeholder="Megjelenítendő név" />
-                  <button type="button" class="button">
-                    Mentés
-                  </button>
-                </div>
-              </a>
               <a href="/logout">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Kijelentkezés</span>
               </a>
             `;
 
-            const currentUrlLink = this.querySelector(`a[href="${window.location.pathname}"]`);
+            const currentUrlLink = this.querySelector(`a[href^="${window.location.pathname}"]`);
             if (currentUrlLink) {
               currentUrlLink.classList.add('current')
             }
-
-            const userNameWrapper = this.querySelector('.userNameWrapper');
-            const renameUserWrapper = this.querySelector('.renameUserWrapper');
-            userNameWrapper.addEventListener('click', e => {
-              e.stopPropagation();
-              e.preventDefault();
-
-              renameUserWrapper.classList.toggle('hidden');
-            });
-            userNameWrapper.addEventListener('focusout', e => {
-              if (!userNameWrapper.contains(e.relatedTarget)) {
-                renameUserWrapper.classList.add('hidden');
-              }
-            }, false);
-            renameUserWrapper.addEventListener('click', e => {
-              e.stopPropagation();
-              e.preventDefault();
-            });
-            const renameInput = renameUserWrapper.querySelector('.name');
-            renameUserWrapper.querySelector('.button').addEventListener('click', e => {
-              e.stopPropagation();
-              e.preventDefault();
-
-              this.renameUser(renameInput.value);
-            });
           }
         }
 
