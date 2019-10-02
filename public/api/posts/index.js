@@ -53,7 +53,7 @@ process.on('message', async event => {
 
         if (payload.status === 'public') {
           let content = await getData(id, 'post');
-          const tagMatches = matchAll(content, /#([a-z0-9]+)/gi).toArray();
+          const tagMatches = matchAll(content, /#([a-z\u00C0-\u017F0-9]+)/gi).toArray();
           for (let i = 0; i < tagMatches.length; i++) {
             const tagRaw = tagMatches[i];
             const existingTag = await knex('tags').select('id', 'type').where('name', tagRaw).first();
