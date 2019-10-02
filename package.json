@@ -22,6 +22,6 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "@koeroesi86/node-webserver": "^19.9.44-ccd7ac3"
+    "@koeroesi86/node-webserver": "^19.10.45-37ee550"
   }
 }
