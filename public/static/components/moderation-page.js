@@ -115,23 +115,25 @@ class ModerationPage extends HTMLElement {
           }
 
           const newTags = [...post.content.matchAll(/#[a-z0-9]+/gi)].map(m => m[0]);
-          this.pendingPostsContainer.innerHTML += `
-            <div class="postModerationWrapper" post-id="${post.id}">
-              <post-preview post-id="${post.id}" created="${post.created_at}"${post.owner ? ` owner="${post.owner}"` : ''}>${post.content}</post-preview>
-              ${newTags.length > 0 ? `
-              <div class="newTags">
-                <div  class="newTagsNote">Ezek az új tagek kerülnek hozzáadásra:</div>
-                <div class="newTagsList">
-                  ${newTags.map(t => `<div class="newTagsItem">${t}</div>`).join('')}
-                </div>
-              </div>
-              ` : ''}
-              <div class="buttonsWrapper">
-                <button type="button" class="button approve">Engedélyezés</button>
-                <button type="button" class="button disapprove">Elutasítás</button>
+          const postModerationWrapper = document.createElement('div');
+          postModerationWrapper.classList.add('postModerationWrapper');
+          postModerationWrapper.setAttribute('post-id', post.id);
+          postModerationWrapper.innerHTML = `
+            <post-preview post-id="${post.id}" created="${post.created_at}"${post.owner ? ` owner="${post.owner}"` : ''}>${post.content}</post-preview>
+            ${newTags.length > 0 ? `
+            <div class="newTags">
+              <div  class="newTagsNote">Ezek az új tagek kerülnek hozzáadásra:</div>
+              <div class="newTagsList">
+                ${newTags.map(t => `<div class="newTagsItem">${t}</div>`).join('')}
               </div>
             </div>
+            ` : ''}
+            <div class="buttonsWrapper">
+              <button type="button" class="button approve">Engedélyezés</button>
+              <button type="button" class="button disapprove">Elutasítás</button>
+            </div>
           `;
+          this.pendingPostsContainer.appendChild(postModerationWrapper);
         });
 
         [...this.pendingPostsContainer.querySelectorAll('.postModerationWrapper .approve')].forEach(approveButton => {
