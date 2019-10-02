@@ -114,7 +114,7 @@ class ModerationPage extends HTMLElement {
             return;
           }
 
-          const newTags = [...post.content.matchAll(/#[a-z0-9]+/gi)].map(m => m[0]);
+          const newTags = [...post.content.matchAll(/#[a-z\u00C0-\u017F0-9]+/gi)].map(m => m[0]);
           const postModerationWrapper = document.createElement('div');
           postModerationWrapper.classList.add('postModerationWrapper');
           postModerationWrapper.setAttribute('post-id', post.id);
