@@ -101,39 +101,58 @@ process.on('message', async event => {
     }
 
     if (httpMethod === 'GET') {
-      if (event.pathFragments.length === 3 && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(event.pathFragments[2])) {
-        const post = await knex('posts').select('id', 'owner', 'type', 'status', 'created_at').where('id', event.pathFragments[2]).first();
+      if (event.pathFragments.length === 3) {
+        if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(event.pathFragments[2])) {
+          const post = await knex('posts').select('id', 'owner', 'type', 'status', 'created_at').where('id', event.pathFragments[2]).first();
 
-        if (!post) {
+          if (!post) {
+            return process.send({
+              statusCode: 404,
+              headers: getResponseHeaders(),
+              body: JSON.stringify({}, null, 2),
+              isBase64Encoded: false,
+            });
+          }
+
+          if (post.status !== 'public' && (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role)))) {
+            return process.send({
+              statusCode: 401,
+              headers: getResponseHeaders(),
+              body: JSON.stringify({}, null, 2),
+              isBase64Encoded: false,
+            });
+          }
+
           return process.send({
-            statusCode: 404,
+            statusCode: 200,
             headers: getResponseHeaders(),
-            body: JSON.stringify({}, null, 2),
+            body: JSON.stringify({
+              id: post.id,
+              type: post.type,
+              content: await getData(post.id, post.type),
+              created_at: post.created_at,
+              owner: post.owner ? await knex('users').select('name', 'id').where('id', post.owner).first() : null,
+              tags: await knex('posts_tags')
+                .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
+                .where('posts_tags.post_id', post.id)
+                .select('tags.id', 'tags.name', 'tags.type')
+            }, null, 2),
             isBase64Encoded: false,
           });
         }
 
-        if (post.status !== 'public' && (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role)))) {
+        if (event.pathFragments[2] === 'bounds') {
+          const bounds = {
+            oldest: (await knex('posts').where('status', 'public').min('created_at as c').first() || { c: null }).c,
+            newest: (await knex('posts').where('status', 'public').max('created_at as c').first() || { c: null }).c,
+          };
           return process.send({
-            statusCode: 401,
+            statusCode: 200,
             headers: getResponseHeaders(),
-            body: JSON.stringify({}, null, 2),
+            body: JSON.stringify(bounds, null, 2),
             isBase64Encoded: false,
           });
         }
-
-        return process.send({
-          statusCode: 200,
-          headers: getResponseHeaders(),
-          body: JSON.stringify({
-            id: post.id,
-            type: post.type,
-            content: await getData(post.id, post.type),
-            created_at: post.created_at,
-            owner: post.owner || null,
-          }, null, 2),
-          isBase64Encoded: false,
-        });
       }
 
       let status = 'public';
@@ -148,18 +167,38 @@ process.on('message', async event => {
 
       if (event.path.indexOf('/api/posts') === 0) {
         // TODO: add infinite scrolling
-        const posts = await knex
+        const postsPromise = knex
           .select('id', 'owner', 'type', 'created_at')
           .from('posts')
           .orderBy('created_at', 'desc')
-          .where('status', status)
-          .limit(10).offset(0);
+          .where('status', status);
+          // .limit(10).offset(0);
+
+
+
+        if  (event.queryStringParameters) {
+          const { before, since } = event.queryStringParameters;
+
+          if (before) {
+            postsPromise.where('created_at', '<', before);
+          }
+
+          if (since) {
+            postsPromise.where('created_at', '>=', since);
+          }
+        }
+
+        const posts = await postsPromise;
         const postsToRender = await Promise.all(posts.map(async post => ({
           id: post.id,
           type: post.type,
           content: await getData(post.id, post.type),
           created_at: post.created_at,
-          owner: post.owner || null,
+          owner: post.owner ? await knex('users').select('name', 'id').where('id', post.owner).first() : null,
+          tags: await knex('posts_tags')
+            .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
+            .where('posts_tags.post_id', post.id)
+            .select('tags.id', 'tags.name', 'tags.type')
         })));
 
         process.send({

@@ -2,15 +2,23 @@ class PostList extends HTMLElement {
   constructor() {
     super();
 
-    this.refresh = this.refresh.bind(this);
+    this.latest = null;
+    this.since = null;
+    this.oldest = null;
+    this.newest = null;
+    this.loadMoreInterval = 60 * 60 * 1000;
+    this.loadMore = this.loadMore.bind(this);
+    this.getBounds = this.getBounds.bind(this);
   }
 
   connectedCallback() {
     this.innerHTML += `
       <style type="text/css">
         post-list {
+          position: relative;
           display: block;
           padding: 12px 6px;
+          overflow: auto;
         }
 
         post-list > div.loading {
@@ -18,39 +26,92 @@ class PostList extends HTMLElement {
           text-align: center;
           font-size: 12px;
         }
+        
+        post-list > .end {
+          height: 0;
+          width: 100%;
+        }
 
         post-list > div.loading.visible {
           display: block;
         }
       </style>
       <div class="loading">Frissítés...</div>
+      <div class="end"></div>
     `;
+    this.endNode = this.querySelector('.end');
     this.loading = this.querySelector('.loading');
-    this.refresh();
+    this._isLoading = false;
+    this.addEventListener('scroll', e => {
+      if (!this._isLoading) this.loadMore();
+    }, false);
+    this.getBounds();
   }
 
-  refresh() {
-    this.loading.classList.add('visible');
+  getBounds() {
     const request = new XMLHttpRequest();
     request.onreadystatechange = e => {
       if (request.readyState === 4 && request.status === 200) {
-        this.loading.classList.remove('visible');
-        const posts = JSON.parse(request.responseText);
-        posts.forEach(post => {
-          if (this.querySelector(`[post-id="${post.id}"]`)) {
-            return;
-          }
+        const bounds = JSON.parse(request.responseText);
 
-          const postPreview = document.createElement('post-preview');
-          postPreview.setAttribute('created', post.created_at);
-          postPreview.setAttribute('post-id', post.id);
-          if (post.owner) postPreview.setAttribute('owner', post.owner);
-          postPreview.innerHTML = post.content;
-          this.appendChild(postPreview);
-        });
+        this.oldest = bounds.oldest;
+        this.newest = bounds.newest;
+        this.loadMore();
       }
     };
-    request.open("GET", "/api/posts", true);
+    request.open("GET", `/api/posts/bounds`, true);
+    request.send();
+  }
+
+  loadMore() {
+    const bottomEdge = this.scrollTop + this.clientHeight;
+    const endTop = this.endNode.offsetTop;
+
+    if (this.since && this.since < this.oldest) {
+      return;
+    }
+    if (endTop > bottomEdge) {
+      return;
+    }
+    let latest;
+    if (!this.latest) {
+      this.latest = Date.now();
+      latest = this.latest;
+    } else {
+      latest = this.since;
+    }
+    this.since = latest - this.loadMoreInterval;
+
+    this._isLoading = true;
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = e => {
+      if (request.readyState === 4) {
+        this._isLoading = false;
+        if (request.status === 200) {
+          const posts = JSON.parse(request.responseText);
+
+          posts.forEach(post => {
+            if (this.querySelector(`[post-id="${post.id}"]`)) {
+              return;
+            }
+
+            const postPreview = document.createElement('post-preview');
+            postPreview.setAttribute('created', post.created_at);
+            postPreview.setAttribute('post-id', post.id);
+            if (post.owner) {
+              postPreview.setAttribute('owner-id', post.owner.id);
+              postPreview.setAttribute('owner-name', post.owner.name);
+            }
+            postPreview.tags = post.tags;
+            postPreview.innerHTML = post.content;
+            this.insertBefore(postPreview, this.endNode);
+          });
+        }
+
+        this.loadMore();
+      }
+    };
+    request.open("GET", `/api/posts?before=${latest}&since=${this.since}`, true);
     request.send();
   }
 }

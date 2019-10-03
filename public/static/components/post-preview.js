@@ -1,6 +1,7 @@
 class PostPreview extends HTMLElement {
   constructor() {
     super();
+    this.tags = [];
     this.getTag = this.getTag.bind(this);
     this.checkOwner = this.checkOwner.bind(this);
   }
@@ -67,6 +68,9 @@ class PostPreview extends HTMLElement {
   parseContent() {
     let content = this.content;
     content = content.split('\n').map(line => `<div>${line || '&nbsp;'}</div>`).join('');
+    this.tags.forEach(tag => {
+      content = content.replace(`#!${tag.id}`, `<span tag-id="${tag.id}" title="${tag.name}">#${tag.name}</span>`)
+    });
     const matches = [...content.matchAll(/#!([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/gi)];
     if (matches) {
       this.classList.add('loading');
@@ -108,23 +112,10 @@ class PostPreview extends HTMLElement {
   }
 
   checkOwner() {
-    const id = this.getAttribute('owner');
-    if (!id) return;
-    const request = new XMLHttpRequest();
-    request.onreadystatechange = e => {
-      if (request.readyState === 4) {
-        if (request.status === 200) {
-          const user = JSON.parse(request.responseText);
-          if (user) {
-            const owner = this.querySelector('.owner');
-            owner.innerText = `Beküldő: ${user.name}`;
-            owner.setAttribute('title', user.name)
-          }
-        }
-      }
-    };
-    request.open("GET", `/api/user/${id}`, true);
-    request.send();
+    const ownerName = this.getAttribute('owner-name');
+    if (!ownerName) return;
+    const owner = this.querySelector('.owner');
+    owner.innerText = `Beküldő: ${ownerName}`;
   }
 }
 

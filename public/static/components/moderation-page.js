@@ -119,7 +119,11 @@ class ModerationPage extends HTMLElement {
           postModerationWrapper.classList.add('postModerationWrapper');
           postModerationWrapper.setAttribute('post-id', post.id);
           postModerationWrapper.innerHTML = `
-            <post-preview post-id="${post.id}" created="${post.created_at}"${post.owner ? ` owner="${post.owner}"` : ''}>${post.content}</post-preview>
+            <post-preview
+              post-id="${post.id}"
+              created="${post.created_at}"
+            ${post.owner ? ` owner-id="${post.owner.id}" owner-name="${post.owner.name}"` : ''}
+            >${post.content}</post-preview>
             ${newTags.length > 0 ? `
             <div class="newTags">
               <div  class="newTagsNote">Ezek az új tagek kerülnek hozzáadásra:</div>
@@ -133,6 +137,8 @@ class ModerationPage extends HTMLElement {
               <button type="button" class="button disapprove">Elutasítás</button>
             </div>
           `;
+          const postPreview = postModerationWrapper.querySelector('post-preview');
+          postPreview.tags = post.tags;
           this.pendingPostsContainer.appendChild(postModerationWrapper);
         });
 
