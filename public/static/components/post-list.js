@@ -6,7 +6,7 @@ class PostList extends HTMLElement {
     this.since = null;
     this.oldest = null;
     this.newest = null;
-    this.loadMoreInterval = 60 * 60 * 1000;
+    this.loadMoreInterval = 6 * 60 * 60 * 1000;
     this.loadMore = this.loadMore.bind(this);
     this.getBounds = this.getBounds.bind(this);
   }
@@ -20,27 +20,31 @@ class PostList extends HTMLElement {
           padding: 12px 6px;
           overflow: auto;
         }
-
-        post-list > div.loading {
-          display: none;
-          text-align: center;
-          font-size: 12px;
-        }
         
         post-list > .end {
           height: 0;
           width: 100%;
         }
 
-        post-list > div.loading.visible {
+        post-list > .end.loading {
+          height: auto;
+        }
+
+        post-list > .end.loading .indicator {
           display: block;
         }
+
+        post-list > .end .indicator {
+          display: none;
+          text-align: center;
+          font-size: 12px;
+        }
       </style>
-      <div class="loading">Frissítés...</div>
-      <div class="end"></div>
+      <div class="end">
+        <div class="indicator">Betöltés...</div>
+      </div>
     `;
     this.endNode = this.querySelector('.end');
-    this.loading = this.querySelector('.loading');
     this._isLoading = false;
     this.addEventListener('scroll', e => {
       if (!this._isLoading) this.loadMore();
@@ -82,11 +86,13 @@ class PostList extends HTMLElement {
     }
     this.since = latest - this.loadMoreInterval;
 
+    this.endNode.classList.add('loading');
     this._isLoading = true;
     const request = new XMLHttpRequest();
     request.onreadystatechange = e => {
       if (request.readyState === 4) {
         this._isLoading = false;
+        this.endNode.classList.remove('loading');
         if (request.status === 200) {
           const posts = JSON.parse(request.responseText);
 
