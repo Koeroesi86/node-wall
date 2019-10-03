@@ -112,10 +112,11 @@ class PostPreview extends HTMLElement {
   }
 
   checkOwner() {
+    const ownerId = this.getAttribute('owner-id');
+    if (!ownerId) return;
     const ownerName = this.getAttribute('owner-name');
-    if (!ownerName) return;
     const owner = this.querySelector('.owner');
-    owner.innerText = `Beküldő: ${ownerName}`;
+    owner.innerText = `Beküldő: ${ownerName && ownerName !== 'null' ? ownerName : 'Névtelen idegen'}`;
   }
 }
 
