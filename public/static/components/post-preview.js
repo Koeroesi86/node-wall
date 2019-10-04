@@ -8,7 +8,7 @@ function linkify(content = '') {
 
   result = result.replace(
     /(^|[^\/])(www\.[\S]+(\b|$))/gim,
-    '<a target="_blank" href="$1">$1</a>'
+    '$1<a target="_blank" href="http://$2">$2</a>'
   );
 
   return result;
