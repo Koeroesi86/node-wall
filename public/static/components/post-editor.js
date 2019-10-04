@@ -64,6 +64,7 @@ class PostEditor extends HTMLElement {
           transition: all .2s ease-in-out;
         }
 
+        post-editor.hasContent .postEditorInput,
         post-editor .postEditorInput:focus {
          min-height: 75px;
         }
@@ -87,6 +88,15 @@ class PostEditor extends HTMLElement {
 
     this.editor.addEventListener('input', e => {
       this.checkEmpty();
+    }, false);
+    this.editor.addEventListener('paste', e => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      let clipboardData = e.clipboardData || window.clipboardData;
+      let pastedData = clipboardData.getData('Text');
+
+      document.execCommand('insertText', false, pastedData);
     }, false);
 
     this.tributeMultipleTriggers = new Tribute({
@@ -164,9 +174,11 @@ class PostEditor extends HTMLElement {
   checkEmpty() {
     if (this.editor.innerHTML.trim().length > 0) {
       this.placeholder.classList.add('hidden');
+      this.classList.add('hasContent');
     } else {
       this.placeholder.innerHTML = this.getAttribute('placeholder');
       this.placeholder.classList.remove('hidden');
+      this.classList.remove('hasContent');
     }
   }
 }

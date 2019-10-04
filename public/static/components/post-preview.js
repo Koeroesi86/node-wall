@@ -1,3 +1,19 @@
+function linkify(content = '') {
+  let result = content;
+
+  result = result.replace(
+    /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/igm,
+    '<a target="_blank" href="$1">$1</a>'
+  );
+
+  result = result.replace(
+    /(^|[^\/])(www\.[\S]+(\b|$))/gim,
+    '<a target="_blank" href="$1">$1</a>'
+  );
+
+  return result;
+}
+
 class PostPreview extends HTMLElement {
   constructor() {
     super();
@@ -52,6 +68,10 @@ class PostPreview extends HTMLElement {
         post-preview .loadingIndicator {
           display: none;
         }
+        
+        post-preview a {
+          color: inherit;
+        }
       </style>
       <div class="loadingIndicator">Betöltés...</div>
       <div class="content"></div>
@@ -67,6 +87,7 @@ class PostPreview extends HTMLElement {
 
   parseContent() {
     let content = this.content;
+    content = linkify(content);
     content = content.split('\n').map(line => `<div>${line || '&nbsp;'}</div>`).join('');
     this.tags.forEach(tag => {
       content = content.replace(`#!${tag.id}`, `<span tag-id="${tag.id}" title="${tag.name}">#${tag.name}</span>`)

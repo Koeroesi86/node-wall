@@ -24,12 +24,24 @@ class ComposePost extends HTMLElement {
           cursor: pointer;
         }
 
-        compose-post .send[disabled] {
+        compose-post.sending .send {
           opacity: 0.6;
+        }
+        
+        compose-post.sending .send .toSend,
+        compose-post .send .inProgress {
+          display: none;
+        }
+        
+        compose-post.sending .send .inProgress {
+          display: inline;
         }
       </style>
       <post-editor placeholder="Min jár a fejed?"></post-editor>
-      <button class="send" type="button">Küldés</button>
+      <button class="send" type="button">
+        <span class="toSend">Küldés</span>
+        <span class="inProgress">Küldés folyamatban...</span>
+      </button>
     `;
 
     this.innerHTML += innerHTML;
@@ -39,8 +51,21 @@ class ComposePost extends HTMLElement {
 
     this.button.addEventListener('click', e => {
       const message = this.editor.value;
-      this.dispatchEvent(new SendMessageEvent(message));
-      this.editor.value = '';
+      if (message && message.length > 0) {
+        this.classList.add('sending');
+        const request = new XMLHttpRequest();
+        request.onreadystatechange  = e => {
+          if (request.readyState === 4 && request.status === 200) {
+            this.editor.value = '';
+            this.classList.remove('sending');
+          }
+        };
+        request.onerror = () => {
+        };
+        request.open("POST", "/api/posts", true);
+        request.setRequestHeader('Content-Type', 'application/json');
+        request.send(JSON.stringify({ content: message }));
+      }
     });
   }
 }
