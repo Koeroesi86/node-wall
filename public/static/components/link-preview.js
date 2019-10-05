@@ -121,7 +121,7 @@ class LinkPreview extends HTMLAnchorElement {
     };
     request.onerror = () => {
     };
-    request.open('GET', `/api/link?uri=${href}`, true);
+    request.open('GET', `/api/link?uri=${encodeURIComponent(href)}`, true);
     request.setRequestHeader('Content-Type', 'application/json');
     request.send();
   }
