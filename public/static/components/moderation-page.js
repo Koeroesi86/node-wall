@@ -121,11 +121,13 @@ class ModerationPage extends HTMLElement {
         this.pendingPostsLoading.classList.add('hidden');
         const posts = JSON.parse(request.responseText);
         if (posts.length === 0) {
-          this.pendingPostsContainer.innerHTML += `
-            <div class="noPostsMessage">
-              Jelenleg nincs moderációra váró bejegyzés.
-            </div>
-          `
+          if (!this._initialized) {
+            this.pendingPostsContainer.innerHTML += `
+              <div class="noPostsMessage">
+                Jelenleg nincs moderációra váró bejegyzés.
+              </div>
+            `
+          }
         } else {
           const noPostsMessage = this.querySelector('.noPostsMessage');
           if (noPostsMessage) {
