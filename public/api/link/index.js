@@ -29,9 +29,15 @@ process.on('message', async event => {
         const { uri } = event.queryStringParameters;
         if (!uri) throw new Error('No uri specified');
 
+        let url = uri;
+
+        if (/^http:/.test(url)) {
+          url = url.replace(/^http:/, 'https:');
+        }
+
         const response = await axios({
           method: 'get',
-          url: uri,
+          url: url,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.93 Safari/537.36 Vivaldi/2.8.1664.40',
           }
@@ -84,7 +90,7 @@ process.on('message', async event => {
             title,
             description,
             image,
-            url: uri,
+            url,
             embedCode,
             // headers,
             // headers: response.headers,
