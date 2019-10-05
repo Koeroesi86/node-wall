@@ -142,10 +142,11 @@ process.on('message', async event => {
         }
 
         if (event.pathFragments[2] === 'bounds') {
-          const bounds = {
-            oldest: (await knex('posts').where('status', 'public').min('created_at as c').first() || { c: null }).c,
-            newest: (await knex('posts').where('status', 'public').max('created_at as c').first() || { c: null }).c,
-          };
+          const bounds = (await knex('posts')
+            .where('status', 'public')
+            .min('created_at as oldest')
+            .max('created_at as newest')
+            .first()) || { oldest: null, newest: null };
           return process.send({
             statusCode: 200,
             headers: getResponseHeaders(),
@@ -166,15 +167,11 @@ process.on('message', async event => {
       }
 
       if (event.path.indexOf('/api/posts') === 0) {
-        // TODO: add infinite scrolling
         const postsPromise = knex
           .select('id', 'owner', 'type', 'created_at')
           .from('posts')
           .orderBy('created_at', 'desc')
           .where('status', status);
-          // .limit(10).offset(0);
-
-
 
         if  (event.queryStringParameters) {
           const { before, since } = event.queryStringParameters;
@@ -201,7 +198,7 @@ process.on('message', async event => {
             .select('tags.id', 'tags.name', 'tags.type')
         })));
 
-        process.send({
+        return process.send({
           statusCode: 200,
           headers: getResponseHeaders(),
           body: JSON.stringify(postsToRender, null, 2),
