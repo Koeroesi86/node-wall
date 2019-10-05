@@ -3,12 +3,12 @@ function linkify(content = '') {
 
   result = result.replace(
     /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/igm,
-    '<a target="_blank" href="$1">$1</a>'
+    '<a is="link-preview" href="$1"></a>'
   );
 
   result = result.replace(
     /(^|[^\/])(www\.[\S]+(\b|$))/gim,
-    '$1<a target="_blank" href="http://$2">$2</a>'
+    '$1<a is="link-preview" href="http://$2"></a>'
   );
 
   return result;
