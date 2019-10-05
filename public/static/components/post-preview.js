@@ -8,7 +8,7 @@ function linkify(content = '') {
 
   result = result.replace(
     /(^|[^\/])(www\.[\S]+(\b|$))/gim,
-    '$1<a is="link-preview" href="http://$2"></a>'
+    '$1<a is="link-preview" href="https://$2"></a>'
   );
 
   return result;
