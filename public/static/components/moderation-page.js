@@ -1,10 +1,20 @@
 class ModerationPage extends HTMLElement {
+  constructor() {
+    super();
+
+    this.getPosts = this.getPosts.bind(this);
+  }
+
   connectedCallback() {
     this.innerHTML += `
       <style type="text/css">
         moderation-page {
           display: block;
           padding: 0 20px;
+        }
+        
+        moderation-page > .notification {
+          display: none;
         }
         
         moderation-page .pendingPosts {
@@ -84,6 +94,7 @@ class ModerationPage extends HTMLElement {
           margin-right: 12px;
         }
       </style>
+      <audio src="/static/media/notification.mp3" class="notification"></audio>
       <div>
         <h3>Moderáció</h3>
         <div>
@@ -94,9 +105,16 @@ class ModerationPage extends HTMLElement {
         </div>
       </div>
     `;
+
+    this.notificationNode = this.querySelector('.notification');
     this.pendingPostsContainer = this.querySelector('.pendingPosts');
     this.pendingPostsLoading = this.querySelector('.pendingPosts .loading');
 
+    this._initialized = false;
+    this.getPosts();
+  }
+
+  getPosts() {
     const request = new XMLHttpRequest();
     request.onreadystatechange = e => {
       if (request.readyState === 4 && request.status === 200) {
@@ -104,11 +122,17 @@ class ModerationPage extends HTMLElement {
         const posts = JSON.parse(request.responseText);
         if (posts.length === 0) {
           this.pendingPostsContainer.innerHTML += `
-            <div>
+            <div class="noPostsMessage">
               Jelenleg nincs moderációra váró bejegyzés.
             </div>
           `
+        } else {
+          const noPostsMessage = this.querySelector('.noPostsMessage');
+          if (noPostsMessage) {
+            noPostsMessage.remove();
+          }
         }
+        const lengthBefore = this.pendingPostsContainer.querySelectorAll('.postModerationWrapper').length;
         posts.forEach(post => {
           if (this.pendingPostsContainer.querySelector(`[post-id="${post.id}"]`)) {
             return;
@@ -161,6 +185,15 @@ class ModerationPage extends HTMLElement {
             this.setPostStatus(postId, 'moderated')
           });
         });
+
+        const lengthAfter = this.pendingPostsContainer.querySelectorAll('.postModerationWrapper').length;
+        if (this._initialized && lengthBefore !== lengthAfter) {
+          this.notificationNode.play();
+        }
+        this._initialized = true;
+        setTimeout(() => {
+          this.getPosts();
+        }, 5 * 1000);
       }
     };
     request.open("GET", "/api/posts?status=pending", true);
