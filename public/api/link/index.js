@@ -33,7 +33,7 @@ module.exports = async (event, callback) => {
         if (!/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(post)) throw new Error('Invalid post id');
 
         const postContent = await getData(post, 'post');
-        if (!(postContent || '').includes(uri)) throw new Error('Uri not present in post.');
+        if (!(postContent || '').includes(uri.replace(/^https?:\/\//, ''))) throw new Error('Uri not present in post.');
 
         let url = uri;
 
