@@ -98,7 +98,8 @@ class LinkPreview extends HTMLAnchorElement {
 
   fetchLink() {
     const href = this.getAttribute('href');
-    if (!href) return;
+    const postId = this.getAttribute('post-id');
+    if (!href || !postId) return;
     const request = new XMLHttpRequest();
     request.onreadystatechange  = e => {
       if (request.readyState === 4 && request.status === 200) {
@@ -121,7 +122,7 @@ class LinkPreview extends HTMLAnchorElement {
     };
     request.onerror = () => {
     };
-    request.open('GET', `/api/link?uri=${encodeURIComponent(href)}`, true);
+    request.open('GET', `/api/link?post=${postId}&uri=${encodeURIComponent(href)}`, true);
     request.setRequestHeader('Content-Type', 'application/json');
     request.send();
   }

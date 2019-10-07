@@ -1,10 +1,11 @@
+const uuid = require('uuid/v4');
 const axios = require('axios');
 const { JSDOM } = require("jsdom");
-// const createDatabase = require('lib/utils/createDatabase');
-// const getData = require('lib/utils/getData');
-// const setData = require('lib/utils/setData');
+const createDatabase = require('lib/utils/createDatabase');
+const getData = require('lib/utils/getData');
+const setData = require('lib/utils/setData');
 
-const keepAliveTimeout = 1000; //15 * 60 * 1000;
+const keepAliveTimeout = 30 * 1000;
 const keepAliveCallback = () => {
   // console.log('shutting down due to inactivity.');
 };
@@ -22,16 +23,37 @@ module.exports = async (event, callback) => {
 
   try {
     const httpMethod = (event.httpMethod || '').toUpperCase();
+    const knex = await createDatabase();
 
     if (httpMethod === 'GET') {
       if (event.queryStringParameters) {
-        const { uri } = event.queryStringParameters;
+        const { uri, post } = event.queryStringParameters;
         if (!uri) throw new Error('No uri specified');
+        if (!post) throw new Error('No post specified');
+        if (!/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(post)) throw new Error('Invalid post id');
+
+        const postContent = await getData(post, 'post');
+        if (!(postContent || '').includes(uri)) throw new Error('Uri not present in post.');
 
         let url = uri;
 
         if (/^http:/.test(url)) {
           url = url.replace(/^http:/, 'https:');
+        }
+
+        const existingLink = await knex('links').select('id', 'created_at').where('url', url).first();
+
+        if (existingLink) {
+          const linkData = await getData(existingLink.id, 'link');
+
+          if (linkData) {
+            return callback({
+              statusCode: 200,
+              headers: getResponseHeaders(),
+              body: linkData,
+              isBase64Encoded: false,
+            });
+          }
         }
 
         const response = await axios({
@@ -77,23 +99,34 @@ module.exports = async (event, callback) => {
         let embedCode = '';
         if (/^https:\/\/www.youtube.com\/watch\?v=/.test(uri)) {
           const videoId = uri.match(/^https:\/\/www.youtube.com\/watch\?v=(.+)/)[1];
-          //?autoplay=0&fs=0&iv_load_policy=3&showinfo=0&rel=0&cc_load_policy=0&start=0&end=0&origin=https://youtubeembedcode.com
           embedCode = `<iframe src="https://www.youtube.com/embed/${videoId}"></iframe>`;
+        }
+
+        const newLinkData = {
+          'content-type': response.headers['content-type'],
+          title,
+          description,
+          image,
+          url,
+          embedCode,
+          // headers,
+          // headers: response.headers,
+        };
+
+        const postRecord = await knex('posts').select('status', 'type').where('id', post).first();
+        if (postRecord && postRecord.status === 'public') {
+          const newLinkId = uuid();
+          await knex.insert({
+            id: newLinkId,
+            url: url,
+          }).into('links');
+          await setData(newLinkId, 'link', JSON.stringify(newLinkData, null, 2));
         }
 
         return callback({
           statusCode: 200,
           headers: getResponseHeaders(),
-          body: JSON.stringify({
-            'content-type': response.headers['content-type'],
-            title,
-            description,
-            image,
-            url,
-            embedCode,
-            // headers,
-            // headers: response.headers,
-          }, null, 2),
+          body: JSON.stringify(newLinkData, null, 2),
           isBase64Encoded: false,
         });
       }

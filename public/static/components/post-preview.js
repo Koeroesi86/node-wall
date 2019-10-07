@@ -1,14 +1,14 @@
-function linkify(content = '') {
+function linkify(content = '', postId) {
   let result = content;
 
   result = result.replace(
     /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/igm,
-    '<a is="link-preview" href="$1"></a>'
+    `<a is="link-preview" href="$1" post-id="${postId}"></a>`
   );
 
   result = result.replace(
     /(^|[^\/])(www\.[\S]+(\b|$))/gim,
-    '$1<a is="link-preview" href="https://$2"></a>'
+    '$1<a is="link-preview" href="https://$2" post-id="${postId}"></a>'
   );
 
   return result;
@@ -87,7 +87,7 @@ class PostPreview extends HTMLElement {
 
   parseContent() {
     let content = this.content;
-    content = linkify(content);
+    content = linkify(content, this.getAttribute('post-id'));
     content = content.split('\n').map(line => `<div>${line || '&nbsp;'}</div>`).join('');
     this.tags.forEach(tag => {
       content = content.replace(`#!${tag.id}`, `<span tag-id="${tag.id}" title="${tag.name}">#${tag.name}</span>`)
