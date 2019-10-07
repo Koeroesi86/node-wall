@@ -5,11 +5,10 @@ const createDatabase = require('lib/utils/createDatabase');
 const keepAliveTimeout = 5000;
 const keepAliveCallback = () => {
   // console.log('shutting down due to inactivity.');
-  process.exit();
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
-process.on('message', async event => {
+module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
   const knex = await createDatabase();
@@ -23,7 +22,7 @@ process.on('message', async event => {
   }
 
   const expires = moment().subtract(1, 'year');
-  process.send({
+  callback({
     statusCode: 302,
     headers: {
       'Content-Type': 'text/html',
@@ -34,4 +33,4 @@ process.on('message', async event => {
     body: '',
     isBase64Encoded: false,
   });
-});
+};

@@ -6,7 +6,6 @@ const createDatabase = require('lib/utils/createDatabase');
 const keepAliveTimeout = 1000; //15 * 60 * 1000;
 const keepAliveCallback = () => {
   // console.log('shutting down due to inactivity.');
-  process.exit();
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 const getResponseHeaders = (headers = {}) => ({
@@ -16,7 +15,7 @@ const getResponseHeaders = (headers = {}) => ({
   ...headers,
 });
 
-process.on('message', async event => {
+module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
@@ -25,7 +24,7 @@ process.on('message', async event => {
     const httpMethod = (event.httpMethod || '').toUpperCase();
 
     if (httpMethod === 'OPTIONS') {
-      process.send({
+      callback({
         statusCode: 200,
         headers: getResponseHeaders(),
         body: '',
@@ -38,7 +37,7 @@ process.on('message', async event => {
         const tag = await knex('tags').select('id', 'name', 'type').where('id', event.pathFragments[2]).first();
 
         if (!tag) {
-          return process.send({
+          return callback({
             statusCode: 404,
             headers: getResponseHeaders(),
             body: JSON.stringify({}, null, 2),
@@ -46,7 +45,7 @@ process.on('message', async event => {
           });
         }
 
-        return process.send({
+        return callback({
           statusCode: 200,
           headers: getResponseHeaders(),
           body: JSON.stringify(tag, null, 2),
@@ -63,7 +62,7 @@ process.on('message', async event => {
       }
       const tags = await tagsPromise;
 
-      process.send({
+      callback({
         statusCode: 200,
         headers: getResponseHeaders(),
         body: JSON.stringify(tags, null, 2),
@@ -81,7 +80,7 @@ process.on('message', async event => {
         type: payload.type,
       };
       await knex.insert(tag).into('tags');
-      process.send({
+      callback({
         statusCode: 200,
         headers: getResponseHeaders(),
         body: JSON.stringify(tag, null, 2),
@@ -89,11 +88,11 @@ process.on('message', async event => {
       });
     }
   } catch (e) {
-    process.send({
+    callback({
       statusCode: 400,
       headers: getResponseHeaders(),
       body: JSON.stringify({ message: `${e}` }, null, 2),
       isBase64Encoded: false,
     });
   }
-});
+};

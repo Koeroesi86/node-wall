@@ -9,7 +9,6 @@ const getUserInfoFromSession = require('lib/utils/getUserInfoFromSession');
 const keepAliveTimeout = 1000; //15 * 60 * 1000;
 const keepAliveCallback = () => {
   // console.log('shutting down due to inactivity.');
-  process.exit();
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 const getResponseHeaders = (headers = {}) => ({
@@ -19,7 +18,7 @@ const getResponseHeaders = (headers = {}) => ({
   ...headers,
 });
 
-process.on('message', async event => {
+module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
@@ -35,7 +34,7 @@ process.on('message', async event => {
     }
 
     if (httpMethod === 'OPTIONS') {
-      process.send({
+      return callback({
         statusCode: 200,
         headers: getResponseHeaders(),
         body: '',
@@ -92,7 +91,7 @@ process.on('message', async event => {
         await knex('posts').where({ id: id }).update({ status: payload.status })
       }
 
-      process.send({
+      return callback({
         statusCode: 201,
         headers: getResponseHeaders(),
         body: '',
@@ -106,7 +105,7 @@ process.on('message', async event => {
           const post = await knex('posts').select('id', 'owner', 'type', 'status', 'created_at').where('id', event.pathFragments[2]).first();
 
           if (!post) {
-            return process.send({
+            return callback({
               statusCode: 404,
               headers: getResponseHeaders(),
               body: JSON.stringify({}, null, 2),
@@ -115,7 +114,7 @@ process.on('message', async event => {
           }
 
           if (post.status !== 'public' && (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role)))) {
-            return process.send({
+            return callback({
               statusCode: 401,
               headers: getResponseHeaders(),
               body: JSON.stringify({}, null, 2),
@@ -123,7 +122,7 @@ process.on('message', async event => {
             });
           }
 
-          return process.send({
+          return callback({
             statusCode: 200,
             headers: getResponseHeaders(),
             body: JSON.stringify({
@@ -147,7 +146,7 @@ process.on('message', async event => {
             .min('created_at as oldest')
             .max('created_at as newest')
             .first()) || { oldest: null, newest: null };
-          return process.send({
+          return callback({
             statusCode: 200,
             headers: getResponseHeaders(),
             body: JSON.stringify(bounds, null, 2),
@@ -198,7 +197,7 @@ process.on('message', async event => {
             .select('tags.id', 'tags.name', 'tags.type')
         })));
 
-        return process.send({
+        return callback({
           statusCode: 200,
           headers: getResponseHeaders(),
           body: JSON.stringify(postsToRender, null, 2),
@@ -223,7 +222,7 @@ process.on('message', async event => {
         content = content.replace(/<[^>]*>/g, ''); //strip html
         await setData(post.id, post.type, content);
         await knex.insert(post).into('posts');
-        process.send({
+        callback({
           statusCode: 200,
           headers: getResponseHeaders(),
           body: JSON.stringify(post, null, 2),
@@ -233,11 +232,11 @@ process.on('message', async event => {
     }
   } catch (e) {
     console.log(e);
-    process.send({
+    callback({
       statusCode: 400,
       headers: getResponseHeaders(),
       body: JSON.stringify({ message: `Something isn't quite right.` }),
       isBase64Encoded: false,
     });
   }
-});
+};

@@ -7,7 +7,6 @@ const { JSDOM } = require("jsdom");
 const keepAliveTimeout = 1000; //15 * 60 * 1000;
 const keepAliveCallback = () => {
   // console.log('shutting down due to inactivity.');
-  process.exit();
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 const getResponseHeaders = (headers = {}) => ({
@@ -17,7 +16,7 @@ const getResponseHeaders = (headers = {}) => ({
   ...headers,
 });
 
-process.on('message', async event => {
+module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
@@ -82,7 +81,7 @@ process.on('message', async event => {
           embedCode = `<iframe src="https://www.youtube.com/embed/${videoId}"></iframe>`;
         }
 
-        return process.send({
+        return callback({
           statusCode: 200,
           headers: getResponseHeaders(),
           body: JSON.stringify({
@@ -102,11 +101,11 @@ process.on('message', async event => {
 
     throw new Error('Not supported request');
   } catch (e) {
-    process.send({
+    callback({
       statusCode: 400,
       headers: getResponseHeaders(),
       body: JSON.stringify({ message: `${e}` }, null, 2),
       isBase64Encoded: false,
     });
   }
-});
+};

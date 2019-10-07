@@ -5,11 +5,10 @@ const getUserInfoFromSession = require('lib/utils/getUserInfoFromSession');
 const keepAliveTimeout = 10000;
 const keepAliveCallback = () => {
   // console.log('shutting down due to inactivity.');
-  process.exit();
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
-process.on('message', async event => {
+module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
   const cookiesRaw = event.headers.Cookie || event.headers.cookie || '';
@@ -21,7 +20,7 @@ process.on('message', async event => {
         const userInfo = await getUserInfoFromSession(cookies.sessionId);
 
         if (!userInfo || !['admin'].includes(userInfo.user.role)) {
-          return process.send({
+          return callback({
             statusCode: 302,
             headers: {
               'Content-Type': 'text/html',
@@ -35,7 +34,7 @@ process.on('message', async event => {
       }
     }
 
-    process.send({
+    callback({
       statusCode: 200,
       headers: {
         'Content-Type': 'text/html',
@@ -45,7 +44,7 @@ process.on('message', async event => {
       isBase64Encoded: false,
     });
   } catch (e) {
-    process.send({
+    callback({
       statusCode: 500,
       headers: {
         'Content-Type': 'text/html;charset=utf-8',
@@ -55,4 +54,4 @@ process.on('message', async event => {
       isBase64Encoded: false,
     });
   }
-});
+};

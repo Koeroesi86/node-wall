@@ -5,11 +5,10 @@ const getUserInfoFromSession = require('lib/utils/getUserInfoFromSession');
 const keepAliveTimeout = 5000;
 const keepAliveCallback = () => {
   // console.log('shutting down due to inactivity.');
-  process.exit();
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
-process.on('message', async event => {
+module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
@@ -27,7 +26,7 @@ process.on('message', async event => {
       }
     }
 
-    process.send({
+    callback({
       statusCode: 200,
       headers: {
         'Content-Type': 'text/html',
@@ -38,7 +37,7 @@ process.on('message', async event => {
     });
   } catch (e) {
     console.log(e);
-    return process.send({
+    return callback({
       statusCode: 302,
       headers: {
         'Content-Type': 'text/html',
@@ -49,4 +48,4 @@ process.on('message', async event => {
       isBase64Encoded: false,
     });
   }
-});
+};

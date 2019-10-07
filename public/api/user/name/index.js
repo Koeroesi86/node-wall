@@ -4,7 +4,6 @@ const getUserInfo = require('lib/utils/getUserInfoFromSession');
 
 const keepAliveTimeout = 5000;
 const keepAliveCallback = () => {
-  process.exit();
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 const getResponseHeaders = (headers = {}) => ({
@@ -14,7 +13,7 @@ const getResponseHeaders = (headers = {}) => ({
   ...headers,
 });
 
-process.on('message', async event => {
+module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
@@ -31,7 +30,7 @@ process.on('message', async event => {
     if (!userInfo) throw new Error('user not found for session');
 
     if (httpMethod === 'OPTIONS') {
-      process.send({
+      return callback({
         statusCode: 200,
         headers: getResponseHeaders(),
         body: '',
@@ -40,7 +39,7 @@ process.on('message', async event => {
     }
 
     if (httpMethod === 'GET') {
-      process.send({
+      return callback({
         statusCode: 200,
         headers: getResponseHeaders(),
         body: JSON.stringify({ name: userInfo.user.name }, null, 2),
@@ -56,7 +55,7 @@ process.on('message', async event => {
         .update({ name: payload.name })
         .where({ id: userInfo.user.id });
 
-      return process.send({
+      return callback({
         statusCode: 200,
         headers: getResponseHeaders(),
         body: '',
@@ -64,7 +63,7 @@ process.on('message', async event => {
       });
     }
 
-    process.send({
+    callback({
       statusCode: 400,
       headers: getResponseHeaders(),
       body: '',
@@ -72,11 +71,11 @@ process.on('message', async event => {
     });
   } catch (e) {
     console.log(e);
-    process.send({
+    callback({
       statusCode: 401,
       headers: getResponseHeaders(),
       body: '',
       isBase64Encoded: false,
     });
   }
-});
+};

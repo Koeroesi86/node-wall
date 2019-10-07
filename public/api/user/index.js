@@ -10,7 +10,6 @@ const createMailer = require('lib/utils/createMailer');
 
 const keepAliveTimeout = 5000;
 const keepAliveCallback = () => {
-  process.exit();
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 const getResponseHeaders = (headers = {}) => ({
@@ -22,7 +21,7 @@ const getResponseHeaders = (headers = {}) => ({
 
 const transporter = createMailer();
 
-process.on('message', async event => {
+module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
@@ -31,7 +30,7 @@ process.on('message', async event => {
     const httpMethod = (event.httpMethod || '').toUpperCase();
 
     if (httpMethod === 'OPTIONS') {
-      process.send({
+      callback({
         statusCode: 200,
         headers: getResponseHeaders(),
         body: '',
@@ -44,7 +43,7 @@ process.on('message', async event => {
         const user = await knex('users').select('name').where('id', event.pathFragments[2]).first();
 
         if (!user) {
-          return process.send({
+          return callback({
             statusCode: 404,
             headers: getResponseHeaders(),
             body: JSON.stringify({}, null, 2),
@@ -52,7 +51,7 @@ process.on('message', async event => {
           });
         }
 
-        return process.send({
+        return callback({
           statusCode: 200,
           headers: getResponseHeaders(),
           body: JSON.stringify(user, null, 2),
@@ -69,7 +68,7 @@ process.on('message', async event => {
 
           if (!userInfo) {
             const expires = moment().subtract(1, 'year');
-            return process.send({
+            return callback({
               statusCode: 401,
               headers: {
                 'Content-Type': 'text/html',
@@ -81,7 +80,7 @@ process.on('message', async event => {
             });
           }
 
-          return process.send({
+          return callback({
             statusCode: 200,
             headers: getResponseHeaders(),
             body: JSON.stringify(userInfo, null, 2),
@@ -90,7 +89,7 @@ process.on('message', async event => {
         }
       }
 
-      return process.send({
+      return callback({
         statusCode: 401,
         headers: {
           'Content-Type': 'text/html',
@@ -170,7 +169,7 @@ process.on('message', async event => {
 
           if (!info && err && err.responseCode > 500) {
             console.log('err', err);
-            process.send({
+            callback({
               statusCode: 400,
               headers: getResponseHeaders({}),
               body: '',
@@ -179,7 +178,7 @@ process.on('message', async event => {
           } else {
             console.log('mail sent to', payload.value);
             const expires = moment().add(1, 'year');
-            process.send({
+            callback({
               statusCode: 200,
               headers: getResponseHeaders({
                 'Set-Cookie': `sessionId=${session.id}; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`
@@ -193,11 +192,11 @@ process.on('message', async event => {
     }
   } catch (e) {
     console.log(e);
-    process.send({
+    callback({
       statusCode: 400,
       headers: getResponseHeaders(),
       body: JSON.stringify({ message: `${e}` }, null, 2),
       isBase64Encoded: false,
     });
   }
-});
+};
