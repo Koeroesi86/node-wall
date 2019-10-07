@@ -8,7 +8,7 @@ function linkify(content = '', postId) {
 
   result = result.replace(
     /(^|[^\/])(www\.[\S]+(\b|$))/gim,
-    '$1<a is="link-preview" href="https://$2" post-id="${postId}"></a>'
+    `$1<a is="link-preview" href="https://$2" post-id="${postId}"></a>`
   );
 
   return result;
