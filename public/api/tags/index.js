@@ -1,5 +1,7 @@
 const uuid = require('uuid');
 const createDatabase = require('lib/utils/createDatabase');
+const cookie = require('cookie');
+const getUserInfoFromSession = require('lib/utils/getUserInfoFromSession');
 // const getData = require('lib/utils/getData');
 // const setData = require('lib/utils/setData');
 
@@ -22,6 +24,10 @@ module.exports = async (event, callback) => {
   try {
     const knex = await createDatabase();
     const httpMethod = (event.httpMethod || '').toUpperCase();
+    const cookiesRaw = event.headers.Cookie || event.headers.cookie || '';
+    const cookies = cookie.parse(cookiesRaw);
+    let userInfo = null;
+    if (cookies.sessionId) userInfo = await getUserInfoFromSession(cookies.sessionId);
 
     if (httpMethod === 'OPTIONS') {
       callback({
@@ -72,14 +78,20 @@ module.exports = async (event, callback) => {
 
     if (httpMethod === 'POST') {
       const payload = JSON.parse(event.body);
+
       if (!payload.name) throw new Error('no name');
       if (!payload.type) throw new Error('no type');
+      if  (!userInfo) throw new Error('Not logged in');
+      if  (!['admin'].includes(userInfo.user.role)) throw new Error('Not authorized');
+
       const tag = {
         id: uuid(),
         name: payload.name,
         type: payload.type,
       };
+
       await knex.insert(tag).into('tags');
+
       callback({
         statusCode: 200,
         headers: getResponseHeaders(),

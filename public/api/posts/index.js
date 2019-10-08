@@ -218,6 +218,8 @@ module.exports = async (event, callback) => {
           owner: userInfo ? userInfo.user.id : null,
         };
         let content = payload.content;
+        content = content.trim();
+        content = content.replace(/\n{3,}/gi, '\n\n');
         content = content.replace(/&nbsp;/gi, ' ');
         content = content.replace(/<[^>]*>/g, ''); //strip html
         await setData(post.id, post.type, content);

@@ -111,6 +111,7 @@ class ModerationPage extends HTMLElement {
     this.pendingPostsLoading = this.querySelector('.pendingPosts .loading');
 
     this._initialized = false;
+    this.latest = null;
     this.getPosts();
   }
 
@@ -166,6 +167,7 @@ class ModerationPage extends HTMLElement {
           const postPreview = postModerationWrapper.querySelector('post-preview');
           postPreview.tags = post.tags;
           this.pendingPostsContainer.appendChild(postModerationWrapper);
+          if (this.latest < post.created_at) this.latest = post.created_at;
         });
 
         [...this.pendingPostsContainer.querySelectorAll('.postModerationWrapper .approve')].forEach(approveButton => {
@@ -198,7 +200,7 @@ class ModerationPage extends HTMLElement {
         }, 5 * 1000);
       }
     };
-    request.open("GET", "/api/posts?status=pending", true);
+    request.open("GET", `/api/posts?status=pending${this.latest ? `&since=${this.latest + 1}` : ''}`, true);
     request.send();
   }
 

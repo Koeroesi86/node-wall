@@ -64,6 +64,8 @@ module.exports = async (event, callback) => {
           }
         });
 
+        if (!response.headers['content-type'].includes('text/html')) throw new Error('Not yet supported type');
+
         const dom = new JSDOM(`${response.data}`);
 
         let title = dom.window.document.querySelector('head title').textContent;
