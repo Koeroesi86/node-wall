@@ -95,8 +95,11 @@ class PostPreview extends HTMLElement {
     let content = this.content;
     content = content.trim();
     content = content.replace(/\n{3,}/gi, '\n\n');
-    content = linkify(content, this.getAttribute('post-id'));
-    content = content.split('\n').map(line => `<div>${stripLine(line) || '&nbsp;'}</div>`).join('');
+    content = content.split('\n').map(line => `
+      <div>
+        ${linkify(stripLine(line), this.getAttribute('post-id')) || '&nbsp;'}
+      </div>
+    `).join('');
     this.tags.forEach(tag => {
       content = content.replace(`#!${tag.id}`, `<span tag-id="${tag.id}" title="${tag.name}">#${tag.name}</span>`)
     });
