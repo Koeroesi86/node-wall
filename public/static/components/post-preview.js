@@ -14,6 +14,12 @@ function linkify(content = '', postId) {
   return result;
 }
 
+function stripLine(line = '') {
+  const tmp = document.createElement('span');
+  tmp.innerHTML = line;
+  return tmp.innerText.replace(/&amp;nbsp;/gi, '&nbsp;');
+}
+
 class PostPreview extends HTMLElement {
   constructor() {
     super();
@@ -90,7 +96,7 @@ class PostPreview extends HTMLElement {
     content = content.trim();
     content = content.replace(/\n{3,}/gi, '\n\n');
     content = linkify(content, this.getAttribute('post-id'));
-    content = content.split('\n').map(line => `<div>${line || '&nbsp;'}</div>`).join('');
+    content = content.split('\n').map(line => `<div>${stripLine(line) || '&nbsp;'}</div>`).join('');
     this.tags.forEach(tag => {
       content = content.replace(`#!${tag.id}`, `<span tag-id="${tag.id}" title="${tag.name}">#${tag.name}</span>`)
     });
