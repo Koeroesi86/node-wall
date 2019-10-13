@@ -23,9 +23,10 @@ function stripLine(line = '') {
 class PostPreview extends HTMLElement {
   constructor() {
     super();
-    this.tags = [];
+    this._tags = [];
     this.getTag = this.getTag.bind(this);
     this.checkOwner = this.checkOwner.bind(this);
+    this.refreshTags = this.refreshTags.bind(this);
   }
 
   connectedCallback() {
@@ -58,7 +59,18 @@ class PostPreview extends HTMLElement {
         }
         
         post-preview .meta .owner {
-          padding-left: 12px;;
+          flex: 1 1 0;
+          padding-left: 12px;
+        }
+        
+        post-preview .meta .tags {
+          padding: 0 12px;
+          display: flex;
+          flex-direction: row;
+        }
+        
+        post-preview .meta .tags .tag {
+          margin-left: 6px;
         }
         
         post-preview.loading .sent,
@@ -84,11 +96,14 @@ class PostPreview extends HTMLElement {
       <div class="meta">
         <div class="sent">Küldve: ${created.toLocaleString()}</div>
         <div class="owner"></div>
+        <div class="tags"></div>
       </div>
     `;
     this.contentContainer = this.querySelector('.content');
+    this.tagsContainer = this.querySelector('.meta .tags');
     this.parseContent();
-    this.checkOwner()
+    this.checkOwner();
+    this.refreshTags();
   }
 
   parseContent() {
@@ -149,6 +164,29 @@ class PostPreview extends HTMLElement {
     const ownerName = this.getAttribute('owner-name');
     const owner = this.querySelector('.owner');
     owner.innerText = `Beküldő: ${ownerName && ownerName !== 'null' ? ownerName : 'Névtelen idegen'}`;
+  }
+
+  refreshTags() {
+    if (this.tagsContainer) {
+      this.tagsContainer.innerHTML = '';
+      this._tags.forEach(tag => {
+        const tagNode = document.createElement('div');
+        tagNode.className = 'tag';
+        tagNode.setAttribute('title', tag.name);
+        tagNode.innerHTML = `#${tag.name}`;
+
+        this.tagsContainer.appendChild(tagNode);
+      });
+    }
+  }
+
+  set tags(tags) {
+    this._tags = tags;
+    this.refreshTags();
+  }
+
+  get tags() {
+    return this._tags;
   }
 }
 

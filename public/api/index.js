@@ -20,10 +20,18 @@ let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 const getResponseHeaders = (headers = {}) => ({
   'Content-Type': 'application/json; charset=utf-8',
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, PUT, GET, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, PUT, GET, DELETE, OPTIONS',
   ...headers,
 });
 const transporter = createMailer();
+
+async function getPostTags(postId) {
+  const knex = await createDatabase();
+  return knex('posts_tags')
+    .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
+    .where('posts_tags.post_id', postId)
+    .select('tags.id', 'tags.name', 'tags.type');
+}
 
 module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
@@ -168,28 +176,31 @@ module.exports = async (event, callback) => {
       }
 
       if (httpMethod === 'GET') {
-        if (event.pathFragments.length === 3) {
-          if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(event.pathFragments[2])) {
-            const post = await knex('posts').select('id', 'owner', 'type', 'status', 'created_at').where('id', event.pathFragments[2]).first();
+        if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
+          const postId = pathFragments[2];
+          const post = await knex('posts').select('id', 'owner', 'type', 'status', 'created_at').where('id', postId).first();
 
-            if (!post) {
-              return callback({
-                statusCode: 404,
-                headers: getResponseHeaders(),
-                body: JSON.stringify({}, null, 2),
-                isBase64Encoded: false,
-              });
-            }
+          if (!post) {
+            return callback({
+              statusCode: 404,
+              headers: getResponseHeaders(),
+              body: JSON.stringify({}, null, 2),
+              isBase64Encoded: false,
+            });
+          }
 
-            if (post.status !== 'public' && (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role)))) {
-              return callback({
-                statusCode: 401,
-                headers: getResponseHeaders(),
-                body: JSON.stringify({}, null, 2),
-                isBase64Encoded: false,
-              });
-            }
+          if (post.status !== 'public' && (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role)))) {
+            return callback({
+              statusCode: 401,
+              headers: getResponseHeaders(),
+              body: JSON.stringify({}, null, 2),
+              isBase64Encoded: false,
+            });
+          }
 
+          const postTags = await getPostTags(postId);
+
+          if (pathFragments.length === 3) {
             return callback({
               statusCode: 200,
               headers: getResponseHeaders(),
@@ -199,28 +210,34 @@ module.exports = async (event, callback) => {
                 content: await getData(post.id, post.type),
                 created_at: post.created_at,
                 owner: post.owner ? await knex('users').select('name', 'id').where('id', post.owner).first() : null,
-                tags: await knex('posts_tags')
-                  .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
-                  .where('posts_tags.post_id', post.id)
-                  .select('tags.id', 'tags.name', 'tags.type')
+                tags: postTags
               }, null, 2),
               isBase64Encoded: false,
             });
           }
 
-          if (event.pathFragments[2] === 'bounds') {
-            const bounds = (await knex('posts')
-              .where('status', 'public')
-              .min('created_at as oldest')
-              .max('created_at as newest')
-              .first()) || { oldest: null, newest: null };
+          if (pathFragments.length === 4 && pathFragments[3] === 'tags') {
             return callback({
               statusCode: 200,
               headers: getResponseHeaders(),
-              body: JSON.stringify(bounds, null, 2),
+              body: JSON.stringify(postTags, null, 2),
               isBase64Encoded: false,
             });
           }
+        }
+
+        if (pathFragments[2] === 'bounds') {
+          const bounds = (await knex('posts')
+            .where('status', 'public')
+            .min('created_at as oldest')
+            .max('created_at as newest')
+            .first()) || { oldest: null, newest: null };
+          return callback({
+            statusCode: 200,
+            headers: getResponseHeaders(),
+            body: JSON.stringify(bounds, null, 2),
+            isBase64Encoded: false,
+          });
         }
 
         if (pathFragments.length === 2) {
@@ -259,10 +276,7 @@ module.exports = async (event, callback) => {
             content: await getData(post.id, post.type),
             created_at: post.created_at,
             owner: post.owner ? await knex('users').select('name', 'id').where('id', post.owner).first() : null,
-            tags: await knex('posts_tags')
-              .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
-              .where('posts_tags.post_id', post.id)
-              .select('tags.id', 'tags.name', 'tags.type')
+            tags: await getPostTags(post.id),
           })));
 
           return callback({
@@ -298,24 +312,14 @@ module.exports = async (event, callback) => {
               name: text,
               type: 'text',
             }));
-            await Promise.all(
-              newTags.map(tag => knex.insert(tag).into('tags'))
-            );
+
+            for (let i = 0; i < newTags.length; i++) {
+              await knex.insert(newTags[i]).into('tags')
+            }
+
             newTags.forEach(tag => {
               content = content.replace(`#${tag.name}`, `#!${tag.id}`);
             });
-
-            const matches = matchAll(content, /#!([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/gi).toArray();
-            for (let i = 0; i < matches.length; i++) {
-              const existing = await knex('posts_tags').select('*').where({ post_id: id, tag_id: matches[i] }).first();
-
-              if (!existing) {
-                await knex.insert({
-                  post_id: id,
-                  tag_id: matches[i],
-                }).into('posts_tags');
-              }
-            }
 
             await setData(id, 'post', content);
           }
@@ -349,12 +353,92 @@ module.exports = async (event, callback) => {
           content = content.replace(/<[^>]*>/g, ''); //strip html
           await setData(post.id, post.type, content);
           await knex.insert(post).into('posts');
-          callback({
+          return callback({
             statusCode: 200,
             headers: getResponseHeaders(),
             body: JSON.stringify(post, null, 2),
             isBase64Encoded: false,
           });
+        }
+
+        if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
+          if (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role))) {
+            return callback({
+              statusCode: 401,
+              headers: getResponseHeaders(),
+              body: '',
+              isBase64Encoded: false,
+            })
+          }
+          const postId = pathFragments[2];
+          const postTags = await knex('posts_tags')
+            .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
+            .where('posts_tags.post_id', postId)
+            .select('tags.id', 'tags.name', 'tags.type');
+          if (pathFragments[3] === 'tags') {
+            const payload = JSON.parse(event.body);
+            if (!payload.id) throw new Error('no tag id specified');
+
+            const tagId = payload.id;
+            if (postTags.find(tag => tag.id === tagId)) {
+              return callback({
+                statusCode: 400,
+                headers: getResponseHeaders(),
+                body: '',
+                isBase64Encoded: false,
+              });
+            }
+
+            await knex.insert({
+              post_id: postId,
+              tag_id: tagId,
+            }).into('posts_tags');
+
+            return callback({
+              statusCode: 200,
+              headers: getResponseHeaders(),
+              body: '',
+              isBase64Encoded: false,
+            });
+          }
+        }
+      }
+
+      if (httpMethod === 'DELETE') {
+        if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
+          const postId = pathFragments[2];
+          const postTags = await knex('posts_tags')
+            .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
+            .where('posts_tags.post_id', postId)
+            .select('tags.id', 'tags.name', 'tags.type');
+          if (pathFragments[3] === 'tags') {
+            if (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role))) {
+              return callback({
+                statusCode: 401,
+                headers: getResponseHeaders(),
+                body: '',
+                isBase64Encoded: false,
+              })
+            }
+            if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[4])) {
+              const tagId = pathFragments[4];
+              if (!postTags.find(tag => tag.id === tagId)) throw new Error('tag not assigned to post');
+
+              await knex('posts_tags')
+                .where({
+                  post_id: postId,
+                  tag_id: tagId,
+                })
+                .delete();
+
+              return callback({
+                statusCode: 200,
+                headers: getResponseHeaders(),
+                body: '',
+                isBase64Encoded: false,
+              });
+            }
+          }
         }
       }
     }
@@ -393,10 +477,14 @@ module.exports = async (event, callback) => {
 
         if (pathFragments.length === 2) {
           const tagsPromise = knex('tags').select('id', 'name', 'type');
-          //.where('type', 'text')
+
           if (queryStringParameters) {
-            if (queryStringParameters.s) {
+            if (queryStringParameters.s && !queryStringParameters.exact) {
               tagsPromise.where('name', 'like', `%${queryStringParameters.s}%`)
+            }
+
+            if (queryStringParameters.s && queryStringParameters.exact) {
+              tagsPromise.where('name', queryStringParameters.s)
             }
           }
           const tags = await tagsPromise;
@@ -439,7 +527,7 @@ module.exports = async (event, callback) => {
 
     /** @route /api/user */
     if (pathFragments[1] === 'user') {
-      if  (pathFragments.length === 2) {
+      if (pathFragments.length === 2) {
         if (httpMethod === 'POST') {
           const payload = JSON.parse(event.body);
           if (!payload.value) throw new Error('no value');

@@ -87,10 +87,11 @@ class ModerationPage extends HTMLElement {
         }
         
         moderation-page .newTagsItem {
-          display: inline-block;
+          display: inline-flex;
+          flex-direction: row;
+          align-items: center;
           background: rgba(255, 255, 255, 0.2);
-          padding: 0 6px;
-          line-height: 20px;
+          height: 20px;
           margin-right: 12px;
         }
       </style>
@@ -141,7 +142,9 @@ class ModerationPage extends HTMLElement {
             return;
           }
 
-          const newTags = [...post.content.matchAll(/#[a-z\u00C0-\u017F0-9]+/gi)].map(m => m[0]);
+          const newTags = [...post.content.matchAll(/#[a-z\u00C0-\u017F0-9]+/gi)]
+            .map(m => m[0])
+            .filter(text => !post.tags.find(t => `#${t.name}` === text));
           const postModerationWrapper = document.createElement('div');
           postModerationWrapper.classList.add('postModerationWrapper');
           postModerationWrapper.setAttribute('post-id', post.id);
@@ -153,9 +156,27 @@ class ModerationPage extends HTMLElement {
             >${post.content}</post-preview>
             ${newTags.length > 0 ? `
             <div class="newTags">
-              <div  class="newTagsNote">Ezek az új tagek kerülnek hozzáadásra:</div>
+              <div class="newTagsNote">Ajánlott új tagek:</div>
               <div class="newTagsList">
-                ${newTags.map(t => `<div class="newTagsItem">${t}</div>`).join('')}
+                ${newTags.map(t => `
+                  <div class="newTagsItem">
+                    <div class="label">${t}</div>
+                    <div class="add" title="Tag létrehozása" new-tag="${t}">
+                      <svg
+                        class="icon"
+                        enable-background="new 0 0 100 100"
+                        version="1.1"
+                        viewBox="0 0 100 100"
+                        xml:space="preserve"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <polygon
+                          points="80.2,51.6 51.4,51.6 51.4,22.6 48.9,22.6 48.9,51.6 19.9,51.6 19.9,54.1 48.9,54.1 48.9,83.1   51.4,83.1 51.4,54.1 80.4,54.1 80.4,51.6 "
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                `).join('')}
               </div>
             </div>
             ` : ''}
@@ -166,6 +187,9 @@ class ModerationPage extends HTMLElement {
           `;
           const postPreview = postModerationWrapper.querySelector('post-preview');
           postPreview.tags = post.tags;
+          post.tags.forEach(tag => {
+            tagsInput.add(tag.id, false);
+          });
           this.pendingPostsContainer.appendChild(postModerationWrapper);
           if (this.latest < post.created_at) this.latest = post.created_at;
         });
