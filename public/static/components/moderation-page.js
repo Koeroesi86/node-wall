@@ -94,6 +94,42 @@ class ModerationPage extends HTMLElement {
           height: 20px;
           margin-right: 12px;
         }
+        
+        moderation-page .newTagsItem .label {
+          padding: 0 6px;
+          line-height: 20px;
+        }
+        
+        moderation-page .newTagsItem .add {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 20px;
+          height: 100%;
+          border-left: 1px solid rgba(0, 0, 0, 0.2);
+          cursor: pointer;
+        }
+        
+        moderation-page .newTagsItem .icon {
+          width: 14px;
+          height: 14px;
+        }
+        
+        moderation-page .newTagsItem .icon polygon {
+          fill: currentColor;
+          stroke-width: 4px;
+          stroke: currentColor;
+        }
+        
+        moderation-page .addTags {
+          margin-bottom: 12px;
+        }
+        
+        moderation-page .addTags .addTagsHeading {
+          font-size: 12px;
+          padding: 3px 6px;
+          margin-bottom: 6px;
+        }
       </style>
       <audio src="/static/media/notification.mp3" class="notification"></audio>
       <div>
@@ -180,11 +216,26 @@ class ModerationPage extends HTMLElement {
               </div>
             </div>
             ` : ''}
+            <div class="addTags">
+              <div class="addTagsHeading">Tagek hozzáaadása:</div>
+              <post-tags-input post-id="${post.id}"></post-tags-input>
+            </div>
             <div class="buttonsWrapper">
               <button type="button" class="button approve">Engedélyezés</button>
               <button type="button" class="button disapprove">Elutasítás</button>
             </div>
           `;
+          const tagsInput = postModerationWrapper.querySelector('post-tags-input');
+          [...postModerationWrapper.querySelectorAll('.newTagsItem')].forEach(newTagsItem => {
+            const addElement = newTagsItem.querySelector('.add');
+            addElement.addEventListener('click', e => {
+              const newTagAttribute = addElement.getAttribute('new-tag');
+              const newTag  = newTagAttribute.match(/[a-z\u00C0-\u017F0-9]+/gi)[0];
+              tagsInput.createTag(newTag, 'text').then(() => {
+                newTagsItem.remove();
+              });
+            });
+          });
           const postPreview = postModerationWrapper.querySelector('post-preview');
           postPreview.tags = post.tags;
           post.tags.forEach(tag => {
