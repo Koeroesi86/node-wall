@@ -7,6 +7,8 @@ class PostList extends HTMLElement {
     this.oldest = null;
     this.newest = null;
     this.lastNewest = null;
+    this.likedTags = [];
+    this.dislikedTags = [];
     this.loadMoreInterval = 6 * 60 * 60 * 1000;
     this.loadMore = this.loadMore.bind(this);
     this.getBounds = this.getBounds.bind(this);
@@ -14,6 +16,10 @@ class PostList extends HTMLElement {
   }
 
   connectedCallback() {
+    const likedTags = this.getAttribute('liked-tags');
+    if (likedTags) this.likedTags = likedTags.split(',');
+    const dislikedTags = this.getAttribute('disliked-tags');
+    if (dislikedTags) this.dislikedTags = dislikedTags.split(',');
     this.innerHTML += `
       <style type="text/css">
         post-list {
@@ -169,7 +175,13 @@ class PostList extends HTMLElement {
           }
         }
       };
-      request.open("GET", `/api/posts?since=${since}${before ? `&before=${before}` : ''}`, true);
+      const url = new URL(window.location.origin);
+      url.pathname = '/api/posts';
+      url.searchParams.set('since', since);
+      if (before) url.searchParams.set('before', before);
+      if (this.likedTags.length > 0) url.searchParams.set('likedTags', this.likedTags.join(','));
+      if (this.dislikedTags.length > 0) url.searchParams.set('dislikedTags', this.dislikedTags.join(','));
+      request.open("GET", url.toString(), true);
       request.send();
     })
   }

@@ -69,7 +69,7 @@ class PostPreview extends HTMLElement {
           flex-direction: row;
         }
         
-        post-preview .meta .tags .tag {
+        post-preview .meta .tags tag-inline {
           margin-left: 6px;
         }
         
@@ -116,7 +116,7 @@ class PostPreview extends HTMLElement {
       </div>
     `).join('');
     this.tags.forEach(tag => {
-      content = content.replace(`#!${tag.id}`, `<span tag-id="${tag.id}" title="${tag.name}">#${tag.name}</span>`)
+      content = content.replace(`#!${tag.id}`, `<tag-inline tag-id="${tag.id}"></tag-inline>`)
     });
     const matches = [...content.matchAll(/#!([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/gi)];
     if (matches) {
@@ -125,7 +125,7 @@ class PostPreview extends HTMLElement {
         .then(() => Promise.all([...matches].map(match => this.getTag(match[1]))))
         .then(tags => {
           tags.forEach(tag => {
-            content = content.replace(`#!${tag.id}`, `<span tag-id="${tag.id}" title="${tag.name}">#${tag.name}</span>`)
+            content = content.replace(`#!${tag.id}`, `<tag-inline tag-id="${tag.id}"></tag-inline>`)
           });
           this.contentContainer.innerHTML = content;
           this.classList.remove('loading')
@@ -170,10 +170,8 @@ class PostPreview extends HTMLElement {
     if (this.tagsContainer) {
       this.tagsContainer.innerHTML = '';
       this._tags.forEach(tag => {
-        const tagNode = document.createElement('div');
-        tagNode.className = 'tag';
-        tagNode.setAttribute('title', tag.name);
-        tagNode.innerHTML = `#${tag.name}`;
+        const tagNode = document.createElement('tag-inline');
+        tagNode.setAttribute('tag-id', tag.id);
 
         this.tagsContainer.appendChild(tagNode);
       });

@@ -251,14 +251,14 @@ module.exports = async (event, callback) => {
             status = queryStringParameters.status;
           }
 
-          const postsPromise = knex
+          const postsPromise = knex('posts')
             .select('id', 'owner', 'type', 'created_at')
-            .from('posts')
             .orderBy('created_at', 'desc')
+            .groupBy('posts.id')
             .where('status', status);
 
           if (event.queryStringParameters) {
-            const { before, since } = event.queryStringParameters;
+            const { before, since, likedTags, dislikedTags } = event.queryStringParameters;
 
             if (before) {
               postsPromise.where('created_at', '<', before);
@@ -266,6 +266,22 @@ module.exports = async (event, callback) => {
 
             if (since) {
               postsPromise.where('created_at', '>=', since);
+            }
+
+            if (likedTags) {
+              postsPromise.havingExists(function () {
+                this.select('*').from('posts_tags')
+                  .whereRaw('posts.id = posts_tags.post_id')
+                  .whereIn('tag_id', likedTags.split(','));
+              });
+            }
+
+            if (dislikedTags) {
+              postsPromise.havingNotExists(function () {
+                this.select('*').from('posts_tags')
+                  .whereRaw('posts.id = posts_tags.post_id')
+                  .whereIn('tag_id', dislikedTags.split(','));
+              });
             }
           }
 
@@ -683,6 +699,75 @@ module.exports = async (event, callback) => {
           await knex('users')
             .update({ name: payload.name })
             .where({ id: userInfo.user.id });
+
+          return callback({
+            statusCode: 200,
+            headers: getResponseHeaders(),
+            body: '',
+            isBase64Encoded: false,
+          });
+        }
+      }
+
+      if (pathFragments[2] === 'tags') {
+        if (httpMethod === 'GET') {
+          if (!userInfo) throw new Error('not logged in');
+
+          const tags = await knex('users_tags')
+            .select('tag_id', 'type')
+            .where({ user_id: userInfo.user.id });
+
+          return callback({
+            statusCode: 200,
+            headers: getResponseHeaders(),
+            body: JSON.stringify(tags, null, 2),
+            isBase64Encoded: false,
+          });
+        }
+
+        if (httpMethod === 'PUT') {
+          const payload = JSON.parse(event.body);
+          if (!userInfo) throw new Error('not logged in');
+          if (!payload.id) throw new Error('no id');
+          if (!payload.type) throw new Error('no type');
+
+          const condition = {
+            tag_id: payload.id,
+            user_id: userInfo.user.id,
+          };
+
+          const existing = await knex('users_tags')
+            .select('tag_id', 'type')
+            .where(condition)
+            .first();
+
+          if (existing) {
+            await knex('users_tags')
+              .update({ type: payload.type })
+              .where(condition);
+          } else {
+            await knex('users_tags').insert({ ...condition, type: payload.type });
+          }
+
+          return callback({
+            statusCode: 200,
+            headers: getResponseHeaders(),
+            body: '',
+            isBase64Encoded: false,
+          });
+        }
+
+        if (httpMethod === 'DELETE') {
+          const payload = JSON.parse(event.body);
+          if (!userInfo) throw new Error('not logged in');
+          if (!payload.id) throw new Error('no id');
+
+          await knex('users_tags')
+            .delete()
+            .where({
+              tag_id: payload.id,
+              user_id: userInfo.user.id,
+            });
 
           return callback({
             statusCode: 200,

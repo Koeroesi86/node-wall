@@ -289,6 +289,12 @@ class PostTagsInput extends HTMLElement {
     });
   }
 
+  get tagIds() {
+    return this.currentTags
+      ? [...this.currentTags.querySelectorAll(`[tag-id]`)].map(t => t.getAttribute('tag-id'))
+      : [];
+  }
+
   getTag(id) {
     return Promise.resolve()
       .then(() => request({ method: 'GET', url: `/api/tags/${id}` }))

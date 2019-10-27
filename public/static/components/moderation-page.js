@@ -245,21 +245,25 @@ class ModerationPage extends HTMLElement {
           if (this.latest < post.created_at) this.latest = post.created_at;
         });
 
-        [...this.pendingPostsContainer.querySelectorAll('.postModerationWrapper .approve')].forEach(approveButton => {
+        [...this.pendingPostsContainer.querySelectorAll('.postModerationWrapper')].forEach(postModerationWrapper => {
+          const approveButton = postModerationWrapper.querySelector('.approve');
+          const disapproveButton = postModerationWrapper.querySelector('.disapprove');
+
           approveButton.addEventListener('click', e => {
             e.stopPropagation();
             e.preventDefault();
-            const postModerationWrapper = e.target.closest('.postModerationWrapper');
-            const postId = postModerationWrapper.getAttribute('post-id');
-            this.setPostStatus(postId, 'public')
-          });
-        });
+            const tagsInput = postModerationWrapper.querySelector('post-tags-input');
+            if (tagsInput.tagIds.length === 0) {
+              alert('Legalább egy taget rendelj a bejegyzéshez.');
+              return;
+            }
 
-        [...this.pendingPostsContainer.querySelectorAll('.postModerationWrapper .disapprove')].forEach(disapproveButton => {
+            const postId = postModerationWrapper.getAttribute('post-id');
+            this.setPostStatus(postId, 'public');
+          });
           disapproveButton.addEventListener('click', e => {
             e.stopPropagation();
             e.preventDefault();
-            const postModerationWrapper = e.target.closest('.postModerationWrapper');
             const postId = postModerationWrapper.getAttribute('post-id');
             this.setPostStatus(postId, 'moderated')
           });
