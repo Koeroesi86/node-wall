@@ -13,10 +13,10 @@
     rimraf "^2.6.3"
     uuid "^3.3.2"
 
-"@koeroesi86/node-webserver@^19.10.51-c368014":
-  version "19.10.51-c368014"
-  resolved "https://registry.yarnpkg.com/@koeroesi86/node-webserver/-/node-webserver-19.10.51-c368014.tgz#8acc93b9258396ed434c3d7f2e18bd6329f0a442"
-  integrity sha512-RzsalRvHI3E4Avi+KRHXUhVOjZDWwKHx37Rg2/l3GCQbKwATbm3V7Kf7xd53jXkFqTVSDIxkaplRGPMRiehOkA==
+"@koeroesi86/node-webserver@^20.3.73-f5a2ee3":
+  version "20.3.73-f5a2ee3"
+  resolved "https://registry.yarnpkg.com/@koeroesi86/node-webserver/-/node-webserver-20.3.73-f5a2ee3.tgz#217b151f06320a8c19f3330e4801dfe3482654a8"
+  integrity sha512-V3al8adXg5xPNT8s0M3ViyIrfGPZXoBi8pKXClE4kY3sw9vUdjGtwSfPU8EHbisN3CHf5tEISNuPxx68O9Qgzw==
   dependencies:
     "@koeroesi86/node-lambda-invoke" "^1.0.20-d1fa702"
     chalk "^2.4.2"
@@ -31,7 +31,7 @@
     minimist "^1.2.0"
     moment "^2.22.2"
     nodemon "^1.17.5"
-    os-service "^2.1.0"
+    os-service "^2.2.0"
     pidusage "^2.0.10"
     rimraf "^2.6.3"
     send "^0.17.1"
@@ -1847,12 +1847,7 @@ ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
-nan@2.10.x:
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/nan/-/nan-2.10.0.tgz#96d0cd610ebd58d4b4de9cc0c6828cda99c7548f"
-  integrity sha512-bAdJv7fBLhWC+/Bls0Oza+mvTaNQtP+1RyhhhvD95pgUJz6XM5IzgmxOkItJ9tkoCiplvAnXI1tNmmUD/eScyA==
-
-nan@^2.12.1:
+nan@2.14.x, nan@^2.12.1:
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
   integrity sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==
@@ -2090,12 +2085,12 @@ os-homedir@^1.0.0:
   resolved "https://registry.yarnpkg.com/os-homedir/-/os-homedir-1.0.2.tgz#ffbc4988336e0e833de0c168c7ef152121aa7fb3"
   integrity sha1-/7xJiDNuDoM94MFox+8VISGqf7M=
 
-os-service@^2.1.0:
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/os-service/-/os-service-2.1.3.tgz#1547ee1dd6b608780df8a1ac0d3cc43561b1cd1d"
-  integrity sha512-db0YVuW6WHh3fokXe2nQ8qBYjm8O20o/3ypT1qUP0+/LhFUI+IepxTS/BwiYxq1LHYyPGlEzHmWphx20LMxYQQ==
+os-service@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/os-service/-/os-service-2.2.0.tgz#874ec4c5d0a637de0a2857200ebd6096ae91df08"
+  integrity sha512-bc1BBoCCbVjHqF/EWYvCu0hE/PSs2VM/5lQLPqjkjelP0FQSI42s8/J8gMA1nqeNqyo2MaEFnlBz4ViI5IZxdQ==
   dependencies:
-    nan "2.10.x"
+    nan "2.14.x"
 
 os-tmpdir@^1.0.0:
   version "1.0.2"

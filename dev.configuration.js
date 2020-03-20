@@ -2,6 +2,14 @@ const config = require('./config');
 
 module.exports = {
   SERVICE_NAME: 'node-webserver',
+  ENABLE_FILE_LOGS: false,
+  LOG_LEVELS: {
+    system: true,
+    info: false,
+    success: true,
+    error: true,
+    warning: true,
+  },
   PORTS: {
     http: 80,
     https: 443
