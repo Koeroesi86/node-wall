@@ -93,7 +93,7 @@ class NavigationWrapper extends HTMLElement {
           border-radius: 0;
           border-top-left-radius: 6px;
           border-bottom-left-radius: 6px;
-          color: #fff;
+          color: var(--main-text-color);
         }
         
         navigation-wrapper .renameUserWrapper .button {
@@ -108,7 +108,7 @@ class NavigationWrapper extends HTMLElement {
           border-radius: 0;
           border-top-right-radius: 6px;
           border-bottom-right-radius: 6px;
-          color: #fff;
+          color: var(--main-text-color);
           cursor: pointer;
           transition: all .2s ease-in-out;
         }
