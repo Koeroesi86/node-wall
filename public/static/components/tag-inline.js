@@ -49,6 +49,13 @@ class TagInline extends HTMLElement {
         this._tooltip.innerHTML = `
           Címke: <a href="/tag/${tag.id}" target="_blank">${tag.name}</a>
         `;
+
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', `/tag/${tag.id}`);
+        linkElement.setAttribute('target', '_blank');
+        this._label.addEventListener('click', e => {
+          linkElement.click();
+        });
       });
     }
 

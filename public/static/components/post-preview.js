@@ -24,13 +24,13 @@ class PostPreview extends HTMLElement {
   constructor() {
     super();
     this._tags = [];
+    this._content = '';
     this.getTag = this.getTag.bind(this);
     this.checkOwner = this.checkOwner.bind(this);
     this.refreshTags = this.refreshTags.bind(this);
   }
 
   connectedCallback() {
-    this.content = this.innerHTML;
     const createdRaw = this.getAttribute('created');
     const created = new Date(parseInt(createdRaw, 10));
 
@@ -38,13 +38,29 @@ class PostPreview extends HTMLElement {
       <style type="text/css">
         post-preview {
           display: block;
-          padding: 6px 12px;
           margin-bottom: 12px;
+          padding: 3px 9px;
           background-color: rgba(var(--main-link-highlighted-color-rgb), 0.05);
           border-radius: 3px;
         }
         
+        post-preview .tags {
+          padding-bottom: 6px;
+          margin-bottom: 3px;
+          font-size: 12px;
+          border-bottom: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
+        }
+        
+        post-preview.noTags .tags {
+          display: none;
+        }
+        
+        post-preview .tags tag-inline {
+          margin-right: 6px;
+        }
+        
         post-preview .content {
+          padding: 6px 0;
           font-size: 12px;
         }
 
@@ -92,18 +108,29 @@ class PostPreview extends HTMLElement {
         }
       </style>
       <div class="loadingIndicator">Betöltés...</div>
+      <div class="tags"></div>
       <div class="content"></div>
       <div class="meta">
         <div class="sent">Küldve: ${created.toLocaleString()}</div>
         <div class="owner"></div>
-        <div class="tags"></div>
       </div>
     `;
     this.contentContainer = this.querySelector('.content');
-    this.tagsContainer = this.querySelector('.meta .tags');
+    this.tagsContainer = this.querySelector('.tags');
     this.parseContent();
     this.checkOwner();
     this.refreshTags();
+  }
+
+  /** @returns {string} */
+  get content() {
+    return this._content;
+  }
+
+  /** @param {string} content */
+  set content(content) {
+    this._content = content;
+    this.parseContent();
   }
 
   parseContent() {
@@ -111,10 +138,11 @@ class PostPreview extends HTMLElement {
     content = content.trim();
     content = content.replace(/\n{3,}/gi, '\n\n');
     content = content.split('\n').map(line => `
-      <div>
+      <div class="contentLine">
         ${linkify(stripLine(line), this.getAttribute('post-id')) || '&nbsp;'}
       </div>
     `).join('');
+    if (this.tags.length === 0) this.classList.add('noTags')
     this.tags.forEach(tag => {
       content = content.replace(`#!${tag.id}`, `<tag-inline tag-id="${tag.id}"></tag-inline>`)
     });
@@ -140,6 +168,10 @@ class PostPreview extends HTMLElement {
     }
   }
 
+  /**
+   * @param {string} id
+   * @returns {Promise<unknown>}
+   */
   getTag(id) {
     return new Promise((resolve, reject) => {
       const request = new XMLHttpRequest();
@@ -178,11 +210,13 @@ class PostPreview extends HTMLElement {
     }
   }
 
+  /** @param {Array} tags */
   set tags(tags) {
     this._tags = tags;
     this.refreshTags();
   }
 
+  /** @returns {Array} */
   get tags() {
     return this._tags;
   }

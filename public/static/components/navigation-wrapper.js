@@ -174,8 +174,8 @@ class NavigationWrapper extends HTMLElement {
       </a>
       <div class="user"></div>
       <div class="bottom">
-        <a href="javascript:void(0)" class="darkThemeToggle"></a>
-        <a href="javascript:void(0)" class="menuToggle">
+        <a href="javascript:void(0)" class="darkThemeToggle" title="Világos/sötét sablon váltása"></a>
+        <a href="javascript:void(0)" class="menuToggle" title="Menü összecsukása">
           <i class="fa fa-bars" aria-hidden="true"></i>
           <span>Menü</span>
         </a>

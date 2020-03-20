@@ -19,7 +19,7 @@ class MainWrapper extends HTMLElement {
           --main-text-color: rgb(var(--main-text-color-rgb));
           --main-link-color-rgb: 17, 17, 17;
           --main-link-color: rgb(var(--main-link-color-rgb));
-          --main-link-highlighted-color-rgb: 0, 0, 0;
+          --main-link-highlighted-color-rgb: 17, 17, 17;
           --main-link-highlighted-color: rgb(var(--main-link-highlighted-color-rgb));
           --main-input-background-color-rgb: 200, 200, 200;
           --main-input-background-color: rgb(var(--main-input-background-color-rgb));

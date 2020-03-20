@@ -25,7 +25,7 @@ class PostList extends HTMLElement {
         post-list {
           position: relative;
           display: block;
-          padding: 12px 6px;
+          padding: 12px 6px ;
           overflow: auto;
         }
         
@@ -67,35 +67,48 @@ class PostList extends HTMLElement {
   }
 
   getBounds() {
-    const request = new XMLHttpRequest();
-    request.onreadystatechange = e => {
-      if (request.readyState === 4 && request.status === 200) {
-        const bounds = JSON.parse(request.responseText);
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = e => {
+        if (request.readyState === 4 && request.status === 200) {
+          const bounds = JSON.parse(request.responseText);
 
-        if (!this.newest) {
+          if (!this.newest) {
+            this.newest = bounds.newest;
+            this.latest = this.newest;
+            setTimeout(() => {
+              this.loadMore();
+            }, 500);
+          }
+
+          if (this.newest && this.newest < bounds.newest) {
+            setTimeout(() => {
+              this.notificationNode.play();
+              this.getNewPosts();
+            }, 2000);
+          }
+
+          this.oldest = bounds.oldest;
+          this.newest = bounds.newest;
+
+          if (!this.lastNewest) {
+            this.lastNewest = this.newest;
+          }
+
           setTimeout(() => {
-            this.loadMore();
-          }, 500);
+            this.getBounds();
+          }, 5 * 1000);
+
+          resolve(bounds);
         }
 
-        if (this.newest && this.newest < bounds.newest) {
-          setTimeout(() => {
-            this.notificationNode.play();
-            this.getNewPosts();
-          }, 2000);
+        if (request.readyState === 4 && request.status !== 200) {
+          reject();
         }
-
-        this.oldest = bounds.oldest;
-        this.newest = bounds.newest;
-        if (!this.lastNewest) this.lastNewest = this.newest;
-
-        setTimeout(() => {
-          this.getBounds();
-        }, 5 * 1000);
-      }
-    };
-    request.open("GET", `/api/posts/bounds`, true);
-    request.send();
+      };
+      request.open("GET", `/api/posts/bounds`, true);
+      request.send();
+    });
   }
 
   getNewPosts() {
@@ -157,7 +170,7 @@ class PostList extends HTMLElement {
       postPreview.setAttribute('owner-name', post.owner.name);
     }
     postPreview.tags = post.tags;
-    postPreview.innerHTML = post.content;
+    postPreview.content = post.content;
     this.insertBefore(postPreview, node);
   }
 
@@ -183,7 +196,7 @@ class PostList extends HTMLElement {
       if (this.dislikedTags.length > 0) url.searchParams.set('dislikedTags', this.dislikedTags.join(','));
       request.open("GET", url.toString(), true);
       request.send();
-    })
+    });
   }
 }
 

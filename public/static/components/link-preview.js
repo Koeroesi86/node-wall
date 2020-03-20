@@ -49,7 +49,11 @@ class LinkPreview extends HTMLAnchorElement {
 
         a[is="link-preview"] .preview .title {
           font-size: 14px;
+          font-weight: 600;
           margin-bottom: 6px;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
         }
 
         a[is="link-preview"] .preview .description {
@@ -79,6 +83,7 @@ class LinkPreview extends HTMLAnchorElement {
           
           a[is="link-preview"] .preview .meta {
             flex: 0;
+            padding: 6px 9px;
           }
 
           a[is="link-preview"] .preview .image {
@@ -115,8 +120,11 @@ class LinkPreview extends HTMLAnchorElement {
           this.preview.innerHTML = `
             ${linkPreview.image ? `<img src="${linkPreview.image}" class="image" alt="${linkPreview.title}" />`: ''}
             <div class="meta">
-              <div class="title">${linkPreview.title}</div>
-              <div class="description">${linkPreview.description}</div>
+              <div class="title" title="${linkPreview.title}">${linkPreview.title}</div>
+              <div class="description">
+                ${linkPreview.description.substring(0, 150)}
+                ${linkPreview.description.length > 150 ? '&hellip;' : ''}
+              </div>
               <div class="url">${linkPreview.url}</div>
             </div>
           `;
