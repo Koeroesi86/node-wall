@@ -3,12 +3,17 @@ class WelcomePage extends HTMLElement {
     this.innerHTML += `
       <style type="text/css">
         welcome-page {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           text-align: center;
         }
         
         welcome-page a,
         welcome-page a:visited {
-          color: #efefef;
+          color: var(--main-link-color);
           text-decoration: underline;
           transition: all .2s ease-in-out;
         }
@@ -16,7 +21,7 @@ class WelcomePage extends HTMLElement {
         welcome-page a:hover,
         welcome-page a:active,
         welcome-page a:focus {
-          color: #fff;
+          color: var(--main-link-highlighted-color);
         }
       </style>
       <div>

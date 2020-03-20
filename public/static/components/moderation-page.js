@@ -36,7 +36,7 @@ class ModerationPage extends HTMLElement {
         moderation-page .postModerationWrapper {
           padding: 6px;
           margin-bottom: 12px;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(var(--main-button-background-color-rgb), 0.05);
         }
         
         moderation-page .postModerationWrapper .buttonsWrapper {
@@ -53,10 +53,10 @@ class ModerationPage extends HTMLElement {
           padding: 0 12px;
           height: 35px;
           font-size: 12px;
-          border: 2px solid rgba(255, 255, 255, 0.4);
+          border: 2px solid rgba(var(--main-button-background-color-rgb), 0.4);
           border-radius: 3px;
-          color: #efefef;
-          background: transparent;
+          color: var(--main-button-text-color);
+          background: rgba(var(--main-button-background-color-rgb), 0);
           cursor: pointer;
           transition: all .2s ease-in-out;
         }
@@ -68,8 +68,8 @@ class ModerationPage extends HTMLElement {
         }
         
         moderation-page .postModerationWrapper .button:hover {
-          background: rgba(255, 255, 255, 0.05);
-          border-color: rgba(255, 255, 255, 0.8);
+          background: rgba(var(--main-button-background-color-rgb), 0.05);
+          border-color: rgba(var(--main-button-border-color-rgb), 0.8);
         }
         
         moderation-page .newTags {
@@ -78,7 +78,7 @@ class ModerationPage extends HTMLElement {
           padding: 6px 12px;
           margin-bottom: 12px;
           font-size: 12px;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(var(--main-button-background-color-rgb), 0.05);
         }
         
         moderation-page .newTagsList {
@@ -90,7 +90,7 @@ class ModerationPage extends HTMLElement {
           display: inline-flex;
           flex-direction: row;
           align-items: center;
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(var(--main-button-background-color-rgb), 0.2);
           height: 20px;
           margin-right: 12px;
         }
@@ -106,7 +106,7 @@ class ModerationPage extends HTMLElement {
           align-items: center;
           width: 20px;
           height: 100%;
-          border-left: 1px solid rgba(0, 0, 0, 0.2);
+          border-left: 1px solid rgba(var(--main-button-border-color-rgb), 0.2);
           cursor: pointer;
         }
         

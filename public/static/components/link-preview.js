@@ -11,18 +11,18 @@ class LinkPreview extends HTMLAnchorElement {
         a[is="link-preview"] {
           display: block;
           text-decoration: none;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.2);
           margin: 6px 0;
           padding: 0;
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(var(--main-link-highlighted-color-rgb), 0.1);
           border-radius: 3px;
           overflow: hidden;
           transition: all .2s ease-in-out;
         }
 
         a[is="link-preview"]:hover {
-          border-color: rgba(255, 255, 255, 0.6);
-          background: rgba(255, 255, 255, 0.2);
+          border-color: rgba(var(--main-link-highlighted-color-rgb), 0.6);
+          background: rgba(var(--main-link-highlighted-color-rgb), 0.2);
         }
 
         a[is="link-preview"] .preview {
@@ -33,12 +33,13 @@ class LinkPreview extends HTMLAnchorElement {
         a[is="link-preview"] .preview .image {
           max-width: 100%;
           width: 480px;
-          border-right: 1px solid rgba(255, 255, 255, 0.1);
+          border-right: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
         }
 
         a[is="link-preview"] .preview .meta {
           flex: 1 1 0;
-          display: block;
+          display: flex;
+          flex-direction: column;
           margin: 0;
           padding: 6px 12px;
           border: 0;
@@ -52,6 +53,7 @@ class LinkPreview extends HTMLAnchorElement {
         }
 
         a[is="link-preview"] .preview .description {
+          flex: 1 1 0;
           font-size: 12px;
           margin-bottom: 6px;
         }
@@ -61,6 +63,7 @@ class LinkPreview extends HTMLAnchorElement {
           white-space: nowrap;
           text-overflow: ellipsis;
           overflow: hidden;
+          color: rgba(var(--main-link-highlighted-color-rgb), .6);
         }
 
         a[is="link-preview"] .preview iframe {
@@ -80,7 +83,7 @@ class LinkPreview extends HTMLAnchorElement {
 
           a[is="link-preview"] .preview .image {
             border-right: 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
           }
         }
       </style>
@@ -117,6 +120,9 @@ class LinkPreview extends HTMLAnchorElement {
               <div class="url">${linkPreview.url}</div>
             </div>
           `;
+          if (linkPreview.image) {
+            this.preview.classList.add('hasImage');
+          }
         }
       }
     };

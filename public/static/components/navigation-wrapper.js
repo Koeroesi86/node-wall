@@ -3,7 +3,10 @@ class NavigationWrapper extends HTMLElement {
     this.innerHTML += `
       <style type="text/css">
         navigation-wrapper {
-          display: block;
+          display: flex;
+          flex-direction: column;
+          width: 200px;
+          transition: width .2s ease-in-out;
         }
         
         navigation-wrapper .user,
@@ -16,7 +19,7 @@ class NavigationWrapper extends HTMLElement {
           height: 35px;
           padding: 0 12px;
           font-size: 14px;
-          color: #efefef;
+          color: var(--main-text-color);
           text-decoration: none;
           text-align: left;
           transition: all .2s ease-in-out;
@@ -25,12 +28,15 @@ class NavigationWrapper extends HTMLElement {
           overflow: hidden;
         }
         
+        navigation-wrapper a {
+          color: rgba(var(--main-link-color-rgb), .6);
+        }
+        
         navigation-wrapper a:hover,
         navigation-wrapper a:active,
         navigation-wrapper a:focus,
         navigation-wrapper a.current{
-          color: #fff;
-          background: rgba(255, 255, 255, .1);
+          color: rgba(var(--main-link-highlighted-color-rgb), 1);
           cursor: pointer;
           outline: 0;
         }
@@ -59,7 +65,7 @@ class NavigationWrapper extends HTMLElement {
           left: 100%;
           top: 0;
           height: 100%;
-          background: #333;
+          background: var(--tooltip-background-color);
           padding: 3px 6px;
           z-index: 999;
         }
@@ -81,7 +87,7 @@ class NavigationWrapper extends HTMLElement {
           line-height: 35px;
           height: 35px;
           font-size: 12px;
-          border: 1px solid #efefef;
+          border: 1px solid var(--tooltip-border-color);
           border-right: 0;
           background: transparent;
           border-radius: 0;
@@ -97,8 +103,8 @@ class NavigationWrapper extends HTMLElement {
           line-height: 35px;
           height: 35px;
           font-size: 12px;
-          border: 1px solid #efefef;
-          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--tooltip-button-border-color);
+          background: rgba(var(--tooltip-button-background-color-rgb), 0.05);
           border-radius: 0;
           border-top-right-radius: 6px;
           border-bottom-right-radius: 6px;
@@ -108,12 +114,45 @@ class NavigationWrapper extends HTMLElement {
         }
         
         navigation-wrapper .renameUserWrapper .button:hover {
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(var(--tooltip-button-background-color-rgb), 0.2);
+        }
+        
+        navigation-wrapper .bottom {
+          flex-grow: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+        }
+        
+        navigation-wrapper .bottom a {
+          min-width: 100%;
+        }
+        
+        navigation-wrapper.collapsed {
+          width: 40px;
+        }
+        
+        navigation-wrapper.collapsed a {
+          height: 35px;
+        }
+        
+        navigation-wrapper.collapsed .user span,
+        navigation-wrapper.collapsed a span {
+          display: none;
         }
         
         @media (max-device-width: 480px) {
+          navigation-wrapper {
+            width: 40px;
+          }
+
           navigation-wrapper .user span,
           navigation-wrapper a span {
+            display: none;
+            height: 0;
+          }
+          
+          navigation-wrapper .bottom .menuToggle {
             display: none;
           }
         }
@@ -134,9 +173,32 @@ class NavigationWrapper extends HTMLElement {
         <span>Fal</span>
       </a>
       <div class="user"></div>
+      <div class="bottom">
+        <a href="javascript:void(0)" class="darkThemeToggle"></a>
+        <a href="javascript:void(0)" class="menuToggle">
+          <i class="fa fa-bars" aria-hidden="true"></i>
+          <span>Menü</span>
+        </a>
+      </div>
     `;
 
     this.userPanel = this.querySelector('.user');
+
+    this.menuToggle = this.querySelector('.bottom .menuToggle');
+    this.menuToggle.addEventListener('click', e => {
+      e.preventDefault();
+      localStorage.setItem('collapsedMenu', localStorage.getItem('collapsedMenu') === 'on' ? 'off' : 'on');
+      this.updateMenu();
+    });
+    this.updateMenu();
+
+    this.darkThemeToggle = this.querySelector('.bottom .darkThemeToggle');
+    this.darkThemeToggle.addEventListener('click', e => {
+      e.preventDefault();
+      localStorage.setItem('darkTheme', localStorage.getItem('darkTheme') === 'on' ? 'off' : 'on');
+      this.updateTheme();
+    });
+    this.updateTheme();
 
     const request = new XMLHttpRequest();
     request.onreadystatechange = e => {
@@ -219,11 +281,6 @@ class NavigationWrapper extends HTMLElement {
                 <span>Kijelentkezés</span>
               </a>
             `;
-
-            const currentUrlLink = this.querySelector(`a[href^="${window.location.pathname}"]`);
-            if (currentUrlLink) {
-              currentUrlLink.classList.add('current')
-            }
           }
         }
 
@@ -235,10 +292,39 @@ class NavigationWrapper extends HTMLElement {
             </a>
           `;
         }
+
+        const currentUrlLink = this.querySelector(`a[href^="${window.location.pathname}"]`);
+        if (currentUrlLink) {
+          currentUrlLink.classList.add('current')
+        }
       }
     };
     request.open("GET", "/api/user", true);
     request.send();
+  }
+
+  updateTheme() {
+    if (localStorage.getItem('darkTheme') === 'on') {
+      document.body.classList.add('darkTheme');
+      this.darkThemeToggle.innerHTML = `
+        <i class="fa fa-moon-o" aria-hidden="true"></i>
+        <span>Sötét</span>
+      `;
+    } else {
+      document.body.classList.remove('darkTheme');
+      this.darkThemeToggle.innerHTML = `
+        <i class="fa fa-sun-o" aria-hidden="true"></i>
+        <span>Világos</span>
+      `;
+    }
+  }
+
+  updateMenu() {
+    if (localStorage.getItem('collapsedMenu') === 'on') {
+      this.classList.add('collapsed');
+    } else {
+      this.classList.remove('collapsed');
+    }
   }
 
   renameUser(name) {

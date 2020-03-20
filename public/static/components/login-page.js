@@ -36,12 +36,12 @@ class LoginPage extends HTMLElement {
           line-height: 35px;
           height: 35px;
           font-size: 12px;
-          border: 1px solid #efefef;
-          background: transparent;
+          border: 1px solid var(--main-button-border-color);
+          background: var(--main-button-background-color-rgb, 0);
           border-radius: 0;
           border-top-left-radius: 6px;
           border-bottom-left-radius: 6px;
-          color: #fff;
+          color: var(--main-button-text-color);
         }
         
         login-page .inputGroup .button {
@@ -51,18 +51,18 @@ class LoginPage extends HTMLElement {
           line-height: 35px;
           height: 35px;
           font-size: 12px;
-          border: 1px solid #efefef;
-          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--main-button-border-color);
+          background: rgba(var(--main-button-background-color-rgb), 0.05);
           border-radius: 0;
           border-top-right-radius: 6px;
           border-bottom-right-radius: 6px;
-          color: #fff;
+          color: var(--main-button-text-color);
           cursor: pointer;
           transition: all .2s ease-in-out;
         }
         
         login-page .inputGroup .button:hover {
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(var(--main-button-background-color-rgb), 0.2);
         }
       </style>
       <div class="activateSession hidden">

@@ -50,9 +50,9 @@ class PostTagsInput extends HTMLElement {
           flex-wrap: wrap;
           font-size: 12px;
           padding: 3px 6px;
-          background: rgba(255, 255, 255, 0.05);
+          background: var(--main-input-background-color);
           border-radius: 3px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.2);
         }
         
         post-tags-input.focused .tags {
@@ -68,7 +68,7 @@ class PostTagsInput extends HTMLElement {
           padding: 0;
           line-height: 20px;
           height: 20px;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(var(--main-link-highlighted-color-rgb), 0.05);
         }
         
         post-tags-input .tags .tagElement .remove {
@@ -116,7 +116,7 @@ class PostTagsInput extends HTMLElement {
           display: block;
           border-bottom-right-radius: 3px;
           border-bottom-left-radius: 3px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.2);
         }
         
         post-tags-input .tags .results {
@@ -126,8 +126,8 @@ class PostTagsInput extends HTMLElement {
           left: 0;
           width: 100%;
           max-height: 200px;
-          background: #333;
-          box-shadow: 2px 4px 4px rgba(255, 255, 255, 0.2);
+          background: rgba(var(--main-button-background-color-rgb), 0.05);
+          box-shadow: 2px 4px 4px rgba(var(--main-link-highlighted-color-rgb), 0.2);
         }
         
         post-tags-input .tags .results .tagResult {
@@ -138,7 +138,7 @@ class PostTagsInput extends HTMLElement {
         }
         
         post-tags-input .tags .results .tagResult:hover {
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(var(--main-link-highlighted-color-rgb), 0.05);
         }
       </style>
       <div class="tags">

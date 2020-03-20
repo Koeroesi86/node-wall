@@ -40,7 +40,7 @@ class PostPreview extends HTMLElement {
           display: block;
           padding: 6px 12px;
           margin-bottom: 12px;
-          background-color: rgba(255, 255, 255, 0.05);
+          background-color: rgba(var(--main-link-highlighted-color-rgb), 0.05);
           border-radius: 3px;
         }
         
@@ -54,7 +54,7 @@ class PostPreview extends HTMLElement {
           justify-content: flex-start;
           font-size: 10px;
           margin-top: 3px;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          border-top: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
           padding-top: 3px;
         }
         

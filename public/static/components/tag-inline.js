@@ -23,8 +23,8 @@ class TagInline extends HTMLElement {
           padding: 3px 12px;
           font-size: 12px;
           line-height: 16px;
-          background: #333;
-          border: 1px solid #999;
+          background: var(--main-input-background-color);
+          border: 1px solid var(--main-text-color);
         }
 
         tag-inline .tooltip.visible {

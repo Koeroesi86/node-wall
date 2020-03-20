@@ -19,8 +19,9 @@ class ComposePost extends HTMLElement {
           padding: 0 6px;
           border: 0;
           line-height: 24px;
-          color: #ffffff;
-          background-color: rgba(255, 255, 255, 0.1);
+          color: var(--main-button-text-color);
+          background-color: rgba(var(--main-button-background-color-rgb), 0.1);
+          border: 0px solid rgba(var(--main-button-border-color-rgb), 1);
           cursor: pointer;
         }
 

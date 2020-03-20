@@ -4,9 +4,9 @@ class ContentWrapper extends HTMLElement {
       <style type="text/css">
         content-wrapper {
           min-height: 100%;
-          background-color: #1f1f1f;
-          border-left: 1px solid #333;
-          color: #efefef;
+          background-color: var(--content-wrapper-background-color);
+          border-left: 1px solid var(--content-wrapper-border-color);
+          color: var(--content-wrapper-text-color);
         }
       </style>
     `;

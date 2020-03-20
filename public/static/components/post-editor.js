@@ -13,6 +13,7 @@ class PostEditor extends HTMLElement {
           overflow: auto;
           display: block;
           z-index: 999999;
+          background-color: var(--main-background-color);
         }
 
         .tribute-container ul {
@@ -20,16 +21,16 @@ class PostEditor extends HTMLElement {
           margin-top: 2px;
           padding: 0;
           list-style: none;
-          background: #111;
         }
 
         .tribute-container li {
           padding: 5px 5px;
           cursor: pointer;
+          color: var(--main-link-color);
         }
 
         .tribute-container li.highlight {
-          background: #333;
+          color: var(--main-link-highlighted-color);
         }
 
         .tribute-container li span {
@@ -49,8 +50,8 @@ class PostEditor extends HTMLElement {
           position: relative;
           flex: 1 0 0;
           border: 0;
-          color: #ffffff;
-          background-color: rgba(255, 255, 255, 0.05);
+          color: var(--main-link-highlighted-color);
+          background-color: rgba(var(--main-button-background-color-rgb), 0.05);
           font-size: 12px;
         }
 
@@ -60,7 +61,7 @@ class PostEditor extends HTMLElement {
           height: 100%;
           min-height: 25px;
           padding: 3px 6px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(var(--main-button-background-color-rgb), 0.2);
           transition: all .2s ease-in-out;
         }
 
