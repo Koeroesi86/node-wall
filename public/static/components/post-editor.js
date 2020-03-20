@@ -48,7 +48,9 @@ class PostEditor extends HTMLElement {
         post-editor {
           display: flex;
           position: relative;
-          flex: 1 0 0;
+          flex-grow: 1;
+          overflow: auto;
+          overflow-x: hidden;
           border: 0;
           color: var(--main-link-highlighted-color);
           background-color: rgba(var(--main-button-background-color-rgb), 0.05);

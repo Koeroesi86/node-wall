@@ -11,13 +11,13 @@ class ComposePost extends HTMLElement {
         compose-post {
           display: flex;
           flex-direction: column;
+          max-height: 100vh;
         }
         
         compose-post .send {
           flex: 0 0;
           display: block;
           padding: 0 6px;
-          border: 0;
           line-height: 24px;
           color: var(--main-button-text-color);
           background-color: rgba(var(--main-button-background-color-rgb), 0.1);
