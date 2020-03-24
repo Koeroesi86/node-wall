@@ -242,6 +242,7 @@ module.exports = async (event, callback) => {
 
         if (pathFragments.length === 2) {
           let status = 'public';
+          let nextPageBefore = null;
           if (
             userInfo
             && ['admin'].includes(userInfo.user.role)
@@ -262,6 +263,10 @@ module.exports = async (event, callback) => {
 
             if (before) {
               postsPromise.where('created_at', '<', before);
+              const nextPageBeforePromise = knex('posts').max('created_at', { as: 'nextPageBefore' });
+              nextPageBeforePromise.where('status', status);
+              nextPageBeforePromise.where('created_at', '<', since);
+              nextPageBefore = (await nextPageBeforePromise.first()).nextPageBefore;
             }
 
             if (since) {
@@ -297,7 +302,9 @@ module.exports = async (event, callback) => {
 
           return callback({
             statusCode: 200,
-            headers: getResponseHeaders(),
+            headers: getResponseHeaders({
+              ...(nextPageBefore && { 'x-next-page-before': nextPageBefore })
+            }),
             body: JSON.stringify(postsToRender, null, 2),
             isBase64Encoded: false,
           });

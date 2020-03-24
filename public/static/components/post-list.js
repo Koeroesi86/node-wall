@@ -75,7 +75,6 @@ class PostList extends HTMLElement {
 
           if (!this.newest) {
             this.newest = bounds.newest;
-            this.latest = this.newest;
             setTimeout(() => {
               this.loadMore();
             }, 500);
@@ -133,8 +132,11 @@ class PostList extends HTMLElement {
       return;
     }
     let latest;
-    if (!this.latest) {
-      this.latest = Date.now();
+    if (this.nextPageBefore) {
+      this.latest = this.nextPageBefore;
+      latest = this.latest;
+    } else if (!this.latest) {
+      this.latest = this.newest + 1;
       latest = this.latest;
     } else {
       latest = this.since;
@@ -181,6 +183,10 @@ class PostList extends HTMLElement {
         if (request.readyState === 4) {
           if (request.status === 200) {
             const posts = JSON.parse(request.responseText);
+            const nextPageBefore = request.getResponseHeader('x-next-page-before');
+            if (nextPageBefore) {
+              this.nextPageBefore = nextPageBefore;
+            }
 
             resolve(posts);
           } else {
