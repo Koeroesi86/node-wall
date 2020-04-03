@@ -188,8 +188,8 @@ class ModerationPage extends HTMLElement {
             <post-preview
               post-id="${post.id}"
               created="${post.created_at}"
-            ${post.owner ? ` owner-id="${post.owner.id}" owner-name="${post.owner.name}"` : ''}
-            >${post.content}</post-preview>
+              ${post.owner ? `owner-id="${post.owner.id}" owner-name="${post.owner.name}" ` : ''}
+            ></post-preview>
             ${newTags.length > 0 ? `
             <div class="newTags">
               <div class="newTagsNote">Ajánlott új tagek:</div>
@@ -237,6 +237,7 @@ class ModerationPage extends HTMLElement {
             });
           });
           const postPreview = postModerationWrapper.querySelector('post-preview');
+          postPreview.content = post.content;
           postPreview.tags = post.tags;
           post.tags.forEach(tag => {
             tagsInput.add(tag.id, false);
