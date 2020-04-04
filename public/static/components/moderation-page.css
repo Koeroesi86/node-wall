@@ -1,0 +1,122 @@
+moderation-page {
+    display: block;
+    padding: 0 20px;
+}
+
+moderation-page > .notification {
+    display: none;
+}
+
+moderation-page .pendingPosts {
+
+}
+
+moderation-page .heading {
+    margin-bottom: 12px;
+}
+
+moderation-page .pendingPosts .loading {
+    text-align: center;
+}
+
+moderation-page .pendingPosts .loading.hidden {
+    display: none;
+}
+
+moderation-page .postModerationWrapper {
+    padding: 6px;
+    margin-bottom: 12px;
+    background: rgba(var(--main-button-background-color-rgb), 0.05);
+}
+
+moderation-page .postModerationWrapper .buttonsWrapper {
+    display: flex;
+    flex-direction: row;
+}
+
+moderation-page .postModerationWrapper .button {
+    flex: 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    padding: 0 12px;
+    height: 35px;
+    font-size: 12px;
+    border: 2px solid rgba(var(--main-button-background-color-rgb), 0.4);
+    border-radius: 3px;
+    color: var(--main-button-text-color);
+    background: rgba(var(--main-button-background-color-rgb), 0);
+    cursor: pointer;
+    transition: all .2s ease-in-out;
+}
+
+@media (max-device-width: 480px) {
+    moderation-page .postModerationWrapper .button {
+        flex: 1 1 0;
+    }
+}
+
+moderation-page .postModerationWrapper .button:hover {
+    background: rgba(var(--main-button-background-color-rgb), 0.05);
+    border-color: rgba(var(--main-button-border-color-rgb), 0.8);
+}
+
+moderation-page .newTags {
+    display: flex;
+    flex-direction: row;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    background: rgba(var(--main-button-background-color-rgb), 0.05);
+}
+
+moderation-page .newTagsList {
+    flex: 1 1 0;
+    padding: 0 6px;
+}
+
+moderation-page .newTagsItem {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    background: rgba(var(--main-button-background-color-rgb), 0.2);
+    height: 20px;
+    margin-right: 12px;
+}
+
+moderation-page .newTagsItem .label {
+    padding: 0 6px;
+    line-height: 20px;
+}
+
+moderation-page .newTagsItem .add {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    height: 100%;
+    border-left: 1px solid rgba(var(--main-button-border-color-rgb), 0.2);
+    cursor: pointer;
+}
+
+moderation-page .newTagsItem .icon {
+    width: 14px;
+    height: 14px;
+}
+
+moderation-page .newTagsItem .icon polygon {
+    fill: currentColor;
+    stroke-width: 4px;
+    stroke: currentColor;
+}
+
+moderation-page .addTags {
+    margin-bottom: 12px;
+}
+
+moderation-page .addTags .addTagsHeading {
+    font-size: 12px;
+    padding: 3px 6px;
+    margin-bottom: 6px;
+}

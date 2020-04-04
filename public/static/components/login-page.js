@@ -1,70 +1,9 @@
 class LoginPage extends HTMLElement {
+  static styleSheet = '/static/components/login-page.css';
+
   connectedCallback() {
     this.innerHTML += `
-      <style type="text/css">
-        login-page {
-          display: block;
-          padding: 12px 20px;
-        }
-        
-        login-page .activateSession.hidden,
-        login-page .createSession.hidden {
-          display: none;
-        }
-        
-        login-page .note {
-          font-size: 12px;
-          margin: 6px 0;
-        }
-        
-        login-page .note a {
-          font-size: 12px;
-          margin: 6px 0;
-          color: inherit;
-        }
-        
-        login-page .inputGroup {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-        }
-        
-        login-page .inputGroup .input {
-          display: inline-block;
-          margin: 0;
-          padding: 0 6px;
-          line-height: 35px;
-          height: 35px;
-          font-size: 12px;
-          border: 1px solid var(--main-button-border-color);
-          background: var(--main-button-background-color-rgb, 0);
-          border-radius: 0;
-          border-top-left-radius: 6px;
-          border-bottom-left-radius: 6px;
-          color: var(--main-button-text-color);
-        }
-        
-        login-page .inputGroup .button {
-          display: inline-block;
-          margin: 0;
-          padding: 0 6px;
-          line-height: 35px;
-          height: 35px;
-          font-size: 12px;
-          border: 1px solid var(--main-button-border-color);
-          background: rgba(var(--main-button-background-color-rgb), 0.05);
-          border-radius: 0;
-          border-top-right-radius: 6px;
-          border-bottom-right-radius: 6px;
-          color: var(--main-button-text-color);
-          cursor: pointer;
-          transition: all .2s ease-in-out;
-        }
-        
-        login-page .inputGroup .button:hover {
-          background: rgba(var(--main-button-background-color-rgb), 0.2);
-        }
-      </style>
+      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${LoginPage.styleSheet}');</style>`}
       <div class="activateSession hidden">
         <h3>Aktiválás</h3>
         <div class="note">

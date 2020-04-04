@@ -1,4 +1,6 @@
 class PostList extends HTMLElement {
+  static styleSheet = '/static/components/post-list.css';
+
   constructor() {
     super();
 
@@ -21,37 +23,7 @@ class PostList extends HTMLElement {
     const dislikedTags = this.getAttribute('disliked-tags');
     if (dislikedTags) this.dislikedTags = dislikedTags.split(',');
     this.innerHTML += `
-      <style type="text/css">
-        post-list {
-          position: relative;
-          display: block;
-          padding: 12px 6px ;
-          overflow: auto;
-        }
-        
-        post-list > .notification {
-          display: none;
-        }
-        
-        post-list > .end {
-          height: 0;
-          width: 100%;
-        }
-
-        post-list > .end.loading {
-          height: auto;
-        }
-
-        post-list > .end.loading .indicator {
-          display: block;
-        }
-
-        post-list > .end .indicator {
-          display: none;
-          text-align: center;
-          font-size: 12px;
-        }
-      </style>
+      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${PostList.styleSheet}');</style>`}
       <audio src="/static/media/notification.mp3" class="notification"></audio>
       <div class="end">
         <div class="indicator">Betöltés...</div>

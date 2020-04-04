@@ -21,6 +21,8 @@ function stripLine(line = '') {
 }
 
 class PostPreview extends HTMLElement {
+  static styleSheet = '/static/components/post-preview.css';
+
   constructor() {
     super();
     this._tags = [];
@@ -35,78 +37,7 @@ class PostPreview extends HTMLElement {
     const created = new Date(parseInt(createdRaw, 10));
 
     this.innerHTML = `
-      <style type="text/css">
-        post-preview {
-          display: block;
-          margin-bottom: 12px;
-          padding: 3px 9px;
-          background-color: rgba(var(--main-link-highlighted-color-rgb), 0.05);
-          border-radius: 3px;
-        }
-        
-        post-preview .tags {
-          padding-bottom: 6px;
-          margin-bottom: 3px;
-          font-size: 12px;
-          border-bottom: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
-        }
-        
-        post-preview.noTags .tags {
-          display: none;
-        }
-        
-        post-preview .tags tag-inline {
-          margin-right: 6px;
-        }
-        
-        post-preview .content {
-          padding: 6px 0;
-          font-size: 12px;
-        }
-
-        post-preview .meta {
-          display: flex;
-          flex-direction: row;
-          justify-content: flex-start;
-          font-size: 10px;
-          margin-top: 3px;
-          border-top: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
-          padding-top: 3px;
-        }
-        
-        post-preview .meta .owner {
-          flex: 1 1 0;
-          padding-left: 12px;
-        }
-        
-        post-preview .meta .tags {
-          padding: 0 12px;
-          display: flex;
-          flex-direction: row;
-        }
-        
-        post-preview .meta .tags tag-inline {
-          margin-left: 6px;
-        }
-        
-        post-preview.loading .sent,
-        post-preview.loading .content {
-          display: none;
-        }
-
-        post-preview.loading .loadingIndicator {
-          display: block;
-          font-size: 12px;
-        }
-        
-        post-preview .loadingIndicator {
-          display: none;
-        }
-        
-        post-preview a {
-          color: inherit;
-        }
-      </style>
+      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${PostPreview.styleSheet}');</style>`}
       <div class="loadingIndicator">Betöltés...</div>
       <div class="tags"></div>
       <div class="content"></div>

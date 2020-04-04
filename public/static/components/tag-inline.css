@@ -1,0 +1,19 @@
+tag-inline {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+}
+
+tag-inline .tooltip {
+    position: fixed;
+    display: none;
+    padding: 3px 12px;
+    font-size: 12px;
+    line-height: 16px;
+    background: var(--main-input-background-color);
+    border: 1px solid var(--main-text-color);
+}
+
+tag-inline .tooltip.visible {
+    display: block;
+}

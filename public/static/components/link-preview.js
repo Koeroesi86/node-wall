@@ -1,4 +1,6 @@
 class LinkPreview extends HTMLAnchorElement {
+  static styleSheet = '/static/components/link-preview.css';
+
   constructor() {
     super();
 
@@ -7,91 +9,7 @@ class LinkPreview extends HTMLAnchorElement {
 
   connectedCallback() {
     let innerHTML = `
-      <style type="text/css">
-        a[is="link-preview"] {
-          display: block;
-          text-decoration: none;
-          border: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.2);
-          margin: 6px 0;
-          padding: 0;
-          background: rgba(var(--main-link-highlighted-color-rgb), 0.1);
-          border-radius: 3px;
-          overflow: hidden;
-          transition: all .2s ease-in-out;
-        }
-
-        a[is="link-preview"]:hover {
-          border-color: rgba(var(--main-link-highlighted-color-rgb), 0.6);
-          background: rgba(var(--main-link-highlighted-color-rgb), 0.2);
-        }
-
-        a[is="link-preview"] .preview {
-          display: flex;
-          flex-direction: row;
-        }
-
-        a[is="link-preview"] .preview .image {
-          max-width: 100%;
-          width: 480px;
-          border-right: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
-        }
-
-        a[is="link-preview"] .preview .meta {
-          flex: 1 1 0;
-          display: flex;
-          flex-direction: column;
-          margin: 0;
-          padding: 6px 12px;
-          border: 0;
-          text-overflow: ellipsis;
-          overflow: hidden;
-        }
-
-        a[is="link-preview"] .preview .title {
-          font-size: 14px;
-          font-weight: 600;
-          margin-bottom: 6px;
-          white-space: nowrap;
-          text-overflow: ellipsis;
-          overflow: hidden;
-        }
-
-        a[is="link-preview"] .preview .description {
-          flex: 1 1 0;
-          font-size: 12px;
-          margin-bottom: 6px;
-        }
-
-        a[is="link-preview"] .preview .url {
-          font-size: 12px;
-          white-space: nowrap;
-          text-overflow: ellipsis;
-          overflow: hidden;
-          color: rgba(var(--main-link-highlighted-color-rgb), .6);
-        }
-
-        a[is="link-preview"] .preview iframe {
-          border: 0;
-          width: 100%;
-          min-height: 480px;
-        }
-        
-        @media (max-device-width: 600px) {
-          a[is="link-preview"] .preview {
-            flex-direction: column;
-          }      
-          
-          a[is="link-preview"] .preview .meta {
-            flex: 0;
-            padding: 6px 9px;
-          }
-
-          a[is="link-preview"] .preview .image {
-            border-right: 0;
-            border-bottom: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
-          }
-        }
-      </style>
+      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${LinkPreview.styleSheet}');</style>`}
       <div class="preview">
         ${this.getAttribute('href') || ''}
       </div>

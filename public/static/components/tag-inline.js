@@ -1,4 +1,6 @@
 class TagInline extends HTMLElement {
+  static styleSheet = '/static/components/tag-inline.css';
+
   constructor() {
     super();
 
@@ -10,27 +12,7 @@ class TagInline extends HTMLElement {
     const tagName = this.getAttribute('tag-name');
 
     this.innerHTML += `
-      <style type="text/css">
-        tag-inline {
-          display: inline-block;
-          position: relative;
-          cursor: pointer;
-        }
-
-        tag-inline .tooltip {
-          position: fixed;
-          display: none;
-          padding: 3px 12px;
-          font-size: 12px;
-          line-height: 16px;
-          background: var(--main-input-background-color);
-          border: 1px solid var(--main-text-color);
-        }
-
-        tag-inline .tooltip.visible {
-          display: block;
-        }
-      </style>
+      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${TagInline.styleSheet}');</style>`}
       <span class="label"></span>
       <div class="tooltip"></div>
     `;
