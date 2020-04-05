@@ -44,107 +44,109 @@ class NavigationWrapper extends Component {
     });
     this.updateTheme();
 
-    const request = new XMLHttpRequest();
-    request.onreadystatechange = e => {
-      if (request.readyState === 4) {
-        if (request.status === 200) {
-          const userInfo = JSON.parse(request.responseText);
-          if (userInfo.user) {
-            const userName = userInfo.user.name ? userInfo.user.name : 'Névtelen idegen';
-            this.userPanel.classList.remove('hidden');
+    const sessionId = this.getAttribute('session-id');
+    if (sessionId) {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = e => {
+        if (request.readyState === 4) {
+          if (request.status === 200) {
+            const userInfo = JSON.parse(request.responseText);
+            if (userInfo.user) {
+              const userName = userInfo.user.name ? userInfo.user.name : 'Névtelen idegen';
+              this.userPanel.classList.remove('hidden');
 
-            if (userInfo.session.status === 'active') {
-              if (userInfo.user.role === 'admin') {
+              if (userInfo.session.status === 'active') {
                 this.userPanel.innerHTML += `
-                <a href="/moderation">
-                  <i class="fas fa-dungeon"></i>
-                  <span>Moderáció</span>
-                </a>
-              `;
-              }
+                  ${userInfo.user.role !== 'admin' ? '' : `
+                    <a href="/moderation">
+                      <i class="fas fa-dungeon"></i>
+                      <span>Moderáció</span>
+                    </a>
+                  `}
+                  <a title="Bejelentkezve mint ${userName}" class="userNameWrapper" tabindex="0">
+                    <i class="far fa-user"></i>
+                    <span>
+                      ${userName}
+                    </span>
+                    <div class="renameUserWrapper hidden" tabindex="0">
+                      <input type="text" value="${userInfo.user.name || ''}" name="name" class="name" placeholder="Megjelenítendő név" />
+                      <button type="button" class="button">
+                        Mentés
+                      </button>
+                    </div>
+                  </a>
+                `;
 
-              this.userPanel.innerHTML += `
-                <a title="Bejelentkezve mint ${userName}" class="userNameWrapper" tabindex="0">
-                  <i class="far fa-user"></i>
-                  <span>
-                    ${userName}
-                  </span>
-                  <div class="renameUserWrapper hidden" tabindex="0">
-                    <input type="text" value="${userInfo.user.name || ''}" name="name" class="name" placeholder="Megjelenítendő név" />
-                    <button type="button" class="button">
-                      Mentés
-                    </button>
-                  </div>
-                </a>
-              `;
+                setTimeout(() => {
+                  const userNameWrapper = this.userPanel.querySelector('.userNameWrapper');
+                  const renameUserWrapper = this.userPanel.querySelector('.renameUserWrapper');
+                  const renameInput = renameUserWrapper.querySelector('.name');
+                  userNameWrapper.addEventListener('click', e => {
+                    e.stopPropagation();
+                    e.preventDefault();
 
-              setTimeout(() => {
-                const userNameWrapper = this.userPanel.querySelector('.userNameWrapper');
-                const renameUserWrapper = this.userPanel.querySelector('.renameUserWrapper');
-                const renameInput = renameUserWrapper.querySelector('.name');
-                userNameWrapper.addEventListener('click', e => {
-                  e.stopPropagation();
-                  e.preventDefault();
+                    renameUserWrapper.classList.toggle('hidden');
+                  });
+                  userNameWrapper.addEventListener('focusout', e => {
+                    e.stopPropagation();
+                    e.preventDefault();
 
-                  renameUserWrapper.classList.toggle('hidden');
-                });
-                userNameWrapper.addEventListener('focusout', e => {
-                  e.stopPropagation();
-                  e.preventDefault();
+                    if (userNameWrapper !== e.relatedTarget && !userNameWrapper.contains(e.relatedTarget)) {
+                      renameUserWrapper.classList.add('hidden');
+                    }
+                  }, false);
+                  renameUserWrapper.addEventListener('click', e => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  });
+                  renameUserWrapper.querySelector('.button').addEventListener('click', e => {
+                    e.stopPropagation();
+                    e.preventDefault();
 
-                  if (userNameWrapper !== e.relatedTarget && !userNameWrapper.contains(e.relatedTarget)) {
-                    renameUserWrapper.classList.add('hidden');
-                  }
-                }, false);
-                renameUserWrapper.addEventListener('click', e => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                });
-                renameUserWrapper.querySelector('.button').addEventListener('click', e => {
-                  e.stopPropagation();
-                  e.preventDefault();
-
-                  this.renameUser(renameInput.value);
-                });
-              }, 10);
-            } else if (userInfo.session.status === 'pending') {
-              if (window.location.pathname !== '/login') {
-                window.location.replace(`/login?session=${userInfo.session.id}`);
-              }
-              this.userPanel.innerHTML = `
+                    this.renameUser(renameInput.value);
+                  });
+                }, 10);
+              } else if (userInfo.session.status === 'pending') {
+                if (window.location.pathname !== '/login') {
+                  window.location.replace(`/login?session=${userInfo.session.id}`);
+                }
+                this.userPanel.innerHTML = `
                 <a href="/login?session=${userInfo.session.id}" title="Bejelentkezés véglegesítése" class="login">
                   <i class="far fa-user"></i>
                   <span>Bejelentkezés</span>
                 </a>
               `;
-            }
+              }
 
-            this.userPanel.innerHTML += `
+              this.userPanel.innerHTML += `
               <a href="/logout">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Kijelentkezés</span>
               </a>
             `;
+            }
+          }
+
+          if (request.status === 401) {
+
+          }
+
+          const currentUrlLink = this.querySelector(`a[href^="${window.location.pathname}"]`);
+          if (currentUrlLink) {
+            currentUrlLink.classList.add('current')
           }
         }
-
-        if (request.status === 401) {
-          this.userPanel.innerHTML = `
-            <a href="/login" title="Bejelentkezés" class="login">
-              <i class="far fa-user"></i>
-              <span>Bejelentkezés</span>
-            </a>
-          `;
-        }
-
-        const currentUrlLink = this.querySelector(`a[href^="${window.location.pathname}"]`);
-        if (currentUrlLink) {
-          currentUrlLink.classList.add('current')
-        }
-      }
-    };
-    request.open("GET", "/api/user", true);
-    request.send();
+      };
+      request.open("GET", "/api/user", true);
+      request.send();
+    } else {
+      this.userPanel.innerHTML = `
+        <a href="/login" title="Bejelentkezés" class="login">
+          <i class="far fa-user"></i>
+          <span>Bejelentkezés</span>
+        </a>
+      `;
+    }
   }
 
   updateTheme() {

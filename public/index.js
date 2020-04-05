@@ -40,7 +40,9 @@ module.exports = async (event, callback) => {
           'Content-Type': 'text/html',
           'Cache-Control': 'public, max-age=0',
         },
-        body: welcomeTemplate({}),
+        body: welcomeTemplate({
+          sessionId: cookies.sessionId,
+        }),
         isBase64Encoded: false,
       });
     }
@@ -53,7 +55,9 @@ module.exports = async (event, callback) => {
           'Content-Type': 'text/html',
           'Cache-Control': 'public, max-age=0',
         },
-        body: wallTemplate({}),
+        body: wallTemplate({
+          sessionId: cookies.sessionId,
+        }),
         isBase64Encoded: false,
       });
     }
@@ -72,7 +76,7 @@ module.exports = async (event, callback) => {
             'Content-Type': 'text/html',
             'Cache-Control': 'public, max-age=0',
           },
-          body: tagTemplate({ tag }),
+          body: tagTemplate({ tag, sessionId: cookies.sessionId }),
           isBase64Encoded: false,
         });
       }
@@ -99,7 +103,9 @@ module.exports = async (event, callback) => {
           'Content-Type': 'text/html',
           'Cache-Control': 'public, max-age=0',
         },
-        body: moderationTemplate({}),
+        body: moderationTemplate({
+          sessionId: cookies.sessionId,
+        }),
         isBase64Encoded: false,
       });
     }
@@ -151,7 +157,9 @@ module.exports = async (event, callback) => {
             'Content-Type': 'text/html',
             'Cache-Control': 'public, max-age=0',
           },
-          body: loginTemplate({}),
+          body: loginTemplate({
+            sessionId: cookies.sessionId,
+          }),
           isBase64Encoded: false,
         });
       }
@@ -203,7 +211,9 @@ module.exports = async (event, callback) => {
         'Content-Type': 'text/html',
         'Cache-Control': 'public, max-age=0',
       },
-      body: welcomeTemplate({}),
+      body: welcomeTemplate({
+        sessionId: cookies.sessionId,
+      }),
       isBase64Encoded: false,
     });
   } catch (e) {
