@@ -1,4 +1,4 @@
-class ModerationPage extends HTMLElement {
+class ModerationPage extends Component {
   static styleSheet = '/static/components/moderation-page.css';
 
   constructor() {
@@ -9,7 +9,6 @@ class ModerationPage extends HTMLElement {
 
   connectedCallback() {
     this.innerHTML += `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${ModerationPage.styleSheet}');</style>`}
       <audio src="/static/media/notification.mp3" class="notification"></audio>
       <div>
         <h3>Moderáció</h3>

@@ -1,9 +1,8 @@
-class WelcomePage extends HTMLElement {
+class WelcomePage extends Component {
   static styleSheet = '/static/components/welcome-page.css';
 
   connectedCallback() {
     this.innerHTML += `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${WelcomePage.styleSheet}');</style>`}
       <div>
         <h3>Üdvözöllek.</h3>
         <div>

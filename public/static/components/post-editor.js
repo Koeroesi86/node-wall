@@ -1,10 +1,9 @@
-class PostEditor extends HTMLElement {
+class PostEditor extends Component {
   static styleSheet = '/static/components/post-editor.css';
 
   connectedCallback() {
     let beforeValue = this.innerText;
     this.innerHTML = `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${PostEditor.styleSheet}');</style>`}
       <div class="postEditorPlaceHolder">${this.getAttribute('placeholder')}</div>
       <div class="postEditorInput" contenteditable="true">${beforeValue}</div>
     `;

@@ -1,11 +1,5 @@
-class ContentWrapper extends HTMLElement {
+class ContentWrapper extends Component {
   static styleSheet = '/static/components/content-wrapper.css';
-
-  connectedCallback() {
-    this.innerHTML += `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${ContentWrapper.styleSheet}');</style>`}
-    `;
-  }
 }
 
 window.customElements.define('content-wrapper', ContentWrapper);

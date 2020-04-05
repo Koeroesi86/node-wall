@@ -4,12 +4,11 @@ class SendMessageEvent extends CustomEvent {
   }
 }
 
-class ComposePost extends HTMLElement {
+class ComposePost extends Component {
   static styleSheet = '/static/components/compose-post.css';
 
   connectedCallback() {
     let innerHTML = `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${ComposePost.styleSheet}');</style>`}
       <post-editor placeholder="Min jár a fejed?"></post-editor>
       <button class="send" type="button">
         <span class="toSend">Küldés</span>

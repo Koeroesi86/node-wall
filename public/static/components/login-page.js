@@ -1,9 +1,8 @@
-class LoginPage extends HTMLElement {
+class LoginPage extends Component {
   static styleSheet = '/static/components/login-page.css';
 
   connectedCallback() {
     this.innerHTML += `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${LoginPage.styleSheet}');</style>`}
       <div class="activateSession hidden">
         <h3>Aktiválás</h3>
         <div class="note">

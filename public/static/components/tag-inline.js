@@ -1,4 +1,4 @@
-class TagInline extends HTMLElement {
+class TagInline extends Component {
   static styleSheet = '/static/components/tag-inline.css';
 
   constructor() {
@@ -12,7 +12,6 @@ class TagInline extends HTMLElement {
     const tagName = this.getAttribute('tag-name');
 
     this.innerHTML += `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${TagInline.styleSheet}');</style>`}
       <span class="label"></span>
       <div class="tooltip"></div>
     `;

@@ -1,4 +1,4 @@
-class PostWall extends HTMLElement {
+class PostWall extends Component {
   static styleSheet = '/static/components/post-wall.css';
 
   constructor() {
@@ -9,7 +9,6 @@ class PostWall extends HTMLElement {
 
   connectedCallback() {
     this.innerHTML = `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${PostWall.styleSheet}');</style>`}
       <compose-post></compose-post>
     `;
 

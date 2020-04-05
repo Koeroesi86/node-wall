@@ -20,7 +20,7 @@ function stripLine(line = '') {
   return tmp.innerText.replace(/&amp;nbsp;/gi, '&nbsp;');
 }
 
-class PostPreview extends HTMLElement {
+class PostPreview extends Component {
   static styleSheet = '/static/components/post-preview.css';
 
   constructor() {
@@ -37,7 +37,6 @@ class PostPreview extends HTMLElement {
     const created = new Date(parseInt(createdRaw, 10));
 
     this.innerHTML = `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${PostPreview.styleSheet}');</style>`}
       <div class="loadingIndicator">Betöltés...</div>
       <div class="tags"></div>
       <div class="content"></div>

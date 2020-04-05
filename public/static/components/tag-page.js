@@ -1,4 +1,4 @@
-class TagPage extends HTMLElement {
+class TagPage extends Component {
   static styleSheet = '/static/components/tag-page.css';
 
   connectedCallback() {
@@ -7,7 +7,6 @@ class TagPage extends HTMLElement {
 
     // TODO: like/dislike tag
     this.innerHTML = `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${TagPage.styleSheet}');</style>`}
       ${tagName ? `<h2>#${tagName}</h2>` : ''}
       <post-list liked-tags="${tagId || ''}"></post-list>
     `;

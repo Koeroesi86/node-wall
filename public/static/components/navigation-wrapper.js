@@ -1,9 +1,13 @@
-class NavigationWrapper extends HTMLElement {
+class NavigationWrapper extends Component {
   static styleSheet = '/static/components/navigation-wrapper.css';
 
+  onStyleSheetLoaded() {
+    this.style.display = '';
+  }
+
   connectedCallback() {
+    this.style.display = 'none';
     this.innerHTML += `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${NavigationWrapper.styleSheet}');</style>`}
       <a href="/" title="Főoldal">
         <i class="fas fa-home"></i>
         <span>Főoldal</span>

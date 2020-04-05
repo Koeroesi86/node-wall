@@ -1,4 +1,16 @@
-class LinkPreview extends HTMLAnchorElement {
+class CustomLink extends HTMLAnchorElement {
+  constructor() {
+    super();
+
+    Component.prototype._init.apply(this, arguments);
+  }
+
+  onStyleSheetLoaded() {
+
+  }
+}
+
+class LinkPreview extends CustomLink {
   static styleSheet = '/static/components/link-preview.css';
 
   constructor() {
@@ -9,7 +21,6 @@ class LinkPreview extends HTMLAnchorElement {
 
   connectedCallback() {
     let innerHTML = `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${LinkPreview.styleSheet}');</style>`}
       <div class="preview">
         ${this.getAttribute('href') || ''}
       </div>

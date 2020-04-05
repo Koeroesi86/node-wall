@@ -1,11 +1,5 @@
-class MainWrapper extends HTMLElement {
+class MainWrapper extends Component {
   static styleSheet = '/static/components/main-wrapper.css';
-
-  connectedCallback() {
-    this.innerHTML += `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${MainWrapper.styleSheet}');</style>`}
-    `;
-  }
 }
 
 window.customElements.define('main-wrapper', MainWrapper);

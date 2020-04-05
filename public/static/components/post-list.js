@@ -1,4 +1,4 @@
-class PostList extends HTMLElement {
+class PostList extends Component {
   static styleSheet = '/static/components/post-list.css';
 
   constructor() {
@@ -23,7 +23,6 @@ class PostList extends HTMLElement {
     const dislikedTags = this.getAttribute('disliked-tags');
     if (dislikedTags) this.dislikedTags = dislikedTags.split(',');
     this.innerHTML += `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${PostList.styleSheet}');</style>`}
       <audio src="/static/media/notification.mp3" class="notification"></audio>
       <div class="end">
         <div class="indicator">Betöltés...</div>

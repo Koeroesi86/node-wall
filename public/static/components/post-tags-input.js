@@ -21,7 +21,7 @@ function request({ url, method = 'GET', payload }) {
   });
 }
 
-class PostTagsInput extends HTMLElement {
+class PostTagsInput extends Component {
   static styleSheet = '/static/components/post-tags-input.css';
 
   constructor() {
@@ -36,7 +36,6 @@ class PostTagsInput extends HTMLElement {
 
   connectedCallback() {
     this.innerHTML += `
-      ${window.hasStyleWrapper ? '' : `<style type="text/css">@import url('${PostTagsInput.styleSheet}');</style>`}
       <div class="tags">
         <input class="input" />
         <div class="results"></div>
