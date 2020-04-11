@@ -13,10 +13,10 @@
     rimraf "^2.6.3"
     uuid "^3.3.2"
 
-"@koeroesi86/node-webserver@^20.3.73-f5a2ee3":
-  version "20.3.73-f5a2ee3"
-  resolved "https://registry.yarnpkg.com/@koeroesi86/node-webserver/-/node-webserver-20.3.73-f5a2ee3.tgz#217b151f06320a8c19f3330e4801dfe3482654a8"
-  integrity sha512-V3al8adXg5xPNT8s0M3ViyIrfGPZXoBi8pKXClE4kY3sw9vUdjGtwSfPU8EHbisN3CHf5tEISNuPxx68O9Qgzw==
+"@koeroesi86/node-webserver@^20.4.80-28fced1":
+  version "20.4.80-28fced1"
+  resolved "https://registry.yarnpkg.com/@koeroesi86/node-webserver/-/node-webserver-20.4.80-28fced1.tgz#f47fcc87b764999e90eca13f470347ca69a2ff75"
+  integrity sha512-81jXD2VWbvat9u8f7bdlZuj26YMy0GbFyzUt1Aj/bn3CJH31Muon3EhlLA/i/Ku+dRIc6DW5tFOFsnYg3d81pA==
   dependencies:
     "@koeroesi86/node-lambda-invoke" "^1.0.20-d1fa702"
     chalk "^2.4.2"
@@ -34,7 +34,6 @@
     os-service "^2.2.0"
     pidusage "^2.0.10"
     rimraf "^2.6.3"
-    send "^0.17.1"
     uuid "^3.3.2"
     vhost "^3.0.2"
 
@@ -2498,7 +2497,7 @@ semver@^5.0.3, semver@^5.1.0, semver@^5.3.0, semver@^5.5.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz#a954f931aeba508d307bbf069eff0c01c96116f7"
   integrity sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
 
-send@0.17.1, send@^0.17.1:
+send@0.17.1:
   version "0.17.1"
   resolved "https://registry.yarnpkg.com/send/-/send-0.17.1.tgz#c1d8b059f7900f7466dd4938bdc44e11ddb376c8"
   integrity sha512-BsVKsiGcQMFwT8UxypobUKyv7irCNRHk1T0G680vk88yf6LBByGcZJOTJCrTP2xVN6yI+XjPJcNuE3V4fT9sAg==

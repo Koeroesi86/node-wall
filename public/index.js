@@ -7,6 +7,7 @@ const wallTemplate = require('lib/templates/page/wall');
 const tagTemplate = require('lib/templates/page/tag');
 const moderationTemplate = require('lib/templates/page/moderation');
 const loginTemplate = require('lib/templates/page/login');
+const profileTemplate = require('lib/templates/page/profile');
 
 const keepAliveTimeout = 10000;
 const keepAliveCallback = () => {
@@ -104,6 +105,34 @@ module.exports = async (event, callback) => {
           'Cache-Control': 'public, max-age=0',
         },
         body: moderationTemplate({
+          sessionId: cookies.sessionId,
+        }),
+        isBase64Encoded: false,
+      });
+    }
+
+    /** @route /profile */
+    if (pathFragments[0] === 'profile') {
+      if (!userInfo) {
+        return callback({
+          statusCode: 302,
+          headers: {
+            'Content-Type': 'text/html',
+            'Cache-Control': 'public, max-age=0',
+            'Location': `/login`,
+          },
+          body: '',
+          isBase64Encoded: false,
+        });
+      }
+
+      return callback({
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'text/html',
+          'Cache-Control': 'public, max-age=0',
+        },
+        body: profileTemplate({
           sessionId: cookies.sessionId,
         }),
         isBase64Encoded: false,

@@ -63,49 +63,14 @@ class NavigationWrapper extends Component {
                       <span>Moderáció</span>
                     </a>
                   `}
-                  <a title="Bejelentkezve mint ${userName}" class="userNameWrapper" tabindex="0">
+                  <a href="/profile" title="Bejelentkezve mint ${userName}" class="userNameWrapper">
                     <i class="far fa-user"></i>
                     <span>
                       ${userName}
                     </span>
-                    <div class="renameUserWrapper hidden" tabindex="0">
-                      <input type="text" value="${userInfo.user.name || ''}" name="name" class="name" placeholder="Megjelenítendő név" />
-                      <button type="button" class="button">
-                        Mentés
-                      </button>
                     </div>
                   </a>
                 `;
-
-                setTimeout(() => {
-                  const userNameWrapper = this.userPanel.querySelector('.userNameWrapper');
-                  const renameUserWrapper = this.userPanel.querySelector('.renameUserWrapper');
-                  const renameInput = renameUserWrapper.querySelector('.name');
-                  userNameWrapper.addEventListener('click', e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-
-                    renameUserWrapper.classList.toggle('hidden');
-                  });
-                  userNameWrapper.addEventListener('focusout', e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-
-                    if (userNameWrapper !== e.relatedTarget && !userNameWrapper.contains(e.relatedTarget)) {
-                      renameUserWrapper.classList.add('hidden');
-                    }
-                  }, false);
-                  renameUserWrapper.addEventListener('click', e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                  });
-                  renameUserWrapper.querySelector('.button').addEventListener('click', e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-
-                    this.renameUser(renameInput.value);
-                  });
-                }, 10);
               } else if (userInfo.session.status === 'pending') {
                 if (window.location.pathname !== '/login') {
                   window.location.replace(`/login?session=${userInfo.session.id}`);

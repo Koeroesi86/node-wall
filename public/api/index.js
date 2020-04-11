@@ -8,6 +8,7 @@ const createDatabase = require('lib/utils/createDatabase');
 const getData = require('lib/utils/getData');
 const setData = require('lib/utils/setData');
 const getUserInfoFromSession = require('lib/utils/getUserInfoFromSession');
+const getUserSessions = require('lib/utils/getUserSessions');
 const generateCode = require('lib/utils/generateCode');
 const verifyLoginTemplate = require('lib/templates/email/verifyLogin');
 const createMailer = require('lib/utils/createMailer');
@@ -686,6 +687,17 @@ module.exports = async (event, callback) => {
               isBase64Encoded: false,
             });
           }
+        }
+      }
+
+      if (pathFragments[2] === 'sessions') {
+        if (pathFragments.length === 3 && httpMethod === 'GET') {
+          return callback({
+            statusCode: 200,
+            headers: getResponseHeaders(),
+            body: JSON.stringify(userInfo && userInfo.user ? await getUserSessions(userInfo.user.id) : null, null, 2),
+            isBase64Encoded: false,
+          });
         }
       }
 
