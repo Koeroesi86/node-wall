@@ -143,9 +143,11 @@ module.exports = async (event, callback) => {
     if (pathFragments[0] === 'logout') {
       if (cookiesRaw) {
         const cookies = cookie.parse(cookiesRaw);
-        await knex('users_session')
-          .where({ id: cookies.sessionId })
-          .delete();
+        if (cookies.sessionId) {
+          await knex('users_session')
+            .where({ id: cookies.sessionId })
+            .update({ status: 'deleted', secret: '' });
+        }
       }
 
       const expires = moment().subtract(1, 'year');

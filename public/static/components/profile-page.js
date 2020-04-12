@@ -2,8 +2,6 @@ class ProfilePage extends Component {
   static styleSheet = '/static/components/profile-page.css';
 
   connectedCallback() {
-    const sessionId = this.getAttribute('session-id');
-
     this.innerHTML = `
       <h2>Profil</h2>
       <div class="renameUserWrapper">
@@ -29,6 +27,15 @@ class ProfilePage extends Component {
       this.renameUser(this.renameInput.value);
     });
 
+    Promise.resolve()
+      .then(() => this.getUserInfo())
+      .then(() => this.parseUserSessions())
+      .catch(e => console.error(e))
+  }
+
+  parseUserSessions() {
+    const sessionId = this.getAttribute('session-id');
+
     const parseSessionStatus = sessionStatus => {
       switch (sessionStatus) {
         case 'active':
@@ -50,25 +57,57 @@ class ProfilePage extends Component {
 
     const isCurrentSession = sId => sId === sessionId;
 
-    Promise.resolve()
-      .then(() => this.getUserInfo())
+    return Promise.resolve()
       .then(() => this.getUserSessions())
       .then(sessions => {
-        const resultHTML = sessions.map(session => `
-          <div class="session ${isCurrentSession(session.sessionId) ? 'current' : ''}">
+        this.sessionList.innerHTML = sessions.map(session => `
+          <div class="session ${isCurrentSession(session.sessionId) ? 'current' : ''}" title="${session.details ? session.details.userAgent : ''}">
             <div class="type">
               ${parseLoginType(session.loginType)}
             </div>
             <div class="meta">
-              ${parseSessionStatus(session.sessionStatus)} &middot; ${new Date(session.sessionCreatedAt).toLocaleString()}
+              ${parseSessionStatus(session.sessionStatus)} &middot; Létrehozva: ${new Date(session.sessionCreatedAt).toLocaleString()}
+              ${session.lastActive ? `&middot; Utoljára aktív: ${new Date(session.lastActive).toLocaleString()}` : ''}
               ${isCurrentSession(session.sessionId) ? '&middot; jelenlegi' : ''}
+            </div>
+            <div class="actionsWrapper">
+              <button type="button" title="Kiléptetés" class="exit" data-session-id="${session.sessionId}">
+                <i class="fa fa-times" aria-hidden="true"></i>
+              </button>
             </div>
           </div>
         `).join('');
 
-        this.sessionList.innerHTML = resultHTML;
-      })
-      .catch(e => console.error(e))
+        this.sessionList.querySelectorAll('.session .actionsWrapper .exit').forEach(exitButton => {
+          exitButton.addEventListener('click', e => {
+            e.preventDefault();
+            if (isCurrentSession(exitButton.dataset.sessionId)) {
+              alert('Jelentkezz ki a főmenüben amennyiben ki szeretnél lépni ebből a munkamenetből.');
+            } else {
+              Promise.resolve()
+                .then(() => this.deleteSession(exitButton.dataset.sessionId))
+                .then(() => exitButton.closest('.session').remove())
+            }
+          });
+        });
+      });
+  }
+
+  deleteSession(sessionId = 'uuid') {
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = () => {
+        if (request.readyState === 4) {
+          if (request.status === 200) {
+            resolve();
+          } else {
+            reject();
+          }
+        }
+      };
+      request.open('DELETE', `/api/user/sessions/${sessionId}`, true);
+      request.send();
+    });
   }
 
   getUserInfo() {

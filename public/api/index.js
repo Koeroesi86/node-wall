@@ -7,6 +7,7 @@ const matchAll = require('match-all');
 const createDatabase = require('lib/utils/createDatabase');
 const getData = require('lib/utils/getData');
 const setData = require('lib/utils/setData');
+const hasData = require('lib/utils/hasData');
 const getUserInfoFromSession = require('lib/utils/getUserInfoFromSession');
 const getUserSessions = require('lib/utils/getUserSessions');
 const generateCode = require('lib/utils/generateCode');
@@ -52,6 +53,15 @@ module.exports = async (event, callback) => {
 
     if (cookies.sessionId) {
       userInfo = await getUserInfoFromSession(cookies.sessionId);
+      if (!await hasData(cookies.sessionId, 'session')) {
+        await setData(cookies.sessionId, 'session', JSON.stringify({
+          userAgent: headers['user-agent'],
+          remoteAddress: event.remoteAddress,
+        }, null, 2));
+      }
+      await knex('users_session')
+        .where({ id: cookies.sessionId })
+        .update({ last_active: Date.now() })
     }
 
     /** @route /api/link */
@@ -645,8 +655,9 @@ module.exports = async (event, callback) => {
         }
 
         if (httpMethod === 'GET') {
+          /** @route /api/user/<id> */
           if (pathFragments.length === 3 && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
-            const user = await knex('users').select('name').where('id', event.pathFragments[2]).first();
+            const user = await knex('users').select('id, name, created_at as cratedAt').where('id', event.pathFragments[2]).first();
 
             if (!user) {
               return callback({
@@ -665,6 +676,7 @@ module.exports = async (event, callback) => {
             });
           }
 
+          /** @route /api/user */
           if (pathFragments.length === 2) {
             if (!userInfo) {
               const expires = moment().subtract(1, 'year');
@@ -690,17 +702,46 @@ module.exports = async (event, callback) => {
         }
       }
 
-      if (pathFragments[2] === 'sessions') {
+      /** @route /api/user/sessions */
+      if (pathFragments[2] === 'sessions' && userInfo) {
         if (pathFragments.length === 3 && httpMethod === 'GET') {
+          const sessions = await Promise.all(
+            (userInfo && userInfo.user ? await getUserSessions(userInfo.user.id) : [])
+            .filter(session => session.sessionStatus !== 'deleted')
+            .map(async session => ({
+              ...session,
+              sessionCreatedAt: new Date(session.sessionCreatedAt).valueOf(),
+              details: await hasData(session.sessionId, 'session')
+                ? JSON.parse(await getData(session.sessionId, 'session'))
+                : null,
+            }))
+        );
           return callback({
             statusCode: 200,
             headers: getResponseHeaders(),
-            body: JSON.stringify(userInfo && userInfo.user ? await getUserSessions(userInfo.user.id) : null, null, 2),
+            body: JSON.stringify(sessions, null, 2),
             isBase64Encoded: false,
           });
         }
+
+        if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[3]) && httpMethod === 'DELETE') {
+          const sessions = await getUserSessions(userInfo.user.id);
+          if (sessions.find(session => session.sessionId === pathFragments[3])) {
+            await knex('users_session')
+              .where({ id: pathFragments[3] })
+              .update({ status: 'deleted', secret: '' });
+
+            return callback({
+              statusCode: 200,
+              headers: getResponseHeaders(),
+              body: '',
+              isBase64Encoded: false,
+            });
+          }
+        }
       }
 
+      /** @route /api/user/name */
       if (pathFragments[2] === 'name') {
         if (httpMethod === 'GET') {
           return callback({
@@ -728,6 +769,7 @@ module.exports = async (event, callback) => {
         }
       }
 
+      /** @route /api/user/tags */
       if (pathFragments[2] === 'tags') {
         if (httpMethod === 'GET') {
           if (!userInfo) throw new Error('not logged in');
