@@ -13,10 +13,10 @@
     rimraf "^2.6.3"
     uuid "^3.3.2"
 
-"@koeroesi86/node-webserver@^20.4.80-28fced1":
-  version "20.4.80-28fced1"
-  resolved "https://registry.yarnpkg.com/@koeroesi86/node-webserver/-/node-webserver-20.4.80-28fced1.tgz#f47fcc87b764999e90eca13f470347ca69a2ff75"
-  integrity sha512-81jXD2VWbvat9u8f7bdlZuj26YMy0GbFyzUt1Aj/bn3CJH31Muon3EhlLA/i/Ku+dRIc6DW5tFOFsnYg3d81pA==
+"@koeroesi86/node-webserver@^20.4.81-bd0f797":
+  version "20.4.81-bd0f797"
+  resolved "https://registry.yarnpkg.com/@koeroesi86/node-webserver/-/node-webserver-20.4.81-bd0f797.tgz#99e433415ea97ef1b397c22647e99ae8d981791a"
+  integrity sha512-fxUWQ7Y/JnSAT7SLDKmNYSuIpfHD9pAa67O22Mt4F1yQcbGY67CFl/7v7X/HQuT7o5tWND+Nydq7+N3d4KFQ5Q==
   dependencies:
     "@koeroesi86/node-lambda-invoke" "^1.0.20-d1fa702"
     chalk "^2.4.2"
