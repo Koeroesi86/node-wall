@@ -115,14 +115,14 @@ class NavigationWrapper extends Component {
   }
 
   updateTheme() {
-    if (localStorage.getItem('darkTheme') === 'on') {
-      document.body.classList.add('darkTheme');
+    if (localStorage.getItem('darkTheme') !== 'on') {
+      document.body.classList.remove('darkTheme');
       this.darkThemeToggle.innerHTML = `
         <i class="fa fa-moon-o" aria-hidden="true"></i>
         <span>Sötét</span>
       `;
     } else {
-      document.body.classList.remove('darkTheme');
+      document.body.classList.add('darkTheme');
       this.darkThemeToggle.innerHTML = `
         <i class="fa fa-sun-o" aria-hidden="true"></i>
         <span>Világos</span>
