@@ -1,41 +1,57 @@
 class TranslateText extends Component {
   static cache = {};
+  static pending = {};
 
   static getTranslation(alias) {
-    return new Promise((resolve, reject) => {
-      if (TranslateText.cache[alias]) {
-        return resolve(TranslateText.cache[alias]);
-      }
-
-      // const meta = document.querySelector('meta[name="x-language"]');
-      // let language = 'en-GB';
-      // if (!language && meta) {
-      //   language = meta.getAttribute('content');
-      // }
-
-      const request = new XMLHttpRequest();
-      request.onreadystatechange = e => {
-        if (request.readyState === 4) {
-          try {
-            if (request.status === 200) {
-              const translation = JSON.parse(request.responseText);
-              if (translation) {
-                TranslateText.cache[alias] = translation;
-                resolve(translation);
-              }
-            }
-          } catch (e) {
-            console.warn(e);
+    return Promise.resolve()
+      .then(() => new Promise(resolve => {
+        let timer;
+        const checkPending = () => {
+          if (timer) clearTimeout(timer);
+          if (TranslateText.pending[alias]) {
+            timer = setTimeout(checkPending, 10);
+          } else {
+            resolve();
           }
-
-          const e = new Error(`failed to fetch translation for ${alias}`);
-          e.request = request;
-          reject(e);
         }
-      };
-      request.open("GET", `/api/translation/${alias}`, true);
-      request.send();
-    });
+        checkPending();
+      }))
+      .then(() => new Promise((resolve, reject) => {
+        if (TranslateText.cache[alias]) {
+          return resolve(TranslateText.cache[alias]);
+        }
+
+        // const meta = document.querySelector('meta[name="x-language"]');
+        // let language = 'en-GB';
+        // if (!language && meta) {
+        //   language = meta.getAttribute('content');
+        // }
+
+        TranslateText.pending[alias] = true;
+        const request = new XMLHttpRequest();
+        request.onreadystatechange = e => {
+          if (request.readyState === 4) {
+            delete TranslateText.pending[alias];
+            try {
+              if (request.status === 200) {
+                const translation = JSON.parse(request.responseText);
+                if (translation) {
+                  TranslateText.cache[alias] = translation;
+                  resolve(translation);
+                }
+              }
+            } catch (e) {
+              console.warn(e);
+            }
+
+            const e = new Error(`failed to fetch translation for ${alias}`);
+            e.request = request;
+            reject(e);
+          }
+        };
+        request.open("GET", `/api/translation/${alias}`, true);
+        request.send();
+      }));
   }
 
   static get observedAttributes() { return ['alias']; }
