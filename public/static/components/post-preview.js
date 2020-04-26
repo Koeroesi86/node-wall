@@ -37,11 +37,11 @@ class PostPreview extends Component {
     const created = new Date(parseInt(createdRaw, 10));
 
     this.innerHTML = `
-      <div class="loadingIndicator"><translate-text alias="post-preview.loading" /></div>
+      <div class="loadingIndicator"><translate-text alias="post-preview.loading"></translate-text></div>
       <div class="tags"></div>
       <div class="content"></div>
       <div class="meta">
-        <div class="sent"><translate-text alias="post-preview.sent-at" /> ${created.toLocaleString()}</div>
+        <div class="sent"><translate-text alias="post-preview.sent-at"></translate-text> ${created.toLocaleString()}</div>
         <div class="owner"></div>
       </div>
     `;

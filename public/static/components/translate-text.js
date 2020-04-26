@@ -1,19 +1,17 @@
-const cache = {};
-
 class TranslateText extends Component {
   static cache = {};
 
-  static getTranslation(alias, language) {
+  static getTranslation(alias) {
     return new Promise((resolve, reject) => {
-      if (cache[alias]) {
-        return Promise.resolve(cache[alias]);
+      if (TranslateText.cache[alias]) {
+        return resolve(TranslateText.cache[alias]);
       }
 
-      const meta = document.querySelector('meta[name="x-language"]');
-      let language = 'en-GB';
-      if (!language && meta) {
-        language = meta.getAttribute('content');
-      }
+      // const meta = document.querySelector('meta[name="x-language"]');
+      // let language = 'en-GB';
+      // if (!language && meta) {
+      //   language = meta.getAttribute('content');
+      // }
 
       const request = new XMLHttpRequest();
       request.onreadystatechange = e => {
@@ -21,7 +19,10 @@ class TranslateText extends Component {
           try {
             if (request.status === 200) {
               const translation = JSON.parse(request.responseText);
-              if (translation) resolve(translation);
+              if (translation) {
+                TranslateText.cache[alias] = translation;
+                resolve(translation);
+              }
             }
           } catch (e) {
             console.warn(e);
@@ -37,8 +38,23 @@ class TranslateText extends Component {
     });
   }
 
+  static get observedAttributes() { return ['alias']; }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'alias' && this.isConnected) this.renderText();
+  }
+
   connectedCallback() {
+    this.renderText();
+  }
+
+  renderText() {
     const alias = this.getAttribute('alias');
+
+    if (!alias) {
+      this.innerHTML = '';
+      return;
+    }
 
     Promise.resolve()
       .then(() => TranslateText.getTranslation(alias))
