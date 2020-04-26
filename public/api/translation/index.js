@@ -13,7 +13,6 @@ const getResponseHeaders = (headers = {}) => ({
 });
 
 function detectLanguage(headers) {
-  return 'hu-HU';
   if (headers['accept-language']) {
     return Promise.resolve(headers['accept-language'].substr(0, 5));
   }
