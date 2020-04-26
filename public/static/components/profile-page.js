@@ -3,15 +3,15 @@ class ProfilePage extends Component {
 
   connectedCallback() {
     this.innerHTML = `
-      <h2>Profil</h2>
+      <h2><translate-text alias="profile-page.header"></translate-text></h2>
       <div class="renameUserWrapper">
         <input type="text" value="" name="name" class="name" placeholder="Megjelenítendő név" title="Megjelenítendő név" />
         <button type="button" class="button">
-          Mentés
+          <translate-text alias="profile-page.rename.button"></translate-text>
         </button>
       </div>
       <div class="sessionListWrapper">
-        <h3>Bejelentkezések</h3>
+        <h3><translate-text alias="profile-page.session-list.header"></translate-text></h3>
         <div class="sessionList"></div>
       </div>
     `;
@@ -39,10 +39,10 @@ class ProfilePage extends Component {
     const parseSessionStatus = sessionStatus => {
       switch (sessionStatus) {
         case 'active':
-          return 'Aktív';
+          return 'active';
         case 'pending':
         default:
-          return 'Függőben';
+          return 'pending';
       }
     };
 
@@ -66,9 +66,14 @@ class ProfilePage extends Component {
               ${parseLoginType(session.loginType)}
             </div>
             <div class="meta">
-              ${parseSessionStatus(session.sessionStatus)} &middot; Létrehozva: ${new Date(session.sessionCreatedAt).toLocaleString()}
-              ${session.lastActive ? `&middot; Utoljára aktív: ${new Date(session.lastActive).toLocaleString()}` : ''}
-              ${isCurrentSession(session.sessionId) ? '&middot; jelenlegi' : ''}
+              <translate-text alias="profile-page.session-list.session.status.${parseSessionStatus(session.sessionStatus)}"></translate-text>
+              &nbsp;&middot;&nbsp;
+              <translate-text alias="profile-page.session-list.session.created-at"></translate-text>&nbsp;${new Date(session.sessionCreatedAt).toLocaleString()}
+              ${session.lastActive ? `&nbsp;&middot;&nbsp;
+                <translate-text alias="profile-page.session-list.session.last-active"></translate-text>&nbsp;
+                ${new Date(session.lastActive).toLocaleString()}
+              ` : ''}
+              ${isCurrentSession(session.sessionId) ? '&nbsp;&middot;&nbsp;<translate-text alias="profile-page.session-list.session.current"></translate-text>' : ''}
             </div>
             <div class="actionsWrapper">
               <button type="button" title="Kiléptetés" class="exit" data-session-id="${session.sessionId}">

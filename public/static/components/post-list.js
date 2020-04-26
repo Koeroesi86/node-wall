@@ -25,7 +25,7 @@ class PostList extends Component {
     this.innerHTML += `
       <audio src="/static/media/notification.mp3" class="notification"></audio>
       <div class="end">
-        <div class="indicator">Betöltés...</div>
+        <div class="indicator"><translate-text alias="post-list.loading"></translate-text></div>
       </div>
     `;
     this.notificationNode = this.querySelector('.notification');

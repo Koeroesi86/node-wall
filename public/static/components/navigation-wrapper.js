@@ -10,18 +10,18 @@ class NavigationWrapper extends Component {
     this.innerHTML += `
       <a href="/" title="Főoldal">
         <i class="fas fa-home"></i>
-        <span>Főoldal</span>
+        <span><translate-text alias="navigation-wrapper.home"></translate-text></span>
       </a>
       <a href="/wall" title="Fal">
         <i class="far fa-comment"></i>
-        <span>Fal</span>
+        <span><translate-text alias="navigation-wrapper.wall"></translate-text></span>
       </a>
       <div class="user"></div>
       <div class="bottom">
         <a href="javascript:void(0)" class="darkThemeToggle" title="Világos/sötét sablon váltása"></a>
         <a href="javascript:void(0)" class="menuToggle" title="Menü összecsukása">
           <i class="fa fa-bars" aria-hidden="true"></i>
-          <span>Menü</span>
+          <span><translate-text alias="navigation-wrapper.menu"></translate-text></span>
         </a>
       </div>
     `;
@@ -60,7 +60,7 @@ class NavigationWrapper extends Component {
                   ${userInfo.user.role !== 'admin' ? '' : `
                     <a href="/moderation">
                       <i class="fas fa-dungeon"></i>
-                      <span>Moderáció</span>
+                      <span><translate-text alias="navigation-wrapper.moderation"></translate-text></span>
                     </a>
                   `}
                   <a href="/profile" title="Bejelentkezve mint ${userName}" class="userNameWrapper">
@@ -78,7 +78,7 @@ class NavigationWrapper extends Component {
                 this.userPanel.innerHTML = `
                 <a href="/login?session=${userInfo.session.id}" title="Bejelentkezés véglegesítése" class="login">
                   <i class="far fa-user"></i>
-                  <span>Bejelentkezés</span>
+                  <span><translate-text alias="navigation-wrapper.login"></translate-text></span>
                 </a>
               `;
               }
@@ -86,7 +86,7 @@ class NavigationWrapper extends Component {
               this.userPanel.innerHTML += `
               <a href="/logout">
                 <i class="fas fa-sign-out-alt"></i>
-                <span>Kijelentkezés</span>
+                <span><translate-text alias="navigation-wrapper.logout"></translate-text></span>
               </a>
             `;
             }
@@ -108,7 +108,7 @@ class NavigationWrapper extends Component {
       this.userPanel.innerHTML = `
         <a href="/login" title="Bejelentkezés" class="login">
           <i class="far fa-user"></i>
-          <span>Bejelentkezés</span>
+          <span><translate-text alias="navigation-wrapper.login"></translate-text></span>
         </a>
       `;
     }
@@ -119,13 +119,13 @@ class NavigationWrapper extends Component {
       document.body.classList.remove('darkTheme');
       this.darkThemeToggle.innerHTML = `
         <i class="fa fa-moon-o" aria-hidden="true"></i>
-        <span>Sötét</span>
+        <span><translate-text alias="navigation-wrapper.theme.dark"></translate-text></span>
       `;
     } else {
       document.body.classList.add('darkTheme');
       this.darkThemeToggle.innerHTML = `
         <i class="fa fa-sun-o" aria-hidden="true"></i>
-        <span>Világos</span>
+        <span><translate-text alias="navigation-wrapper.theme.bright"></translate-text></span>
       `;
     }
   }

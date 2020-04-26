@@ -4,9 +4,9 @@ class WelcomePage extends Component {
   connectedCallback() {
     this.innerHTML += `
       <div>
-        <h3>Üdvözöllek.</h3>
+        <h3><translate-text alias="welcome-page.header"></translate-text></h3>
         <div>
-          A falat <a href="/wall">itt találod</a>
+          <translate-text alias="welcome-page.note"></translate-text>
         </div>
       </div>
     `;

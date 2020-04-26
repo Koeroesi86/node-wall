@@ -28,7 +28,7 @@ class TagInline extends Component {
         this._label.innerText += tag.name;
         // TODO: like/dislike tag
         this._tooltip.innerHTML = `
-          Címke: <a href="/tag/${tag.id}" target="_blank">${tag.name}</a>
+          <translate-text alias="tag-inline.tooltip.prefix"></translate-text> <a href="/tag/${tag.id}" target="_blank">${tag.name}</a>
         `;
 
         const linkElement = document.createElement('a');

@@ -5,17 +5,24 @@ class ModerationPage extends Component {
     super();
 
     this.getPosts = this.getPosts.bind(this);
+    this.fetchPosts = this.fetchPosts.bind(this);
   }
 
   connectedCallback() {
     this.innerHTML += `
       <audio src="/static/media/notification.mp3" class="notification"></audio>
       <div>
-        <h3>Moderáció</h3>
+        <h3>
+          <translate-text alias="moderation-page.header"></translate-text>
+        </h3>
         <div>
-          <div class="heading">Moderálásra váró bejegyzések:</div>
+          <div class="heading">
+            <translate-text alias="moderation-page.posts.header"></translate-text>
+          </div>
           <div class="pendingPosts">
-            <div class="loading">Loading</div>
+            <div class="loading">
+              <translate-text alias="moderation-page.posts.loading"></translate-text>
+            </div>
           </div>
         </div>
       </div>
@@ -27,22 +34,27 @@ class ModerationPage extends Component {
 
     this._initialized = false;
     this.latest = null;
-    this.getPosts();
+    Promise.resolve()
+      .then(() => TranslateText.getTranslation('moderation-page.posts.create-tag-title'))
+      .then(translation => {
+        this.createTagTitle = translation.value;
+        return Promise.resolve();
+      })
+      .then(() => this.getPosts());
   }
 
   getPosts() {
-    const request = new XMLHttpRequest();
-    request.onreadystatechange = e => {
-      if (request.readyState === 4 && request.status === 200) {
+    Promise.resolve()
+      .then(() => this.fetchPosts())
+      .then(posts => {
         this.pendingPostsLoading.classList.add('hidden');
-        const posts = JSON.parse(request.responseText);
         if (posts.length === 0) {
           if (!this._initialized) {
             this.pendingPostsContainer.innerHTML += `
               <div class="noPostsMessage">
-                Jelenleg nincs moderációra váró bejegyzés.
+                <translate-text alias="moderation-page.posts.no-posts"></translate-text>
               </div>
-            `
+            `;
           }
         } else {
           const noPostsMessage = this.querySelector('.noPostsMessage');
@@ -70,12 +82,14 @@ class ModerationPage extends Component {
             ></post-preview>
             ${newTags.length > 0 ? `
             <div class="newTags">
-              <div class="newTagsNote">Ajánlott új tagek:</div>
+              <div class="newTagsNote">
+                <translate-text alias="moderation-page.posts.new-tags-note"></translate-text>
+              </div>
               <div class="newTagsList">
                 ${newTags.map(t => `
                   <div class="newTagsItem">
                     <div class="label">${t}</div>
-                    <div class="add" title="Tag létrehozása" new-tag="${t}">
+                    <div class="add" title="${this.createTagTitle}" new-tag="${t}">
                       <svg
                         class="icon"
                         enable-background="new 0 0 100 100"
@@ -95,12 +109,18 @@ class ModerationPage extends Component {
             </div>
             ` : ''}
             <div class="addTags">
-              <div class="addTagsHeading">Tagek hozzáaadása:</div>
+              <div class="addTagsHeading">
+                <translate-text alias="moderation-page.posts.add-tags-heading"></translate-text>
+              </div>
               <post-tags-input post-id="${post.id}"></post-tags-input>
             </div>
             <div class="buttonsWrapper">
-              <button type="button" class="button approve">Engedélyezés</button>
-              <button type="button" class="button disapprove">Elutasítás</button>
+              <button type="button" class="button approve">
+                <translate-text alias="moderation-page.posts.approve"></translate-text>
+              </button>
+              <button type="button" class="button disapprove">
+                <translate-text alias="moderation-page.posts.disapprove"></translate-text>
+              </button>
             </div>
           `;
           const tagsInput = postModerationWrapper.querySelector('post-tags-input');
@@ -108,7 +128,7 @@ class ModerationPage extends Component {
             const addElement = newTagsItem.querySelector('.add');
             addElement.addEventListener('click', e => {
               const newTagAttribute = addElement.getAttribute('new-tag');
-              const newTag  = newTagAttribute.match(/[a-z\u00C0-\u017F0-9]+/gi)[0];
+              const newTag = newTagAttribute.match(/[a-z\u00C0-\u017F0-9]+/gi)[0];
               tagsInput.createTag(newTag, 'text').then(() => {
                 newTagsItem.remove();
               });
@@ -133,7 +153,12 @@ class ModerationPage extends Component {
             e.preventDefault();
             const tagsInput = postModerationWrapper.querySelector('post-tags-input');
             if (tagsInput.tagIds.length === 0) {
-              alert('Legalább egy taget rendelj a bejegyzéshez.');
+              Promise.resolve()
+                .then(() => TranslateText.getTranslation('moderation-page.posts.no-tags-alert'))
+                .then(translation => {
+                  alert(translation.value);
+                })
+                .catch(e => console.error(e))
               return;
             }
 
@@ -156,10 +181,24 @@ class ModerationPage extends Component {
         setTimeout(() => {
           this.getPosts();
         }, 5 * 1000);
-      }
-    };
-    request.open("GET", `/api/posts?status=pending${this.latest ? `&since=${this.latest + 1}` : ''}`, true);
-    request.send();
+      })
+      .catch(e => console.error(e));
+  }
+
+  fetchPosts() {
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = e => {
+        if (request.readyState === 4) {
+          if (request.status === 200) {
+            resolve(JSON.parse(request.responseText));
+          }
+          reject();
+        }
+      };
+      request.open("GET", `/api/posts?status=pending${this.latest ? `&since=${this.latest + 1}` : ''}`, true);
+      request.send();
+    });
   }
 
   setPostStatus(postId, status) {

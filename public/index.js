@@ -16,11 +16,10 @@ const keepAliveCallback = () => {
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
 function detectLanguage(headers) {
-  //accept-language
   if (headers['accept-language']) {
     return Promise.resolve(headers['accept-language'].substr(0, 5));
   }
-  return Promise.resolve('en');
+  return Promise.resolve('en-GB');
 }
 
 module.exports = async (event, callback) => {
@@ -36,7 +35,6 @@ module.exports = async (event, callback) => {
   const cookies = cookie.parse(cookiesRaw);
   let userInfo = null;
   const language = await detectLanguage(headers);
-  console.log('language', language)
 
   if (cookies.sessionId) {
     userInfo = await getUserInfoFromSession(cookies.sessionId);

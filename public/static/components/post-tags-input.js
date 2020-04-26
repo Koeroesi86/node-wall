@@ -167,7 +167,7 @@ class PostTagsInput extends Component {
         const tagNode = document.createElement('div');
         tagNode.className = 'tagResult';
         tagNode.innerHTML = `
-          "${term}" tag létrehozása
+          "${term}" <translate-text alias="post-tags-input.create-tag"></translate-text>
         `;
         tagNode.addEventListener('click', e => {
           this.createTag(term, 'text').then(() => {
