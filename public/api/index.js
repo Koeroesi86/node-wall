@@ -13,6 +13,7 @@ const getUserSessions = require('lib/utils/getUserSessions');
 const generateCode = require('lib/utils/generateCode');
 const verifyLoginTemplate = require('lib/templates/email/verifyLogin');
 const createMailer = require('lib/utils/createMailer');
+const getTranslation = require('lib/translations/getTranslation');
 
 const keepAliveTimeout = 30 * 1000;
 const keepAliveCallback = () => {
@@ -33,6 +34,13 @@ async function getPostTags(postId) {
     .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
     .where('posts_tags.post_id', postId)
     .select('tags.id', 'tags.name', 'tags.type');
+}
+
+function detectLanguage(headers) {
+  if (headers['accept-language']) {
+    return Promise.resolve(headers['accept-language'].substr(0, 5));
+  }
+  return Promise.resolve('en-GB');
 }
 
 module.exports = async (event, callback) => {
@@ -616,8 +624,9 @@ module.exports = async (event, callback) => {
               to: payload.value,
               subject: 'Bejelentkezés',
               encoding: 'utf-8',
-              html: verifyLoginTemplate({
-                title: 'Bejelentkezés',
+              html: await verifyLoginTemplate({
+                language: await detectLanguage(headers),
+                title: await getTranslation('email.verify.title', await detectLanguage(headers)),
                 code: session.secret,
                 activateUrl: activateUrl.toString(),
                 verifyUrl: verifyUrl.toString(),
