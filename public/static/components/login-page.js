@@ -12,7 +12,7 @@ class LoginPage extends Component {
       })
       .then(() => TranslateText.getTranslation('login-page.create-session.input.placeholder'))
       .then(translation => {
-        activateSessionPlaceholder = translation.value;
+        createSessionPlaceholder = translation.value;
         return Promise.resolve();
       })
       .then(() => {
@@ -27,7 +27,7 @@ class LoginPage extends Component {
             <div class="inputGroup">
               <input type="text" maxlength="6" placeholder="${activateSessionPlaceholder}" class="input" />
               <button type="button" class="button">
-                <translate-text alias="login-page.activate-session.note"></translate-text>
+                <translate-text alias="login-page.activate-session.button"></translate-text>
               </button>
             </div>
           </div>

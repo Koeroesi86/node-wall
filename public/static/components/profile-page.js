@@ -5,7 +5,7 @@ class ProfilePage extends Component {
     this.innerHTML = `
       <h2><translate-text alias="profile-page.header"></translate-text></h2>
       <div class="renameUserWrapper">
-        <input type="text" value="" name="name" class="name" placeholder="Megjelenítendő név" title="Megjelenítendő név" />
+        <input type="text" value="" name="name" class="name" />
         <button type="button" class="button">
           <translate-text alias="profile-page.rename.button"></translate-text>
         </button>
@@ -19,6 +19,15 @@ class ProfilePage extends Component {
     const renameUserWrapper = this.querySelector('.renameUserWrapper');
     this.renameInput = renameUserWrapper.querySelector('.name');
     this.sessionList = this.querySelector('.sessionList');
+
+    TranslateText.getTranslation('profile-page.rename.input.placeholder')
+      .then(translation => {
+        this.renameInput.setAttribute('placeholder', translation.value)
+      });
+    TranslateText.getTranslation('profile-page.rename.input.title')
+      .then(translation => {
+        this.renameInput.setAttribute('title', translation.value)
+      });
 
     renameUserWrapper.querySelector('.button').addEventListener('click', e => {
       e.stopPropagation();
@@ -87,7 +96,10 @@ class ProfilePage extends Component {
           exitButton.addEventListener('click', e => {
             e.preventDefault();
             if (isCurrentSession(exitButton.dataset.sessionId)) {
-              alert('Jelentkezz ki a főmenüben amennyiben ki szeretnél lépni ebből a munkamenetből.');
+              TranslateText.getTranslation('profile-page.session-list.session.current.exit-alert')
+                .then(translation => {
+                  alert(translation.value);
+                });
             } else {
               Promise.resolve()
                 .then(() => this.deleteSession(exitButton.dataset.sessionId))

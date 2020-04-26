@@ -2,6 +2,10 @@ class TranslateText extends Component {
   static cache = {};
   static pending = {};
 
+  /**
+   * @param alias
+   * @returns {Promise<{ value: String }>}
+   */
   static getTranslation(alias) {
     return Promise.resolve()
       .then(() => new Promise(resolve => {
