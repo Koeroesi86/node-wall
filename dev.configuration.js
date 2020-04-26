@@ -5,8 +5,8 @@ module.exports = {
   ENABLE_FILE_LOGS: false,
   LOG_LEVELS: {
     system: true,
-    info: false,
-    success: true,
+    info: true,
+    success: false,
     error: true,
     warning: true,
   },

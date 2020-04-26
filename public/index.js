@@ -15,6 +15,14 @@ const keepAliveCallback = () => {
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
+function detectLanguage(headers) {
+  //accept-language
+  if (headers['accept-language']) {
+    return Promise.resolve(headers['accept-language'].substr(0, 5));
+  }
+  return Promise.resolve('en');
+}
+
 module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
@@ -27,6 +35,8 @@ module.exports = async (event, callback) => {
   const cookiesRaw = headers.Cookie || headers.cookie || '';
   const cookies = cookie.parse(cookiesRaw);
   let userInfo = null;
+  const language = await detectLanguage(headers);
+  console.log('language', language)
 
   if (cookies.sessionId) {
     userInfo = await getUserInfoFromSession(cookies.sessionId);
@@ -42,6 +52,7 @@ module.exports = async (event, callback) => {
           'Cache-Control': 'public, max-age=0',
         },
         body: welcomeTemplate({
+          language,
           sessionId: cookies.sessionId,
         }),
         isBase64Encoded: false,
@@ -57,6 +68,7 @@ module.exports = async (event, callback) => {
           'Cache-Control': 'public, max-age=0',
         },
         body: wallTemplate({
+          language,
           sessionId: cookies.sessionId,
         }),
         isBase64Encoded: false,
@@ -77,7 +89,7 @@ module.exports = async (event, callback) => {
             'Content-Type': 'text/html',
             'Cache-Control': 'public, max-age=0',
           },
-          body: tagTemplate({ tag, sessionId: cookies.sessionId }),
+          body: tagTemplate({ language, tag, sessionId: cookies.sessionId }),
           isBase64Encoded: false,
         });
       }
@@ -105,6 +117,7 @@ module.exports = async (event, callback) => {
           'Cache-Control': 'public, max-age=0',
         },
         body: moderationTemplate({
+          language,
           sessionId: cookies.sessionId,
         }),
         isBase64Encoded: false,
@@ -133,6 +146,7 @@ module.exports = async (event, callback) => {
           'Cache-Control': 'public, max-age=0',
         },
         body: profileTemplate({
+          language,
           sessionId: cookies.sessionId,
         }),
         isBase64Encoded: false,
@@ -189,6 +203,7 @@ module.exports = async (event, callback) => {
             'Cache-Control': 'public, max-age=0',
           },
           body: loginTemplate({
+            language,
             sessionId: cookies.sessionId,
           }),
           isBase64Encoded: false,
@@ -243,6 +258,7 @@ module.exports = async (event, callback) => {
         'Cache-Control': 'public, max-age=0',
       },
       body: welcomeTemplate({
+        language,
         sessionId: cookies.sessionId,
       }),
       isBase64Encoded: false,
