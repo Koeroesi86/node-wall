@@ -125,7 +125,10 @@ class PostPreview extends Component {
     if (!ownerId) return;
     const ownerName = this.getAttribute('owner-name');
     const owner = this.querySelector('.owner');
-    owner.innerText = `Beküldő: ${ownerName && ownerName !== 'null' ? ownerName : 'Névtelen idegen'}`;
+    owner.innerHTML = `
+      <translate-text alias="post-preview.sent-by"></translate-text>
+      &nbsp;${ownerName && ownerName !== 'null' ? ownerName : '<translate-text alias="post-preview.unknown-user.jsonpost-preview.unknown-user"></translate-text>'}
+    `;
   }
 
   refreshTags() {

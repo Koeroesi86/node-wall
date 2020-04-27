@@ -85,12 +85,19 @@ class ProfilePage extends Component {
               ${isCurrentSession(session.sessionId) ? '&nbsp;&middot;&nbsp;<translate-text alias="profile-page.session-list.session.current"></translate-text>' : ''}
             </div>
             <div class="actionsWrapper">
-              <button type="button" title="Kiléptetés" class="exit" data-session-id="${session.sessionId}">
+              <button type="button" class="exit" data-session-id="${session.sessionId}">
                 <i class="fa fa-times" aria-hidden="true"></i>
               </button>
             </div>
           </div>
         `).join('');
+
+        TranslateText.getTranslation('profile-page.session.action.exit')
+          .then(translation => {
+            this.sessionList.querySelectorAll('.actionsWrapper .exit').forEach(exitButton => {
+              exitButton.setAttribute('title', translation.value);
+            });
+          });
 
         this.sessionList.querySelectorAll('.session .actionsWrapper .exit').forEach(exitButton => {
           exitButton.addEventListener('click', e => {

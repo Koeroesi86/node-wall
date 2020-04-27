@@ -8,18 +8,18 @@ class NavigationWrapper extends Component {
   connectedCallback() {
     this.style.display = 'none';
     this.innerHTML += `
-      <a href="/" title="Főoldal">
+      <a href="/" class="home">
         <i class="fas fa-home"></i>
         <span><translate-text alias="navigation-wrapper.home"></translate-text></span>
       </a>
-      <a href="/wall" title="Fal">
+      <a href="/wall" class="wall">
         <i class="far fa-comment"></i>
         <span><translate-text alias="navigation-wrapper.wall"></translate-text></span>
       </a>
       <div class="user"></div>
       <div class="bottom">
-        <a href="javascript:void(0)" class="darkThemeToggle" title="Világos/sötét sablon váltása"></a>
-        <a href="javascript:void(0)" class="menuToggle" title="Menü összecsukása">
+        <a href="javascript:void(0)" class="darkThemeToggle"></a>
+        <a href="javascript:void(0)" class="menuToggle">
           <i class="fa fa-bars" aria-hidden="true"></i>
           <span><translate-text alias="navigation-wrapper.menu"></translate-text></span>
         </a>
@@ -27,6 +27,8 @@ class NavigationWrapper extends Component {
     `;
 
     this.userPanel = this.querySelector('.user');
+    this.homeLink = this.querySelector('.home');
+    this.wallLink = this.querySelector('.wall');
 
     this.menuToggle = this.querySelector('.bottom .menuToggle');
     this.menuToggle.addEventListener('click', e => {
@@ -44,6 +46,15 @@ class NavigationWrapper extends Component {
     });
     this.updateTheme();
 
+    TranslateText.getTranslation('navigation-wrapper.home')
+      .then(translation => this.homeLink.setAttribute('title', translation.value));
+    TranslateText.getTranslation('navigation-wrapper.wall')
+      .then(translation => this.wallLink.setAttribute('title', translation.value));
+    TranslateText.getTranslation('navigation-wrapper.menu.collapse-toggle')
+      .then(translation => this.menuToggle.setAttribute('title', translation.value));
+    TranslateText.getTranslation('navigation-wrapper.toggle-theme')
+      .then(translation => this.darkThemeToggle.setAttribute('title', translation.value));
+
     const sessionId = this.getAttribute('session-id');
     if (sessionId) {
       const request = new XMLHttpRequest();
@@ -58,12 +69,12 @@ class NavigationWrapper extends Component {
               if (userInfo.session.status === 'active') {
                 this.userPanel.innerHTML += `
                   ${userInfo.user.role !== 'admin' ? '' : `
-                    <a href="/moderation">
+                    <a href="/moderation" class="moderation">
                       <i class="fas fa-dungeon"></i>
                       <span><translate-text alias="navigation-wrapper.moderation"></translate-text></span>
                     </a>
                   `}
-                  <a href="/profile" title="Bejelentkezve mint ${userName}" class="userNameWrapper">
+                  <a href="/profile" class="userNameWrapper">
                     <i class="far fa-user"></i>
                     <span>
                       ${userName}
@@ -71,24 +82,41 @@ class NavigationWrapper extends Component {
                     </div>
                   </a>
                 `;
+
+                TranslateText.getTranslation('navigation-wrapper.user.logged-in-as')
+                  .then(translation => {
+                    this.userPanel.querySelector('.userNameWrapper').setAttribute('title', `${translation.value}`.replace('%USERNAME%', userName));
+                  });
+                TranslateText.getTranslation('navigation-wrapper.moderation')
+                  .then(translation => {
+                    this.userPanel.querySelector('.moderation').setAttribute('title', translation.value);
+                  });
               } else if (userInfo.session.status === 'pending') {
                 if (window.location.pathname !== '/login') {
                   window.location.replace(`/login?session=${userInfo.session.id}`);
                 }
                 this.userPanel.innerHTML = `
-                <a href="/login?session=${userInfo.session.id}" title="Bejelentkezés véglegesítése" class="login">
-                  <i class="far fa-user"></i>
-                  <span><translate-text alias="navigation-wrapper.login"></translate-text></span>
-                </a>
-              `;
+                  <a href="/login?session=${userInfo.session.id}" class="login">
+                    <i class="far fa-user"></i>
+                    <span><translate-text alias="navigation-wrapper.login"></translate-text></span>
+                  </a>
+                `;
+                TranslateText.getTranslation('navigation-wrapper.login.title')
+                  .then(translation => {
+                    this.userPanel.querySelector('.login').setAttribute('title', translation.value);
+                  });
               }
 
               this.userPanel.innerHTML += `
-              <a href="/logout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span><translate-text alias="navigation-wrapper.logout"></translate-text></span>
-              </a>
-            `;
+                <a href="/logout" class="logout">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span><translate-text alias="navigation-wrapper.logout"></translate-text></span>
+                </a>
+              `;
+              TranslateText.getTranslation('navigation-wrapper.logout')
+                .then(translation => {
+                  this.userPanel.querySelector('.logout').setAttribute('title', translation.value);
+                });
             }
           }
 
@@ -111,6 +139,10 @@ class NavigationWrapper extends Component {
           <span><translate-text alias="navigation-wrapper.login"></translate-text></span>
         </a>
       `;
+      TranslateText.getTranslation('navigation-wrapper.login')
+        .then(translation => {
+          this.userPanel.querySelector('.login').setAttribute('title', translation.value);
+        });
     }
   }
 

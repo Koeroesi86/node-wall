@@ -110,7 +110,7 @@ class PostTagsInput extends Component {
         const tagElement = document.createElement('div');
         tagElement.innerHTML = `
           <div class="label">${tag.name}</div>
-          <div class="remove" title="Tag eltávolítása">
+          <div class="remove">
             <svg
               class="icon"
               enable-background="new 0 0 100 100"
@@ -133,6 +133,12 @@ class PostTagsInput extends Component {
           });
         });
         this.currentTags.insertBefore(tagElement, this.tagsInput);
+
+        TranslateText.getTranslation('post-tags-input.remove-tag.title')
+          .then(translation => {
+            tagElement.querySelector('.remove').setAttribute('title', translation.value);
+          });
+
         return Promise.resolve();
       }).catch(() => {
         this._adding = false;
