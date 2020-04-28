@@ -1,12 +1,73 @@
-const initialState = { counter: 0 };
-function reducerShim(state = initialState, action) {
+function counterReducer(state = 0, action = {}) {
   if (action.type === 'increment') {
-    return { ...state, counter: state.counter + 1 };
+    return state + 1 ;
   }
+
   return state;
 }
 
-(function (reducer) {
+function translationsReducer(state = {}, action = {}) {
+  if (action.type === 'receive-translation') {
+    return {
+      ...state,
+      [action.payload.alias]: action.payload.translation,
+    };
+  }
+
+  return state;
+}
+
+function requestedTranslationsReducer(state = {}, action = {}) {
+  if (action.type === 'request-translation') {
+    return {
+      ...state,
+      [action.payload.alias]: true,
+    };
+  }
+
+  return state;
+}
+
+const reducers = Redux.combineReducers({
+  counter: counterReducer,
+  translations: translationsReducer,
+  requestedTranslations: requestedTranslationsReducer,
+});
+
+const translationsMiddleware = store => next => action => {
+  if (action.type === 'request-translation') {
+    const { alias } = action.payload;
+    const state = store.getState();
+
+    if (state.translations[alias] === undefined && !state.requestedTranslations[alias]) {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = e => {
+        if (request.readyState === 4) {
+          if (request.status === 200) {
+            const translation = JSON.parse(request.responseText);
+            store.dispatch({
+              type: 'receive-translation',
+              payload: { translation: translation.value, alias }
+            });
+          } else {
+            console.warn(`failed to fetch translation for ${alias}`);
+            store.dispatch({
+              type: 'receive-translation',
+              payload: { translation: '', alias }
+            });
+          }
+        }
+      };
+      request.open("GET", `/api/translation/${action.payload.alias}`, true);
+      request.send();
+    }
+  }
+  next(action);
+};
+
+const middlewares = [translationsMiddleware];
+
+(function (reducer = s => s, m = []) {
   const ReduxEventTypes = {
     dispatch: 'dispatch',
     stateChange: 'state-change',
@@ -29,15 +90,19 @@ function reducerShim(state = initialState, action) {
 
   window.ReduxEvents = {
     Dispatch: ReduxDispatchEvent,
-    // StateChange: ReduxStateChangeEvent,
   };
 
   let store;
-  if (/.+\.localhost$/.test(location.hostname) || true) {
-    store = Redux.createStore(reducer, window['__REDUX_DEVTOOLS_EXTENSION__'] && window['__REDUX_DEVTOOLS_EXTENSION__']());
+  let composeEnhancers;
+  if (window && window['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__']) { // /.+\.localhost$/.test(location.hostname)
+    composeEnhancers = window['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__'];
   } else {
-    store = Redux.createStore(reducer);
+    composeEnhancers = Redux.compose;
   }
+
+  const enhancer = composeEnhancers(Redux.applyMiddleware(...m));
+
+  store = Redux.createStore(reducer, enhancer);
 
   const cloneState = a => a; // safer but slower: JSON.stringify;
 
@@ -78,19 +143,50 @@ function reducerShim(state = initialState, action) {
     return true
   }
 
-  function dispatchListener(e) {
-    e.stopPropagation();
+  const connectedListeners = [];
+  window.connectRedux = (mapState = () => {}, connectDispatch = () => {}) => {
+    if (!connectedListeners.includes(mapState)) {
+      connectedListeners.push(mapState);
+      try {
+        connectDispatch(store.dispatch);
+        mapState(store.getState());
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+  window.disconnectRedux = (mapState) => {
+    const index = connectedListeners.indexOf(mapState);
+    if (index !== -1) {
+      connectedListeners.splice(index, 1);
+    }
+  };
 
-    const prevState = cloneState(store.getState());
-    store.dispatch(e.detail.action);
-    const currentState = cloneState(store.getState());
+  let currentState;
+  function handleChange() {
+    let previousState = currentState;
+    currentState = cloneState(store.getState());
 
-    if (!shallowEqual(prevState, currentState)) {
+    if (!shallowEqual(previousState, currentState)) {
       window.dispatchEvent(new ReduxStateChangeEvent({
         dispatch: store.dispatch,
         getState: store.getState,
       }));
+
+      connectedListeners.forEach(mapState => {
+        try {
+          mapState(store.getState());
+        } catch (e) {
+          console.error(e);
+        }
+      });
     }
   }
+  store.subscribe(handleChange);
+
+  function dispatchListener(e) {
+    e.stopPropagation();
+    store.dispatch(e.detail.action);
+  }
   window.addEventListener(ReduxEventTypes.dispatch, dispatchListener);
-})(reducerShim);
+})(reducers, middlewares);

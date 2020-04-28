@@ -3,13 +3,13 @@ class MainWrapper extends Component {
 
   connectedCallback() {
     // test increment event
-    this.addEventListener('click', () => {
-      this.dispatchEvent(new ReduxEvents.Dispatch({ type: 'increment' }));
-    });
+    // this.addEventListener('click', () => {
+    //   this.dispatchEvent(new ReduxEvents.Dispatch({ type: 'increment' }));
+    // });
 
-    window.addEventListener(ReduxEventTypes.stateChange, e => {
-      console.log(ReduxEventTypes.stateChange, e)
-    });
+    // window.addEventListener(ReduxEventTypes.stateChange, e => {
+    //   console.log(ReduxEventTypes.stateChange, e)
+    // });
   }
 }
 

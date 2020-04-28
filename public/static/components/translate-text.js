@@ -2,6 +2,13 @@ class TranslateText extends Component {
   static cache = {};
   static pending = {};
 
+  static requestAction(alias) {
+    return {
+      type: 'request-translation',
+      payload: { alias }
+    };
+  }
+
   /**
    * @param alias
    * @returns {Promise<{ value: String }>}
@@ -9,83 +16,53 @@ class TranslateText extends Component {
   static getTranslation(alias) {
     return Promise.resolve()
       .then(() => new Promise(resolve => {
-        let timer;
-        const checkPending = () => {
-          if (timer) clearTimeout(timer);
-          if (TranslateText.pending[alias]) {
-            timer = setTimeout(checkPending, 10);
-          } else {
-            resolve();
+        const listener = e => {
+          const state = e.detail.store.getState();
+          const value = state.translations[alias];
+          if (value !== undefined) {
+            resolve({ value });
+            window.removeEventListener(ReduxEventTypes.stateChange, listener);
           }
         }
-        checkPending();
-      }))
-      .then(() => new Promise((resolve, reject) => {
-        if (TranslateText.cache[alias]) {
-          return resolve(TranslateText.cache[alias]);
-        }
-
-        // const meta = document.querySelector('meta[name="x-language"]');
-        // let language = 'en-GB';
-        // if (!language && meta) {
-        //   language = meta.getAttribute('content');
-        // }
-
-        TranslateText.pending[alias] = true;
-        const request = new XMLHttpRequest();
-        request.onreadystatechange = e => {
-          if (request.readyState === 4) {
-            delete TranslateText.pending[alias];
-            try {
-              if (request.status === 200) {
-                const translation = JSON.parse(request.responseText);
-                if (translation) {
-                  TranslateText.cache[alias] = translation;
-                  resolve(translation);
-                }
-              }
-            } catch (e) {
-              console.warn(e);
-            }
-
-            const e = new Error(`failed to fetch translation for ${alias}`);
-            e.request = request;
-            reject(e);
-          }
-        };
-        request.open("GET", `/api/translation/${alias}`, true);
-        request.send();
+        window.addEventListener(ReduxEventTypes.stateChange, listener);
+        window.dispatchEvent(new ReduxEvents.Dispatch(TranslateText.requestAction(alias)));
       }));
   }
 
   static get observedAttributes() { return ['alias']; }
 
+  constructor() {
+    super();
+
+    this._dispatch = () => {};
+    this.mapState = this.mapState.bind(this);
+    this.requestTranslation = this.requestTranslation.bind(this);
+  }
+
   attributeChangedCallback(name, oldValue, newValue) {
-    if (name === 'alias' && this.isConnected) this.renderText();
+    if (name === 'alias' && this.isConnected) {
+      this.requestTranslation();
+    }
   }
 
   connectedCallback() {
-    this.renderText();
+    window.connectRedux(this.mapState, dispatch => this._dispatch = dispatch);
+    this.requestTranslation();
   }
 
-  renderText() {
+  disconnectedCallback() {
+    window.disconnectRedux(this.mapState);
+  }
+
+  requestTranslation() {
+    this._dispatch(TranslateText.requestAction(this.getAttribute('alias')));
+  }
+
+  mapState(state) {
     const alias = this.getAttribute('alias');
-
-    if (!alias) {
-      this.innerHTML = '';
-      return;
+    if (alias && state.translations[alias] !== undefined && state.translations[alias] !== this.innerHTML) {
+      this.innerHTML = state.translations[alias];
     }
-
-    Promise.resolve()
-      .then(() => TranslateText.getTranslation(alias))
-      .then(translation => {
-        if (translation && translation.value) {
-          this.innerHTML = translation.value;
-        } else {
-          console.log('translation...', translation)
-        }
-      })
-      .catch(e => console.error(e));
   }
 }
 
