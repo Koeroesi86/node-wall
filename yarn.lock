@@ -13,13 +13,13 @@
     rimraf "^2.6.3"
     uuid "^3.3.2"
 
-"@koeroesi86/node-webserver@^20.4.91-1d8ccf0":
-  version "20.4.91-1d8ccf0"
-  resolved "https://registry.yarnpkg.com/@koeroesi86/node-webserver/-/node-webserver-20.4.91-1d8ccf0.tgz#f952f0a0a5784a1313d7c95f2dde994ac652f63d"
-  integrity sha512-eYAzTXavL90ZqM2TWWDghGZgghFfOhu96QxyzCRY5vDYBcDPGhNPptphhJgvAEfDG3qdotb6Nfx2SM5eZjY4Ig==
+"@koeroesi86/node-webserver@^20.4.92-0e3771c":
+  version "20.4.92-0e3771c"
+  resolved "https://registry.yarnpkg.com/@koeroesi86/node-webserver/-/node-webserver-20.4.92-0e3771c.tgz#b46346f138f73d456f6a00649501c170ae07ab42"
+  integrity sha512-pmWUE3hgFJjhfsF9uJnE+YoPyxYGfmlnXxdT9eLB9KpZIcAuU7svAfWEkZZY6RnTRoLVEBp5yXowrLsd3FLUZg==
   dependencies:
     "@koeroesi86/node-lambda-invoke" "^1.0.20-d1fa702"
-    "@koeroesi86/node-worker-express" "^20.4.10-bb7fa5e"
+    "@koeroesi86/node-worker-express" "^20.4.11-cce326f"
     chalk "^2.4.2"
     dotenv "^6.0.0"
     express "^4.16.3"
@@ -32,10 +32,10 @@
     uuid "^3.3.2"
     vhost "^3.0.2"
 
-"@koeroesi86/node-worker-express@^20.4.10-bb7fa5e":
-  version "20.4.10-bb7fa5e"
-  resolved "https://registry.yarnpkg.com/@koeroesi86/node-worker-express/-/node-worker-express-20.4.10-bb7fa5e.tgz#66e5db9c6c02d3e56e2e99ea1ce79cdbd0c2d33b"
-  integrity sha512-7M9HFMf8xjqiP3LHhBYvvE3ziN83PKi3mx3dlDmbNKghbxnuFlraskUDgqZSULnOJFot7CgQiewd1PGbeL09Pg==
+"@koeroesi86/node-worker-express@^20.4.11-cce326f":
+  version "20.4.11-cce326f"
+  resolved "https://registry.yarnpkg.com/@koeroesi86/node-worker-express/-/node-worker-express-20.4.11-cce326f.tgz#981294af4c34339f7b2a2c7279784eba5dd5e419"
+  integrity sha512-YgtM/0PoFte5IbOiSpm0HAobrVm4RsJhU/nvr/aTj4idiqmha9E/x9zOrPCH9X6hI7I7RQ9VLY6/TCzW4KQY2g==
   dependencies:
     "@koeroesi86/node-worker" "^1.0.3-6bc3bc7"
     uuid "^7.0.3"
