@@ -11,8 +11,8 @@ const profileTemplate = require('lib/templates/page/profile');
 
 const keepAliveTimeout = 60 * 60 * 1000;
 const keepAliveCallback = () => {
-  console.log('Shutting down page rendering due to inactivity.');
-  process.exit(0);
+  // console.log('Shutting down page rendering due to inactivity.');
+  // process.exit(0);
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 

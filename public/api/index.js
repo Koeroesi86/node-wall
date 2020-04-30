@@ -17,8 +17,8 @@ const getTranslation = require('lib/translations/getTranslation');
 
 const keepAliveTimeout = 30 * 1000;
 const keepAliveCallback = () => {
-  console.log('Shutting down API due to inactivity.');
-  process.exit(0);
+  // console.log('Shutting down API due to inactivity.');
+  // process.exit(0);
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 const getResponseHeaders = (headers = {}) => ({
