@@ -9,9 +9,10 @@ const moderationTemplate = require('lib/templates/page/moderation');
 const loginTemplate = require('lib/templates/page/login');
 const profileTemplate = require('lib/templates/page/profile');
 
-const keepAliveTimeout = 10000;
+const keepAliveTimeout = 60 * 60 * 1000;
 const keepAliveCallback = () => {
-  console.log('shutting down due to inactivity.');
+  console.log('Shutting down page rendering due to inactivity.');
+  process.exit(0);
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
