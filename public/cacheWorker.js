@@ -53,12 +53,34 @@ self.addEventListener('install', function (event) {
 });
 
 /**
- * @param {URL} url
+ * @param {Request} request
  * @returns {boolean}
  */
-function shouldCache(url) {
+function shouldCache(request) {
+  const url = new URL(request.url);
+
   if (self.origin !== url.origin) {
     return false;
+  }
+
+  if (request.method.toUpperCase() !== 'GET') {
+    return false;
+  }
+
+  if (/\/api\/tags\//.test(url.pathname)) {
+    return true;
+  }
+
+  if (/\/api\/posts/.test(url.pathname)) {
+    return true;
+  }
+
+  if (/\/api\/link/.test(url.pathname)) {
+    return true;
+  }
+
+  if (/\/api\/user\/tags/.test(url.pathname)) {
+    return true;
   }
 
   if (/\/api\/translation/.test(url.pathname)) {
@@ -73,29 +95,37 @@ function shouldCache(url) {
 }
 
 async function putCache(stringUrl, responsePromise) {
-  const cache = await caches.open(CACHE_NAME);
-  // urlsToCache.push(stringUrl);
-  await cache.put(stringUrl, await responsePromise.then(r => r.clone()));
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    // urlsToCache.push(stringUrl);
+    await cache.put(stringUrl, await responsePromise.then(r => r.clone()));
+  } catch (e) {
+    //
+  }
 }
 
 // on-demand cache, for ex. translations
 self.addEventListener('fetch', function (event) {
-  let url = new URL(event.request.url);
-
-  if (shouldCache(url)) {
+  if (shouldCache(event.request)) {
     event.respondWith(async function () {
       const stringUrl = event.request.url;
+      const url = new URL(stringUrl);
 
       const match = await caches.match(stringUrl);
-      if (match) {
+      if (match && urlsToCache.includes(url.pathname)) {
+        return match;
+      }
+
+      if ('onLine' in self.navigator && !self.navigator.onLine) {
         return match;
       }
 
       const fetchResponseP = fetch(event.request);
 
-      event.waitUntil(await putCache(stringUrl, fetchResponseP));
+      // event.waitUntil(await putCache(stringUrl, fetchResponseP));
+      putCache(stringUrl, fetchResponseP).catch(function () {});
 
-      return fetchResponseP;
+      return fetchResponseP.catch(() => match);
     }());
   }
 });

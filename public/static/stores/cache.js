@@ -4,8 +4,8 @@ if ('serviceWorker' in navigator) {
       .register('/cacheWorker.js')
       .then(function (registration) {
         registration.addEventListener('updatefound', function () {
-          const installingWorker = registration.installing;
-          console.log('A new service worker is being installed:', installingWorker);
+          // const installingWorker = registration.installing;
+          console.log('A new service worker is being installed');
         });
         if (registration.active && navigator.connection) {
           navigator.connection.onchange = (e) => {
