@@ -129,3 +129,12 @@ self.addEventListener('fetch', function (event) {
     }());
   }
 });
+
+self.addEventListener('message', function(event){
+  const data = event.data;
+
+  // The unique ID of the tab
+  // var clientId = event.source.id
+
+  console.log('message', data);
+});
