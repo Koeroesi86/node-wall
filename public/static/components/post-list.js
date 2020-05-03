@@ -136,14 +136,8 @@ class PostList extends Component {
     }
 
     const postPreview = document.createElement('post-preview');
-    postPreview.setAttribute('created', post.created_at);
     postPreview.setAttribute('post-id', post.id);
-    if (post.owner) {
-      postPreview.setAttribute('owner-id', post.owner.id);
-      postPreview.setAttribute('owner-name', post.owner.name);
-    }
-    postPreview.tags = post.tags;
-    postPreview.content = post.content;
+
     this.insertBefore(postPreview, node);
   }
 

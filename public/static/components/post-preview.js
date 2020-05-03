@@ -23,50 +23,79 @@ function stripLine(line = '') {
 class PostPreview extends Component {
   static styleSheet = '/static/components/post-preview.css';
 
+  static get observedAttributes() { return ['post-id']; }
+
   constructor() {
     super();
-    this._tags = [];
-    this._content = '';
+
+    this._post = undefined;
+    this._dispatch = () => {};
 
     this.checkOwner = this.checkOwner.bind(this);
     this.parseContent = this.parseContent.bind(this);
     this.refreshTags = this.refreshTags.bind(this);
+    this.mapState = this.mapState.bind(this);
+    this.mapDispatch = this.mapDispatch.bind(this);
+    this.requestPost = this.requestPost.bind(this);
+    this.render = this.render.bind(this);
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'post-id' && this.isConnected) {
+      this.requestPost();
+    }
+  }
+
+  mapState(state) {
+    const id = this.getAttribute('post-id');
+    const post = state.posts[id];
+    if (id && post && post !== this._post) {
+      this._post = post;
+      this.render();
+    }
+  }
+
+  mapDispatch(dispatch) {
+    this._dispatch = dispatch;
+  }
+
+  render() {
+    if (!this.isConnected) return;
+    this.parseContent();
+    this.checkOwner();
+    this.refreshTags();
+    this.sentDateContainer.innerHTML = new Date(parseInt(this._post.created_at, 10)).toLocaleString();
+  }
+
+  requestPost() {
+    const id = this.getAttribute('post-id');
+    this._dispatch(postsActions.request(id));
   }
 
   connectedCallback() {
-    const createdRaw = this.getAttribute('created');
-    const created = new Date(parseInt(createdRaw, 10));
-
     this.innerHTML = `
       <div class="loadingIndicator"><translate-text alias="post-preview.loading"></translate-text></div>
       <div class="tags"></div>
       <div class="content"></div>
       <div class="meta">
-        <div class="sent"><translate-text alias="post-preview.sent-at"></translate-text> ${created.toLocaleString()}</div>
+        <div class="sent">
+          <translate-text alias="post-preview.sent-at"></translate-text>&nbsp;
+          <span class="date"></span>
+        </div>
         <div class="owner"></div>
       </div>
     `;
     this.contentContainer = this.querySelector('.content');
     this.tagsContainer = this.querySelector('.tags');
-    this.parseContent();
-    this.checkOwner();
-    this.refreshTags();
-  }
+    this.sentDateContainer = this.querySelector('.sent .date');
 
-  /** @returns {string} */
-  get content() {
-    return this._content;
-  }
-
-  /** @param {string} content */
-  set content(content) {
-    this._content = content;
-    this.parseContent();
+    window.connectRedux(this.mapState, this.mapDispatch);
+    this.requestPost();
   }
 
   parseContent() {
-    if (!this.isConnected) return;
-    let content = this.content;
+    if (!this.isConnected || !this._post) return;
+    let content = this._post.content;
     content = content.trim();
     content = content.replace(/\n{3,}/gi, '\n\n');
     content = content.split('\n').map(line =>
@@ -82,11 +111,14 @@ class PostPreview extends Component {
   }
 
   checkOwner() {
-    if (!this.isConnected) return;
-    const ownerId = this.getAttribute('owner-id');
-    if (!ownerId) return;
-    const ownerName = this.getAttribute('owner-name');
+    if (!this.isConnected || !this._post) return;
     const owner = this.querySelector('.owner');
+
+    if (!this._post.owner) {
+      owner.innerHTML = '';
+      return;
+    }
+    const ownerName = this._post.owner.name;
     owner.innerHTML = `
       <translate-text alias="post-preview.sent-by"></translate-text>
       &nbsp;${ownerName && ownerName !== 'null' ? ownerName : '<translate-text alias="post-preview.unknown-user"></translate-text>'}
@@ -94,8 +126,8 @@ class PostPreview extends Component {
   }
 
   refreshTags() {
-    if (!this.isConnected) return;
-    if (this.tags.length === 0) {
+    if (!this.isConnected || !this._post) return;
+    if (this._post.tags.length === 0) {
       this.classList.add('noTags');
     } else {
       this.classList.remove('noTags');
@@ -103,7 +135,7 @@ class PostPreview extends Component {
 
     if (this.tagsContainer) {
       this.tagsContainer.innerHTML = '';
-      this._tags.forEach(tag => {
+      this._post.tags.forEach(tag => {
         if (this.tagsContainer.querySelector(`[tag-id="${tag.id}"]`)) return;
 
         const tagNode = document.createElement('tag-inline');
@@ -112,17 +144,6 @@ class PostPreview extends Component {
         this.tagsContainer.appendChild(tagNode);
       });
     }
-  }
-
-  /** @param {Array} tags */
-  set tags(tags) {
-    this._tags = tags;
-    this.refreshTags();
-  }
-
-  /** @returns {Array} */
-  get tags() {
-    return this._tags;
   }
 }
 

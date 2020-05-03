@@ -3,12 +3,14 @@ const reducers = Redux.combineReducers({
   requestedTranslations: requestedTranslationsReducer,
   serviceWorker: serviceWorkerReducer,
   tags: tagsReducer,
+  posts: postsReducer,
 });
 
 const middlewares = [
   translationsMiddleware,
   serviceWorkerMiddleware,
   tagsMiddleware,
+  postsMiddleware,
 ];
 
 (function (reducer = s => s, m = []) {
