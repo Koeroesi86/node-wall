@@ -1,16 +1,67 @@
 class TagInline extends Component {
   static styleSheet = '/static/components/tag-inline.css';
 
+  static get observedAttributes() { return ['tag-id']; }
+
   constructor() {
     super();
 
-    this.getTag = this.getTag.bind(this);
+    this._tag = null;
+    this._dispatch = () => {};
+
+    this.mapState = this.mapState.bind(this);
+    this.mapDispatch = this.mapDispatch.bind(this);
+    this.requestTag = this.requestTag.bind(this);
+    this.render = this.render.bind(this);
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'tag-id' && this.isConnected) {
+      this.requestTag();
+    }
+  }
+
+  mapState(state) {
+    const tagId = this.getAttribute('tag-id');
+    const tag = state.tags[tagId];
+    if (tagId && tag && tag !== this._tag) {
+      this._tag = tag;
+      this.render();
+    }
+  }
+
+  mapDispatch(dispatch) {
+    this._dispatch = dispatch;
+  }
+
+  requestTag() {
+    const id = this.getAttribute('tag-id');
+    this._dispatch({ type: TAGS_ACTIONS.REQUEST, payload: { id } });
+  }
+
+  render() {
+    if (this._tag) {
+      if (this._tag.type === 'text') {
+        this._label.innerText = '#';
+      }
+
+      this._label.innerText += this._tag.name;
+      // TODO: like/dislike tag
+      this._tooltip.innerHTML = `
+        <translate-text alias="tag-inline.tooltip.prefix"></translate-text>
+        &nbsp;<a href="/tag/${this._tag.id}" target="_blank">${this._tag.name}</a>
+      `;
+
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', `/tag/${this._tag.id}`);
+      linkElement.setAttribute('target', '_blank');
+      this._label.addEventListener('click', e => {
+        linkElement.click();
+      });
+    }
   }
 
   connectedCallback() {
-    const tagId = this.getAttribute('tag-id');
-    const tagName = this.getAttribute('tag-name');
-
     this.innerHTML += `
       <span class="label"></span>
       <div class="tooltip"></div>
@@ -19,27 +70,8 @@ class TagInline extends Component {
     this._label = this.querySelector('.label');
     this._tooltip = this.querySelector('.tooltip');
 
-    if (tagId) {
-      this.getTag(tagId).then(tag => {
-        if (tag.type === 'text') {
-          this._label.innerText = '#';
-        }
-
-        this._label.innerText += tag.name;
-        // TODO: like/dislike tag
-        this._tooltip.innerHTML = `
-          <translate-text alias="tag-inline.tooltip.prefix"></translate-text>
-          &nbsp;<a href="/tag/${tag.id}" target="_blank">${tag.name}</a>
-        `;
-
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', `/tag/${tag.id}`);
-        linkElement.setAttribute('target', '_blank');
-        this._label.addEventListener('click', e => {
-          linkElement.click();
-        });
-      });
-    }
+    window.connectRedux(this.mapState, this.mapDispatch);
+    this.requestTag();
 
     this.addEventListener('mouseover', e => {
       // if (this._tooltipTimer) clearTimeout(this._tooltipTimer);
@@ -69,22 +101,8 @@ class TagInline extends Component {
     });
   }
 
-  getTag(id) {
-    return new Promise((resolve, reject) => {
-      const request = new XMLHttpRequest();
-      request.onreadystatechange = e => {
-        if (request.readyState === 4) {
-          if (request.status === 200) {
-            const tag = JSON.parse(request.responseText);
-            if (tag) resolve(tag);
-          }
-
-          reject();
-        }
-      };
-      request.open("GET", `/api/tags/${id}`, true);
-      request.send();
-    });
+  disconnectedCallback() {
+    window.disconnectRedux(this.mapState);
   }
 }
 

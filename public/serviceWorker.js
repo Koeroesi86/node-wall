@@ -127,6 +127,8 @@ self.addEventListener('fetch', function (event) {
 
       return fetchResponseP.catch(() => match);
     }());
+  } else {
+    event.respondWith(fetch(event.request));
   }
 });
 

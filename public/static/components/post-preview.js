@@ -27,8 +27,9 @@ class PostPreview extends Component {
     super();
     this._tags = [];
     this._content = '';
-    this.getTag = this.getTag.bind(this);
+
     this.checkOwner = this.checkOwner.bind(this);
+    this.parseContent = this.parseContent.bind(this);
     this.refreshTags = this.refreshTags.bind(this);
   }
 
@@ -64,77 +65,47 @@ class PostPreview extends Component {
   }
 
   parseContent() {
+    if (!this.isConnected) return;
     let content = this.content;
     content = content.trim();
     content = content.replace(/\n{3,}/gi, '\n\n');
-    content = content.split('\n').map(line => `
-      <div class="contentLine">
-        ${linkify(stripLine(line), this.getAttribute('post-id')) || '&nbsp;'}
-      </div>
-    `).join('');
-    if (this.tags.length === 0) this.classList.add('noTags')
-    this.tags.forEach(tag => {
-      content = content.replace(`#!${tag.id}`, `<tag-inline tag-id="${tag.id}"></tag-inline>`)
-    });
-    const matches = [...content.matchAll(/#!([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/gi)];
-    if (matches) {
-      this.classList.add('loading');
-      Promise.resolve()
-        .then(() => Promise.all([...matches].map(match => this.getTag(match[1]))))
-        .then(tags => {
-          tags.forEach(tag => {
-            content = content.replace(`#!${tag.id}`, `<tag-inline tag-id="${tag.id}"></tag-inline>`)
-          });
-          this.contentContainer.innerHTML = content;
-          this.classList.remove('loading')
-        })
-        .catch(() => {
-          Promise.resolve()
-            .then(() => new Promise(r => setTimeout(r, 500)))
-            .then(() => this.parseContent());
-        });
-    } else {
-      this.contentContainer.innerHTML = content;
-    }
-  }
+    content = content.split('\n').map(line =>
+      `<div class="contentLine">${linkify(stripLine(line), this.getAttribute('post-id')) || '&nbsp;'}</div>`).join('\n');
 
-  /**
-   * @param {string} id
-   * @returns {Promise<unknown>}
-   */
-  getTag(id) {
-    return new Promise((resolve, reject) => {
-      const request = new XMLHttpRequest();
-      request.onreadystatechange = e => {
-        if (request.readyState === 4) {
-          if (request.status === 200) {
-            const tag = JSON.parse(request.responseText);
-            if (tag) resolve(tag);
-          }
+    [...content.matchAll(/#!([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/g)]
+      .filter(match => match && match[1])
+      .forEach(match => {
+        content = content.replace(`#!${match[1]}`, `<tag-inline tag-id="${match[1]}"></tag-inline>`);
+      });
 
-          reject();
-        }
-      };
-      request.open("GET", `/api/tags/${id}`, true);
-      request.send();
-    });
+    this.contentContainer.innerHTML = content;
   }
 
   checkOwner() {
+    if (!this.isConnected) return;
     const ownerId = this.getAttribute('owner-id');
     if (!ownerId) return;
     const ownerName = this.getAttribute('owner-name');
     const owner = this.querySelector('.owner');
     owner.innerHTML = `
       <translate-text alias="post-preview.sent-by"></translate-text>
-      &nbsp;${ownerName && ownerName !== 'null' ? ownerName : '<translate-text alias="post-preview.unknown-user.jsonpost-preview.unknown-user"></translate-text>'}
+      &nbsp;${ownerName && ownerName !== 'null' ? ownerName : '<translate-text alias="post-preview.unknown-user"></translate-text>'}
     `;
   }
 
   refreshTags() {
+    if (!this.isConnected) return;
+    if (this.tags.length === 0) {
+      this.classList.add('noTags');
+    } else {
+      this.classList.remove('noTags');
+    }
+
     if (this.tagsContainer) {
       this.tagsContainer.innerHTML = '';
       this._tags.forEach(tag => {
+        if (this.tagsContainer.querySelector(`[tag-id="${tag.id}"]`)) return;
+
         const tagNode = document.createElement('tag-inline');
         tagNode.setAttribute('tag-id', tag.id);
 
