@@ -2,13 +2,6 @@ class TranslateText extends Component {
   static cache = {};
   static pending = {};
 
-  static requestAction(alias) {
-    return {
-      type: 'request-translation',
-      payload: { alias }
-    };
-  }
-
   /**
    * @param alias
    * @returns {Promise<{ value: String }>}
@@ -25,7 +18,7 @@ class TranslateText extends Component {
           }
         }
         window.addEventListener(ReduxEventTypes.stateChange, listener);
-        window.dispatchEvent(new ReduxEvents.Dispatch(TranslateText.requestAction(alias)));
+        window.dispatchEvent(new ReduxEvents.Dispatch(translationsActions.request(alias)));
       }));
   }
 
@@ -55,7 +48,7 @@ class TranslateText extends Component {
   }
 
   requestTranslation() {
-    this._dispatch(TranslateText.requestAction(this.getAttribute('alias')));
+    this._dispatch(translationsActions.request(this.getAttribute('alias')));
   }
 
   mapState(state) {

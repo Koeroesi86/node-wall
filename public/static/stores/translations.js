@@ -1,5 +1,15 @@
+const TRANSLATIONS_ACTIONS = {
+  REQUEST: 'TRANSLATIONS_REQUEST',
+  RECEIVE: 'TRANSLATIONS_RECEIVE',
+};
+
+const translationsActions = {
+  request: (alias) => ({ type: TRANSLATIONS_ACTIONS.REQUEST, payload: { alias }}),
+  receive: (alias, translation) => ({ type: TRANSLATIONS_ACTIONS.RECEIVE, payload: { translation, alias } }),
+};
+
 function translationsReducer(state = {}, action = {}) {
-  if (action.type === 'receive-translation') {
+  if (action.type === TRANSLATIONS_ACTIONS.RECEIVE) {
     return {
       ...state,
       [action.payload.alias]: action.payload.translation,
@@ -10,7 +20,7 @@ function translationsReducer(state = {}, action = {}) {
 }
 
 function requestedTranslationsReducer(state = {}, action = {}) {
-  if (action.type === 'request-translation') {
+  if (action.type === TRANSLATIONS_ACTIONS.REQUEST) {
     return {
       ...state,
       [action.payload.alias]: true,
@@ -21,7 +31,7 @@ function requestedTranslationsReducer(state = {}, action = {}) {
 }
 
 const translationsMiddleware = store => next => action => {
-  if (action.type === 'request-translation') {
+  if (action.type === TRANSLATIONS_ACTIONS.REQUEST) {
     const { alias } = action.payload;
     const state = store.getState();
 
@@ -31,16 +41,10 @@ const translationsMiddleware = store => next => action => {
         if (request.readyState === 4) {
           if (request.status === 200) {
             const translation = JSON.parse(request.responseText);
-            store.dispatch({
-              type: 'receive-translation',
-              payload: { translation: translation.value, alias }
-            });
+            store.dispatch(translationsActions.receive(alias, translation.value));
           } else {
             console.warn(`failed to fetch translation for ${alias}`);
-            store.dispatch({
-              type: 'receive-translation',
-              payload: { translation: '', alias }
-            });
+            store.dispatch(translationsActions.receive(alias, ''));
           }
         }
       };
