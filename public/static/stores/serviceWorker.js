@@ -21,27 +21,34 @@ function serviceWorkerReducer(state = {}, action) {
 const serviceWorkerMiddleware = store => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker
-      .register('/serviceWorker.js')
-      .then(registration => {
-        registration.addEventListener('updatefound', () => {
-          store.dispatch({ type: SERVICE_WORKER_ACTIONS.UPDATE_FOUND });
-        });
+      .getRegistrations()
+      .then(registrations => Promise.all(
+        registrations.map(registration => registration.unregister())
+      ))
+      .catch(error => console.error(error));
 
-        if (registration.active && navigator.connection) {
-          navigator.connection.onchange = (e) => {
-            if (e.target.downlink > 0) {
-              store.dispatch({ type: SERVICE_WORKER_ACTIONS.REFRESH_CACHE });
-            }
-          };
-
-          navigator.serviceWorker.addEventListener('message', function(event){
-            store.dispatch({ type: SERVICE_WORKER_ACTIONS.MESSAGE_RECEIVED, payload: { event } });
-          });
-        }
-      })
-      .catch(error => {
-        console.error(error);
-      });
+    // navigator.serviceWorker
+    //   .register('/serviceWorker.js')
+    //   .then(registration => {
+    //     registration.addEventListener('updatefound', () => {
+    //       store.dispatch({ type: SERVICE_WORKER_ACTIONS.UPDATE_FOUND });
+    //     });
+    //
+    //     if (registration.active && navigator.connection) {
+    //       navigator.connection.onchange = (e) => {
+    //         if (e.target.downlink > 0) {
+    //           store.dispatch({ type: SERVICE_WORKER_ACTIONS.REFRESH_CACHE });
+    //         }
+    //       };
+    //
+    //       navigator.serviceWorker.addEventListener('message', function(event){
+    //         store.dispatch({ type: SERVICE_WORKER_ACTIONS.MESSAGE_RECEIVED, payload: { event } });
+    //       });
+    //     }
+    //   })
+    //   .catch(error => {
+    //     console.error(error);
+    //   });
   }
 
   return next => action => {
