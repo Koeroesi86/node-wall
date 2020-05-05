@@ -23,7 +23,7 @@ const linksMiddleware = store => next => action => {
     const state = store.getState();
     const { href, postId } = action.payload;
     const post = state.posts[postId];
-    if (post && post.content && post.content.includes(href) && !state.links[href]) {
+    if (href && postId && post && post.content && post.content.includes(href.replace(/https?:\/\//, '')) && !state.links[href]) {
       const request = new XMLHttpRequest();
       request.onreadystatechange = e => {
         if (request.readyState === 4 && request.status === 200) {
