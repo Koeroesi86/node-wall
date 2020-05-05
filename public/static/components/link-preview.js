@@ -16,7 +16,12 @@ class LinkPreview extends CustomLink {
   constructor() {
     super();
 
-    this.fetchLink = this.fetchLink.bind(this);
+    this._dispatch = () => {};
+    this._link = null;
+
+    this.renderLink = this.renderLink.bind(this);
+    this.mapState = this.mapState.bind(this);
+    this.mapDispatch = this.mapDispatch.bind(this);
   }
 
   connectedCallback() {
@@ -30,44 +35,47 @@ class LinkPreview extends CustomLink {
     this.innerHTML = innerHTML;
 
     this.preview = this.querySelector('.preview');
-    this.fetchLink();
+    window.connectRedux(this.mapState, this.mapDispatch);
+
+    this._dispatch(linksActions.request(this.getAttribute('href'), this.getAttribute('post-id')));
   }
 
-  fetchLink() {
+  mapState(state) {
     const href = this.getAttribute('href');
-    const postId = this.getAttribute('post-id');
-    if (!href || !postId) return;
-    const request = new XMLHttpRequest();
-    request.onreadystatechange  = e => {
-      if (request.readyState === 4 && request.status === 200) {
-        const linkPreview = JSON.parse(request.responseText);
-        if (linkPreview.title) this.setAttribute('title', linkPreview.title);
+    if (state.links[href] !== this._link) {
+      this._link = state.links[href];
+      this.renderLink();
+    }
+  }
 
-        if (linkPreview.embedCode && false) { //disabled until mobile experience sorted
-          this.preview.innerHTML = linkPreview.embedCode;
-        } else {
-          this.preview.innerHTML = `
-            ${linkPreview.image ? `<img src="${linkPreview.image}" class="image" alt="${linkPreview.title}" />`: ''}
-            <div class="meta">
-              <div class="title" title="${linkPreview.title}">${linkPreview.title}</div>
-              <div class="description">
-                ${linkPreview.description.substring(0, 150)}
-                ${linkPreview.description.length > 150 ? '&hellip;' : ''}
-              </div>
-              <div class="url">${linkPreview.url}</div>
-            </div>
-          `;
-          if (linkPreview.image) {
-            this.preview.classList.add('hasImage');
-          }
-        }
+  mapDispatch(dispatch) {
+    this._dispatch = dispatch;
+  }
+
+  renderLink() {
+    if (!this._link) return;
+
+    if (this._link.title) this.setAttribute('title', this._link.title);
+
+    if (this._link.embedCode && false) { //disabled until mobile experience sorted
+      this.preview.innerHTML = this._link.embedCode;
+    } else {
+      this.preview.innerHTML = `
+        ${this._link.image ? `<img src="${this._link.image}" class="image" alt="${this._link.title}" />`: ''}
+        <div class="meta">
+          <div class="title" title="${this._link.title}">${this._link.title}</div>
+          <div class="description">
+            ${this._link.description.substring(0, 150)}
+            ${this._link.description.length > 150 ? '&hellip;' : ''}
+          </div>
+          <div class="url">${this._link.url}</div>
+        </div>
+      `;
+
+      if (this._link.image) {
+        this.preview.classList.add('hasImage');
       }
-    };
-    request.onerror = () => {
-    };
-    request.open('GET', `/api/link?post=${postId}&uri=${encodeURIComponent(href)}`, true);
-    request.setRequestHeader('Content-Type', 'application/json');
-    request.send();
+    }
   }
 }
 
