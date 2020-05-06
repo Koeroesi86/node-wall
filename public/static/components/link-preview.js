@@ -1,21 +1,10 @@
-class CustomLink extends HTMLAnchorElement {
-  constructor() {
-    super();
-
-    Component.prototype._init.apply(this, arguments);
-  }
-
-  onStyleSheetLoaded() {
-
-  }
-}
-
-class LinkPreview extends CustomLink {
+class LinkPreview extends HTMLAnchorElement {
   static styleSheet = '/static/components/link-preview.css';
 
   constructor() {
     super();
 
+    Component.prototype._init.apply(this, arguments);
     this._dispatch = () => {};
     this._link = null;
 
