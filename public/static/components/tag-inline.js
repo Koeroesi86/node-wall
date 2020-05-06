@@ -36,7 +36,7 @@ class TagInline extends Component {
 
   requestTag() {
     const id = this.getAttribute('tag-id');
-    this._dispatch({ type: TAGS_ACTIONS.REQUEST, payload: { id } });
+    this._dispatch(tagsActions.request(id));
   }
 
   render() {

@@ -3,6 +3,10 @@ const TAGS_ACTIONS = {
   RECEIVE: 'TAG_RECEIVE',
 };
 
+const tagsActions = {
+  request: (id) => ({ type: TAGS_ACTIONS.REQUEST, payload: { id } })
+};
+
 function tagsReducer(state = {}, action = {}) {
   if (action.type === TAGS_ACTIONS.RECEIVE) {
     return {
