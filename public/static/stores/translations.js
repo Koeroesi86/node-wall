@@ -19,23 +19,13 @@ function translationsReducer(state = {}, action = {}) {
   return state;
 }
 
-function requestedTranslationsReducer(state = {}, action = {}) {
-  if (action.type === TRANSLATIONS_ACTIONS.REQUEST) {
-    return {
-      ...state,
-      [action.payload.alias]: true,
-    };
-  }
-
-  return state;
-}
-
 const translationsMiddleware = store => next => action => {
   if (action.type === TRANSLATIONS_ACTIONS.REQUEST) {
     const { alias } = action.payload;
     const state = store.getState();
 
-    if (state.translations[alias] === undefined && !state.requestedTranslations[alias]) {
+    if (state.translations[alias] === undefined) {
+      store.dispatch(translationsActions.receive(alias, ''));
       const request = new XMLHttpRequest();
       request.onreadystatechange = e => {
         if (request.readyState === 4) {
@@ -44,7 +34,6 @@ const translationsMiddleware = store => next => action => {
             store.dispatch(translationsActions.receive(alias, translation.value));
           } else {
             console.warn(`failed to fetch translation for ${alias}`);
-            store.dispatch(translationsActions.receive(alias, ''));
           }
         }
       };

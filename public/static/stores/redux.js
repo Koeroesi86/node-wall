@@ -1,6 +1,5 @@
 const reducers = Redux.combineReducers({
   translations: translationsReducer,
-  requestedTranslations: requestedTranslationsReducer,
   serviceWorker: serviceWorkerReducer,
   tags: tagsReducer,
   posts: postsReducer,
