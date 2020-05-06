@@ -16,11 +16,11 @@ class Component extends HTMLElement {
         const styleElement = document.createElement('link');
         styleElement.setAttribute('rel', 'stylesheet');
         styleElement.setAttribute('href', this.constructor.styleSheet);
-        styleElement.onload = this.onStyleSheetLoaded;
+        styleElement.onload = this.onStyleSheetLoaded ? this.onStyleSheetLoaded : () => {};
         styleRegistry[this.localName] = styleElement;
         document.body.appendChild(styleElement);
       } else {
-        setTimeout(() => this.onStyleSheetLoaded(), 1);
+        setTimeout(() => this.onStyleSheetLoaded ? this.onStyleSheetLoaded() : null, 1);
       }
     }
   }
