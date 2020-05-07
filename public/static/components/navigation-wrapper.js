@@ -77,7 +77,7 @@ class NavigationWrapper extends Component {
 
     if (state.user.received && !this._receivedUser) {
       this._receivedUser = true;
-      this._userName = (state.user.user && state.user.user.name) ? state.user.user.name : this._texts.unknownUser;
+      this._userName = state.user.name ? state.user.name : this._texts.unknownUser;
       this.renderUser(state.user);
       this.renderTranslations();
     }
@@ -112,7 +112,7 @@ class NavigationWrapper extends Component {
 
       if (userInfo.session.status === 'active') {
         this.userPanel.innerHTML = `
-          ${userInfo.user.role !== 'admin' ? '' : `
+          ${userInfo.role !== 'admin' ? '' : `
             <a href="/moderation" class="moderation">
               <i class="fas fa-dungeon"></i>
               <span><translate-text alias="navigation-wrapper.moderation"></translate-text></span>

@@ -16,7 +16,8 @@ function userReducer(state = {
     return {
       ...state,
       received: true,
-      user: action.payload.user,
+      name: action.payload.user.name,
+      role: action.payload.user.role,
       session: action.payload.session,
     }
   }

@@ -41,7 +41,6 @@ const middlewares = [
     Dispatch: ReduxDispatchEvent,
   };
 
-  let store;
   let composeEnhancers;
   if (window && window['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__']) { // /.+\.localhost$/.test(location.hostname)
     composeEnhancers = window['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__'];
@@ -51,7 +50,8 @@ const middlewares = [
 
   const enhancer = composeEnhancers(Redux.applyMiddleware(...m));
 
-  store = Redux.createStore(reducer, enhancer);
+  const store = Redux.createStore(reducer, window['__STATE__'] || {}, enhancer);
+  delete window['__STATE__'];
 
   const cloneState = a => a; // safer but slower: JSON.stringify;
 
