@@ -4,45 +4,36 @@ class PostWall extends Component {
   constructor() {
     super();
 
-    this.getUserTags = this.getUserTags.bind(this);
+    this._dispatch = () => {};
+    this._tags = [];
+
+    this.mapState = this.mapState.bind(this);
+    this.mapDispatch = this.mapDispatch.bind(this);
   }
 
   connectedCallback() {
     this.innerHTML = `
       <compose-post></compose-post>
+      <post-list></post-list>
     `;
+    this.postList = this.querySelector('post-list');
 
-    this.getUserTags().then(tags => {
-      if (!this.postList) {
-        this.postList = document.createElement('post-list');
-        this.postList.setAttribute('liked-tags', tags.filter(t => t.type === 'liked').map(t => t.tag_id).join(','));
-        this.postList.setAttribute('disliked-tags', tags.filter(t => t.type === 'disliked').map(t => t.tag_id).join(','));
-        this.appendChild(this.postList);
-      }
-    }).catch(e => {
-      if (!this.postList) {
-        this.postList = document.createElement('post-list');
-        this.appendChild(this.postList);
-      }
-    });
+    window.connectRedux(this.mapState, this.mapDispatch);
+    this._dispatch(userActions.requestTags());
   }
 
-  getUserTags() {
-    return new Promise((resolve, reject) => {
-      const request = new XMLHttpRequest();
-      request.onreadystatechange = e => {
-        if (request.readyState === 4) {
-          if (request.status === 200) {
-            const tags = JSON.parse(request.responseText);
-            resolve(tags);
-          }
+  mapState(state) {
+    if (state.user.tags && this._tags !== state.user.tags) {
+      this._tags = state.user.tags;
+      const postList = document.createElement('post-list');
+      postList.setAttribute('liked-tags', this._tags.filter(t => t.type === 'liked').map(t => t.tag_id).join(','));
+      postList.setAttribute('disliked-tags', this._tags.filter(t => t.type === 'disliked').map(t => t.tag_id).join(','));
+      this.postList.replaceWith(postList);
+    }
+  }
 
-          reject();
-        }
-      };
-      request.open("GET", "/api/user/tags", true);
-      request.send();
-    });
+  mapDispatch(dispatch) {
+    this._dispatch = dispatch;
   }
 }
 

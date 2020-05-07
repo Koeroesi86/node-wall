@@ -1,6 +1,9 @@
 class PostList extends Component {
   static styleSheet = '/static/components/post-list.css';
 
+  // TODO: connect
+  static get observedAttributes() { return ['liked-tags', 'disliked-tags']; }
+
   constructor() {
     super();
 
@@ -35,6 +38,14 @@ class PostList extends Component {
       if (!this._isLoading) this.loadMore();
     }, false);
     this.getBounds();
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'liked-tags' || name === 'disliked-tags') {
+      this.querySelectorAll('post-preview').forEach(previewNode => {
+        previewNode.remove();
+      });
+    }
   }
 
   getBounds() {
