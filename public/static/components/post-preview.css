@@ -68,3 +68,47 @@ post-preview .loadingIndicator {
 post-preview a {
     color: inherit;
 }
+
+post-preview .contentToggleWrapper, post-preview.long.showAll .contentToggleWrapper {
+    display: none;
+}
+
+post-preview.long .contentToggleWrapper {
+    display: block;
+}
+
+post-preview.long .content {
+    max-height: 100px;
+    overflow: hidden;
+    transition: max-height .3s ease-in-out;
+}
+
+post-preview.long .content::after {
+    display: block;
+    position: absolute;
+    bottom: 0;
+
+}
+
+post-preview.long .contentToggle {
+    position: relative;
+    display: block;
+    margin: -32px auto 3px auto;
+    line-height: 30px;
+    width: fit-content;
+    padding: 0 20px;
+    color: var(--main-button-text-color);
+    background: rgba(var(--main-input-background-color-rgb), 1);
+    border-radius: 16px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 1;
+}
+
+post-preview.long .contentShadow {
+    box-shadow: 0 -4px 6px var(--main-background-color);
+    width: 100%;
+    height: 4px;
+    position: relative;
+    z-index: 1;
+}

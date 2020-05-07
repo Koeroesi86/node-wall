@@ -77,6 +77,12 @@ class PostPreview extends Component {
       <div class="loadingIndicator"><translate-text alias="post-preview.loading"></translate-text></div>
       <div class="tags"></div>
       <div class="content"></div>
+      <div class="contentToggleWrapper">
+        <div class="contentShadow"></div>
+        <div class="contentToggle">
+          <translate-text alias="post-preview.show-more"></translate-text>
+        </div>
+      </div>
       <div class="meta">
         <div class="sent">
           <translate-text alias="post-preview.sent-at"></translate-text>&nbsp;
@@ -88,6 +94,13 @@ class PostPreview extends Component {
     this.contentContainer = this.querySelector('.content');
     this.tagsContainer = this.querySelector('.tags');
     this.sentDateContainer = this.querySelector('.sent .date');
+
+    this.querySelector('.contentToggle').addEventListener('click', e => {
+      this.contentContainer.style.maxHeight = this.contentContainer.scrollHeight + 'px';
+      setTimeout(() => {
+        this.classList.add('showAll');
+      }, 300);
+    });
 
     window.connectRedux(this.mapState, this.mapDispatch);
     this.requestPost();
@@ -108,6 +121,9 @@ class PostPreview extends Component {
       });
 
     this.contentContainer.innerHTML = content;
+    if (this.querySelectorAll('.contentLine').length > 5) {
+      this.classList.add('long');
+    }
   }
 
   checkOwner() {
