@@ -107,7 +107,7 @@ class NavigationWrapper extends Component {
   }
 
   renderUser(userInfo) {
-    if (userInfo.user) {
+    if (userInfo.session) {
       this.userPanel.classList.remove('hidden');
 
       if (userInfo.session.status === 'active') {
