@@ -15,6 +15,10 @@ class PostList extends Component {
     this.likedTags = [];
     this.dislikedTags = [];
     this.loadMoreInterval = 6 * 60 * 60 * 1000;
+    this._dispatch = () => {};
+
+    this.mapState = this.mapState.bind(this);
+    this.mapDispatch = this.mapDispatch.bind(this);
     this.loadMore = this.loadMore.bind(this);
     this.getBounds = this.getBounds.bind(this);
     this.getNewPosts = this.getNewPosts.bind(this);
@@ -38,6 +42,15 @@ class PostList extends Component {
       if (!this._isLoading) this.loadMore();
     }, false);
     this.getBounds();
+    window.connectRedux(this.mapState, this.mapDispatch);
+  }
+
+  mapState(state) {
+
+  }
+
+  mapDispatch(dispatch) {
+    this._dispatch = dispatch;
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
