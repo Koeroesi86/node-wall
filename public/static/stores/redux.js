@@ -5,6 +5,7 @@ const reducers = Redux.combineReducers({
   posts: postsReducer,
   user: userReducer,
   links: linksReducer,
+  bounds: boundsReducer,
 });
 
 const middlewares = [
@@ -14,6 +15,7 @@ const middlewares = [
   postsMiddleware,
   userMiddleware,
   linksMiddleware,
+  boundsMiddleware,
 ];
 
 (function (reducer = s => s, m = []) {
@@ -124,7 +126,7 @@ const middlewares = [
 
       connectedListeners.forEach(mapState => {
         try {
-          mapState(store.getState());
+          mapState(currentState, previousState);
         } catch (e) {
           console.error(e);
         }

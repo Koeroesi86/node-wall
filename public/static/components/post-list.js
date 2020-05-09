@@ -20,7 +20,6 @@ class PostList extends Component {
     this.mapState = this.mapState.bind(this);
     this.mapDispatch = this.mapDispatch.bind(this);
     this.loadMore = this.loadMore.bind(this);
-    this.getBounds = this.getBounds.bind(this);
     this.getNewPosts = this.getNewPosts.bind(this);
   }
 
@@ -41,11 +40,27 @@ class PostList extends Component {
     this.addEventListener('scroll', e => {
       if (!this._isLoading) this.loadMore();
     }, false);
-    this.getBounds();
     window.connectRedux(this.mapState, this.mapDispatch);
   }
 
   mapState(state) {
+    if (state.bounds.newest !== this.newest) {
+      if (this.newest && this.newest < state.bounds.newest) {
+        setTimeout(() => {
+          this.notificationNode.play();
+          this.getNewPosts();
+        }, 2000);
+      }
+      if (!this.lastNewest) {
+        this.lastNewest = this.newest;
+      }
+      this.newest = state.bounds.newest;
+    }
+
+    if (state.bounds.oldest !== this.oldest) {
+      this.oldest = state.bounds.oldest;
+      if (!this._isLoading) this.loadMore();
+    }
 
   }
 
@@ -59,50 +74,6 @@ class PostList extends Component {
         previewNode.remove();
       });
     }
-  }
-
-  getBounds() {
-    return new Promise((resolve, reject) => {
-      const request = new XMLHttpRequest();
-      request.onreadystatechange = e => {
-        if (request.readyState === 4 && request.status === 200) {
-          const bounds = JSON.parse(request.responseText);
-
-          if (!this.newest) {
-            this.newest = bounds.newest;
-            setTimeout(() => {
-              this.loadMore();
-            }, 500);
-          }
-
-          if (this.newest && this.newest < bounds.newest) {
-            setTimeout(() => {
-              this.notificationNode.play();
-              this.getNewPosts();
-            }, 2000);
-          }
-
-          this.oldest = bounds.oldest;
-          this.newest = bounds.newest;
-
-          if (!this.lastNewest) {
-            this.lastNewest = this.newest;
-          }
-
-          setTimeout(() => {
-            this.getBounds();
-          }, 5 * 1000);
-
-          resolve(bounds);
-        }
-
-        if (request.readyState === 4 && request.status !== 200) {
-          reject();
-        }
-      };
-      request.open("GET", `/api/posts/bounds`, true);
-      request.send();
-    });
   }
 
   getNewPosts() {
@@ -150,6 +121,7 @@ class PostList extends Component {
 
       this.loadMore();
     }).catch(() => {
+      this._isLoading = false;
       this.loadMore();
     });
   }
