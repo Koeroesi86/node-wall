@@ -314,10 +314,7 @@ module.exports = async (event, callback) => {
           const postsToRender = await Promise.all(posts.map(async post => ({
             id: post.id,
             type: post.type,
-            content: await getData(post.id, post.type),
             created_at: post.created_at,
-            owner: post.owner ? await knex('users').select('name', 'id').where('id', post.owner).first() : null,
-            tags: await getPostTags(post.id),
           })));
 
           return callback({
