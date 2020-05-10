@@ -3,6 +3,7 @@ const reducers = Redux.combineReducers({
   serviceWorker: serviceWorkerReducer,
   tags: tagsReducer,
   posts: postsReducer,
+  postsList: postsListReducer,
   user: userReducer,
   links: linksReducer,
   bounds: boundsReducer,
@@ -16,6 +17,7 @@ const middlewares = [
   userMiddleware,
   linksMiddleware,
   boundsMiddleware,
+  postsMiddleware,
 ];
 
 (function (reducer = s => s, m = []) {

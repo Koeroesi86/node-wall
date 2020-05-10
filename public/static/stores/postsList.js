@@ -3,34 +3,62 @@ const POSTS_LIST_ACTIONS = {
   RECEIVE: 'POSTS_LIST_RECEIVE',
   LOAD_MORE: 'POSTS_LIST_LOAD_MORE',
   SET_NEXT_PAGE: 'POSTS_LIST_SET_NEXT_PAGE',
+  CREATE_FILTER: 'POSTS_LIST_CREATE_FILTER',
 };
 
 const postsListActions = {
   /**
    * @returns {{payload: {}, type: string}}
    */
-  loadMore: () => ({ type: POSTS_LIST_ACTIONS.LOAD_MORE, payload: {} }),
+  loadMore: (instance) => ({ type: POSTS_LIST_ACTIONS.LOAD_MORE, payload: { instance } }),
+  createFilter: (instance, likedTags = [], dislikedTags = []) => ({
+    type: POSTS_LIST_ACTIONS.CREATE_FILTER,
+    payload: { instance, likedTags, dislikedTags },
+  }),
 };
 
-function postsListReducer(state = [], action = {}) {
-  if (action.type === POSTS_LIST_ACTIONS.RECEIVE) {
-    return [...state, ...action.payload.posts];
+function postsListReducer(state = {}, action = {}) {
+  if (action.type === POSTS_LIST_ACTIONS.CREATE_FILTER) {
+    const {
+      instance,
+      likedTags,
+      dislikedTags,
+    } = action.payload;
+
+    return {
+      ...state,
+      [instance]: {
+        likedTags: likedTags,
+        dislikedTags: dislikedTags,
+        before: null,
+        since: null,
+        nextPageBefore: null,
+        posts: [],
+      },
+    };
   }
 
-  return state;
-}
-
-function postsFiltersReducer(state = {
-  nextPageBefore: null,
-  latest: null,
-  since: null,
-  dislikedTags: [],
-  likedTags: [],
-}, action = {}) {
   if (action.type === POSTS_LIST_ACTIONS.SET_NEXT_PAGE) {
     return {
       ...state,
-      nextPageBefore: action.payload.nextPageBefore,
+      [action.payload.instance]: {
+        ...state[action.payload.instance],
+        nextPageBefore: action.payload.nextPageBefore,
+      },
+    };
+  }
+
+  if (action.type === POSTS_LIST_ACTIONS.RECEIVE) {
+    const { instance, posts } = action.payload;
+    return {
+      ...state,
+      [instance]: {
+        ...state[instance],
+        posts: [
+          ...state[instance].posts,
+          ...posts
+        ],
+      }
     };
   }
 
@@ -65,14 +93,16 @@ function getPosts(since, before, likedTags = [], dislikedTags = []) {
 
 const postsListMiddleware = store => next => action => {
     if (action.type === POSTS_LIST_ACTIONS.LOAD_MORE) {
-      const likedTags = [];
-      const dislikedTags = [];
-      const before = Date.now();
-      const since = Date.now();
+      const {
+        likedTags,
+        dislikedTags,
+        nextPageBefore,
+        since,
+      } = store.getState()[action.payload.instance];
 
       store.dispatch({
         type: POSTS_LIST_ACTIONS.REQUEST,
-        payload: { likedTags, dislikedTags, before, since },
+        payload: { likedTags, dislikedTags, before: nextPageBefore, since, instance: action.payload.instance },
       });
     }
 
@@ -82,6 +112,7 @@ const postsListMiddleware = store => next => action => {
         likedTags,
         since,
         before,
+        instance,
       } = action.payload;
 
       const request = new XMLHttpRequest();
@@ -91,10 +122,10 @@ const postsListMiddleware = store => next => action => {
             const posts = JSON.parse(request.responseText);
             const nextPageBefore = request.getResponseHeader('x-next-page-before');
             if (nextPageBefore) {
-              store.dispatch({ type: POSTS_LIST_ACTIONS.SET_NEXT_PAGE, payload: { nextPageBefore } });
+              store.dispatch({ type: POSTS_LIST_ACTIONS.SET_NEXT_PAGE, payload: { nextPageBefore, instance } });
             }
 
-            store.dispatch({ type: POSTS_LIST_ACTIONS.RECEIVE, payload: { posts } });
+            store.dispatch({ type: POSTS_LIST_ACTIONS.RECEIVE, payload: { posts, instance } });
           }
         }
       };
