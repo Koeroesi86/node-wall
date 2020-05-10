@@ -3,6 +3,7 @@ class TranslateText extends Component {
   static pending = {};
 
   /**
+   * @deprecated
    * @param alias
    * @returns {Promise<{ value: String }>}
    */
@@ -12,7 +13,7 @@ class TranslateText extends Component {
         const listener = e => {
           const state = e.detail.store.getState();
           const value = state.translations[alias];
-          if (value !== undefined) {
+          if (value) {
             resolve({ value });
             window.removeEventListener(ReduxEventTypes.stateChange, listener);
           }

@@ -69,15 +69,17 @@ class PostList extends Component {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    if (name === 'liked-tags' || name === 'disliked-tags') {
+    if (this.isConnected && (name === 'liked-tags' || name === 'disliked-tags')) {
       this.querySelectorAll('post-preview').forEach(previewNode => {
         previewNode.remove();
       });
+      this.loadMore();
     }
   }
 
   getNewPosts() {
-    this.getPosts(this.newest).then(posts => {
+    getPosts(this.newest, null, this.likedTags, this.dislikedTags).then(({ posts, nextPageBefore }) => {
+      this.nextPageBefore = nextPageBefore;
       for (let i = posts.length - 1; i >= 0; i--) {
         const post = posts[i];
 
@@ -111,8 +113,10 @@ class PostList extends Component {
 
     this.endNode.classList.add('loading');
     this._isLoading = true;
-    this.getPosts(this.since, latest).then(posts => {
+
+    getPosts(this.since, latest, this.likedTags, this.dislikedTags).then(({ posts, nextPageBefore }) => {
       this._isLoading = false;
+      this.nextPageBefore = nextPageBefore;
       this.endNode.classList.remove('loading');
 
       posts.forEach(post => {
@@ -135,35 +139,6 @@ class PostList extends Component {
     postPreview.setAttribute('post-id', post.id);
 
     this.insertBefore(postPreview, node);
-  }
-
-  getPosts(since, before) {
-    return new Promise((resolve, reject) => {
-      const request = new XMLHttpRequest();
-      request.onreadystatechange = e => {
-        if (request.readyState === 4) {
-          if (request.status === 200) {
-            const posts = JSON.parse(request.responseText);
-            const nextPageBefore = request.getResponseHeader('x-next-page-before');
-            if (nextPageBefore) {
-              this.nextPageBefore = nextPageBefore;
-            }
-
-            resolve(posts);
-          } else {
-            reject();
-          }
-        }
-      };
-      const url = new URL(window.location.origin);
-      url.pathname = '/api/posts';
-      url.searchParams.set('since', since);
-      if (before) url.searchParams.set('before', before);
-      if (this.likedTags.length > 0) url.searchParams.set('likedTags', this.likedTags.join(','));
-      if (this.dislikedTags.length > 0) url.searchParams.set('dislikedTags', this.dislikedTags.join(','));
-      request.open("GET", url.toString(), true);
-      request.send();
-    });
   }
 }
 
