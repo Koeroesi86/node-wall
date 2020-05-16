@@ -51,16 +51,6 @@ class TagInline extends Component {
         <translate-text alias="tag-inline.tooltip.prefix"></translate-text>
         &nbsp;<a href="/tag/${this._tag.id}" target="_blank">${this._tag.name}</a>
       `;
-
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', `/tag/${this._tag.id}`);
-      linkElement.setAttribute('target', '_blank');
-      this._label.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        linkElement.click();
-      });
     }
   }
 
@@ -72,6 +62,16 @@ class TagInline extends Component {
 
     this._label = this.querySelector('.label');
     this._tooltip = this.querySelector('.tooltip');
+
+    this._label.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', `/tag/${this._tag.id}`);
+      linkElement.setAttribute('target', '_blank');
+      linkElement.click();
+    });
 
     window.connectRedux(this.mapState, this.mapDispatch);
     this.requestTag();
