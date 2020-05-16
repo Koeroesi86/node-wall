@@ -74,6 +74,12 @@ class PostList extends Component {
           this.addPostBefore({ id }, this.endNode);
         });
       }
+
+      if (postsListInstance.isLoading) {
+        this.endNode.classList.add('loading');
+      } else {
+        this.endNode.classList.remove('loading');
+      }
     }
   }
 
