@@ -30,14 +30,16 @@ class TagPage extends Component {
     // TODO: like/dislike tag
     this.innerHTML = `
       <h2>#${this._header}</h2>
-      <post-list liked-tags="${tagId || ''}"></post-list>
+      <post-list liked-tags="${tagId || ''}" instance="${tagId}"></post-list>
     `;
   }
 
   connectedCallback() {
     const tagId = this.getAttribute('tag-id');
     window.connectRedux(this.mapState, this.mapDispatch);
+    this._dispatch(postsListActions.createFilter(tagId, [tagId], []));
     this._dispatch(tagsActions.request(tagId));
+    this._dispatch(postsListActions.loadMore(tagId));
   }
 
   disconnectedCallback() {

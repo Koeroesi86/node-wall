@@ -18,6 +18,7 @@ const middlewares = [
   linksMiddleware,
   boundsMiddleware,
   postsMiddleware,
+  postsListMiddleware,
 ];
 
 (function (reducer = s => s, m = []) {
@@ -94,6 +95,10 @@ const middlewares = [
     }
 
     return true
+  }
+
+  window.shallowEqual = function (a, b) {
+    return shallowEqual(a, b);
   }
 
   const connectedListeners = [];

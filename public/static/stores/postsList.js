@@ -1,16 +1,26 @@
 const POSTS_LIST_ACTIONS = {
-  REQUEST: 'POSTS_LIST_REQUEST',
-  RECEIVE: 'POSTS_LIST_RECEIVE',
+  APPEND: 'POSTS_LIST_APPEND',
   LOAD_MORE: 'POSTS_LIST_LOAD_MORE',
+  SET_BEFORE: 'POSTS_LIST_SET_BEFORE',
+  SET_SINCE: 'POSTS_LIST_SET_SINCE',
   SET_NEXT_PAGE: 'POSTS_LIST_SET_NEXT_PAGE',
+  SET_LOADING_STARTED: 'POSTS_LIST_SET_LOADING_STARTED',
+  SET_IS_LOADING: 'POSTS_LIST_SET_IS_LOADING',
   CREATE_FILTER: 'POSTS_LIST_CREATE_FILTER',
 };
 
 const postsListActions = {
   /**
+   * @param {String} instance
    * @returns {{payload: {}, type: string}}
    */
   loadMore: (instance) => ({ type: POSTS_LIST_ACTIONS.LOAD_MORE, payload: { instance } }),
+  /**
+   * @param {String} instance
+   * @param {String[]} [likedTags]
+   * @param {String[]} [dislikedTags]
+   * @returns {{payload: {likedTags: *[], instance: *, dislikedTags: *[]}, type: string}}
+   */
   createFilter: (instance, likedTags = [], dislikedTags = []) => ({
     type: POSTS_LIST_ACTIONS.CREATE_FILTER,
     payload: { instance, likedTags, dislikedTags },
@@ -30,25 +40,49 @@ function postsListReducer(state = {}, action = {}) {
       [instance]: {
         likedTags: likedTags,
         dislikedTags: dislikedTags,
-        before: null,
+        before: Date.now(),
         since: null,
-        nextPageBefore: null,
+        nextPageBefore: Date.now() + 1,
         posts: [],
+        isLoading: false,
       },
     };
   }
 
   if (action.type === POSTS_LIST_ACTIONS.SET_NEXT_PAGE) {
+    const { instance, nextPageBefore } = action.payload;
     return {
       ...state,
-      [action.payload.instance]: {
-        ...state[action.payload.instance],
-        nextPageBefore: action.payload.nextPageBefore,
+      [instance]: {
+        ...state[instance],
+        nextPageBefore,
       },
     };
   }
 
-  if (action.type === POSTS_LIST_ACTIONS.RECEIVE) {
+  if (action.type === POSTS_LIST_ACTIONS.SET_SINCE) {
+    const { instance, since } = action.payload;
+    return {
+      ...state,
+      [instance]: {
+        ...state[instance],
+        since,
+      },
+    };
+  }
+
+  if (action.type === POSTS_LIST_ACTIONS.SET_BEFORE) {
+    const { instance, before } = action.payload;
+    return {
+      ...state,
+      [instance]: {
+        ...state[instance],
+        before,
+      },
+    };
+  }
+
+  if (action.type === POSTS_LIST_ACTIONS.APPEND) {
     const { instance, posts } = action.payload;
     return {
       ...state,
@@ -62,9 +96,51 @@ function postsListReducer(state = {}, action = {}) {
     };
   }
 
+  if (action.type === POSTS_LIST_ACTIONS.SET_LOADING_STARTED) {
+    const { instance, loadingStarted } = action.payload;
+    return {
+      ...state,
+      [instance]: {
+        ...state[instance],
+        loadingStarted,
+      }
+    };
+  }
+
+  if (action.type === POSTS_LIST_ACTIONS.SET_IS_LOADING) {
+    const { instance, isLoading } = action.payload;
+    return {
+      ...state,
+      [instance]: {
+        ...state[instance],
+        isLoading,
+      }
+    };
+  }
+
   return state;
 }
 
+/**
+ * @typedef PostsResponseItem
+ * @property {String} id
+ * @property {String} type
+ * @property {Number} created_at
+ */
+
+/**
+ * @typedef PostsListResult
+ * @property {Number} [nextPageBefore]
+ * @property {PostsResponseItem[]} posts
+ */
+
+/**
+ * @param {Number} [since]
+ * @param {Number} [before]
+ * @param {String[]} likedTags
+ * @param {String[]} dislikedTags
+ * @returns {Promise<PostsListResult>}
+ */
 function getPosts(since, before, likedTags = [], dislikedTags = []) {
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
@@ -82,8 +158,8 @@ function getPosts(since, before, likedTags = [], dislikedTags = []) {
     };
     const url = new URL(window.location.origin);
     url.pathname = '/api/posts';
-    url.searchParams.set('since', since);
-    if (before) url.searchParams.set('before', before);
+    if (since) url.searchParams.set('since', since + '');
+    if (before) url.searchParams.set('before', before + '');
     if (likedTags.length > 0) url.searchParams.set('likedTags', likedTags.join(','));
     if (dislikedTags.length > 0) url.searchParams.set('dislikedTags', dislikedTags.join(','));
     request.open("GET", url.toString(), true);
@@ -92,55 +168,64 @@ function getPosts(since, before, likedTags = [], dislikedTags = []) {
 }
 
 const postsListMiddleware = store => next => action => {
-    if (action.type === POSTS_LIST_ACTIONS.LOAD_MORE) {
-      const {
-        likedTags,
-        dislikedTags,
-        nextPageBefore,
-        since,
-      } = store.getState()[action.payload.instance];
+  if (action.type === POSTS_LIST_ACTIONS.LOAD_MORE && action.payload.instance) {
+    const { instance } = action.payload;
+    const {
+      likedTags,
+      dislikedTags,
+      nextPageBefore: currentNextPageBefore,
+      posts: currentPosts,
+      isLoading,
+    } = store.getState().postsList[instance];
 
+    if (!isLoading) {
       store.dispatch({
-        type: POSTS_LIST_ACTIONS.REQUEST,
-        payload: { likedTags, dislikedTags, before: nextPageBefore, since, instance: action.payload.instance },
+        type: POSTS_LIST_ACTIONS.SET_IS_LOADING,
+        payload: { instance, isLoading: true }
       });
-    }
+      Promise.resolve()
+        .then(() => getPosts(currentNextPageBefore - 100, currentNextPageBefore + 1, likedTags, dislikedTags))
+        .then(({ posts, nextPageBefore }) => {
+          store.dispatch({
+            type: POSTS_LIST_ACTIONS.SET_IS_LOADING,
+            payload: { instance, isLoading: false }
+          });
 
-    if (action.type === POSTS_LIST_ACTIONS.REQUEST) {
-      const {
-        dislikedTags,
-        likedTags,
-        since,
-        before,
-        instance,
-      } = action.payload;
-
-      const request = new XMLHttpRequest();
-      request.onreadystatechange = e => {
-        if (request.readyState === 4) {
-          if (request.status === 200) {
-            const posts = JSON.parse(request.responseText);
-            const nextPageBefore = request.getResponseHeader('x-next-page-before');
-            if (nextPageBefore) {
-              store.dispatch({ type: POSTS_LIST_ACTIONS.SET_NEXT_PAGE, payload: { nextPageBefore, instance } });
-            }
-
-            store.dispatch({ type: POSTS_LIST_ACTIONS.RECEIVE, payload: { posts, instance } });
+          if (nextPageBefore) {
+            store.dispatch({ type: POSTS_LIST_ACTIONS.SET_NEXT_PAGE, payload: { nextPageBefore, instance } });
           }
-        }
-      };
 
-      const url = new URL(window.location.origin);
-      url.pathname = '/api/posts';
-
-      if (since) url.searchParams.set('since', since);
-      if (before) url.searchParams.set('before', before);
-      if (likedTags.length > 0) url.searchParams.set('likedTags', likedTags.join(','));
-      if (dislikedTags.length > 0) url.searchParams.set('dislikedTags', dislikedTags.join(','));
-
-      request.open("GET", url.toString(), true);
-      request.send();
+          if (posts && posts.length > 0) {
+            store.dispatch({
+              type: POSTS_LIST_ACTIONS.SET_SINCE,
+              payload: { since: posts[posts.length - 1].created_at, instance }
+            });
+            if (!currentPosts.length) {
+              store.dispatch({
+                type: POSTS_LIST_ACTIONS.SET_BEFORE,
+                payload: { before: posts[0].created_at, instance }
+              });
+            }
+            store.dispatch({
+              type: POSTS_LIST_ACTIONS.APPEND,
+              payload: {
+                posts: posts.map(post => post.id),
+                instance
+              }
+            });
+          } else if (nextPageBefore) {
+            store.dispatch(postsListActions.loadMore(instance));
+          }
+        })
+        .catch(e => {
+          console.error(e);
+          store.dispatch({
+            type: POSTS_LIST_ACTIONS.SET_IS_LOADING,
+            payload: { instance, isLoading: false }
+          });
+        });
     }
+  }
 
-    next(action);
-  };
+  next(action);
+};

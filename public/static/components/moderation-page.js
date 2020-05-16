@@ -68,9 +68,6 @@ class ModerationPage extends Component {
             return;
           }
 
-          const newTags = [...post.content.matchAll(/#[a-z\u00C0-\u017F0-9]+/gi)]
-            .map(m => m[0])
-            .filter(text => !post.tags.find(t => `#${t.name}` === text));
           const postModerationWrapper = document.createElement('div');
           postModerationWrapper.classList.add('postModerationWrapper');
           postModerationWrapper.setAttribute('post-id', post.id);
@@ -80,13 +77,53 @@ class ModerationPage extends Component {
               created="${post.created_at}"
               ${post.owner ? `owner-id="${post.owner.id}" owner-name="${post.owner.name}" ` : ''}
             ></post-preview>
-            ${newTags.length > 0 ? `
-            <div class="newTags">
+            <div class="newTags" style="display: none;">
               <div class="newTagsNote">
                 <translate-text alias="moderation-page.posts.new-tags-note"></translate-text>
               </div>
-              <div class="newTagsList">
-                ${newTags.map(t => `
+              <div class="newTagsList"></div>
+            </div>
+            <div class="addTags">
+              <div class="addTagsHeading">
+                <translate-text alias="moderation-page.posts.add-tags-heading"></translate-text>
+              </div>
+              <post-tags-input post-id="${post.id}"></post-tags-input>
+            </div>
+            <div class="buttonsWrapper">
+              <button type="button" class="button approve">
+                <translate-text alias="moderation-page.posts.approve"></translate-text>
+              </button>
+              <button type="button" class="button disapprove">
+                <translate-text alias="moderation-page.posts.disapprove"></translate-text>
+              </button>
+            </div>
+          `;
+
+          const newTagsWrapper = postModerationWrapper.querySelector('.newTags');
+          const tagsInput = postModerationWrapper.querySelector('post-tags-input');
+          [...postModerationWrapper.querySelectorAll('.newTagsItem')].forEach(newTagsItem => {
+            const addElement = newTagsItem.querySelector('.add');
+            addElement.addEventListener('click', e => {
+              const newTagAttribute = addElement.getAttribute('new-tag');
+              const newTag = newTagAttribute.match(/[a-z\u00C0-\u017F0-9]+/gi)[0];
+              tagsInput.createTag(newTag, 'text').then(() => {
+                newTagsItem.remove();
+              });
+            });
+          });
+
+          getPost(post.id).then(postDetails => {
+            postDetails.tags.forEach(tag => {
+              tagsInput.add(tag.id, false);
+            });
+
+            const newTags = [...postDetails.content.matchAll(/#[a-z\u00C0-\u017F0-9]+/gi)]
+              .map(m => m[0])
+              .filter(text => !post.tags.find(t => `#${t.name}` === text));
+            if (newTags.length > 0) {
+              newTagsWrapper.style.display = '';
+            }
+            newTagsWrapper.querySelector('.newTagsList').innerHTML = newTags.map(t => `
                   <div class="newTagsItem">
                     <div class="label">${t}</div>
                     <div class="add" title="${this.createTagTitle}" new-tag="${t}">
@@ -104,42 +141,11 @@ class ModerationPage extends Component {
                       </svg>
                     </div>
                   </div>
-                `).join('')}
-              </div>
-            </div>
-            ` : ''}
-            <div class="addTags">
-              <div class="addTagsHeading">
-                <translate-text alias="moderation-page.posts.add-tags-heading"></translate-text>
-              </div>
-              <post-tags-input post-id="${post.id}"></post-tags-input>
-            </div>
-            <div class="buttonsWrapper">
-              <button type="button" class="button approve">
-                <translate-text alias="moderation-page.posts.approve"></translate-text>
-              </button>
-              <button type="button" class="button disapprove">
-                <translate-text alias="moderation-page.posts.disapprove"></translate-text>
-              </button>
-            </div>
-          `;
-          const tagsInput = postModerationWrapper.querySelector('post-tags-input');
-          [...postModerationWrapper.querySelectorAll('.newTagsItem')].forEach(newTagsItem => {
-            const addElement = newTagsItem.querySelector('.add');
-            addElement.addEventListener('click', e => {
-              const newTagAttribute = addElement.getAttribute('new-tag');
-              const newTag = newTagAttribute.match(/[a-z\u00C0-\u017F0-9]+/gi)[0];
-              tagsInput.createTag(newTag, 'text').then(() => {
-                newTagsItem.remove();
-              });
-            });
+                `).join('');
           });
+
           const postPreview = postModerationWrapper.querySelector('post-preview');
-          postPreview.content = post.content;
-          postPreview.tags = post.tags;
-          post.tags.forEach(tag => {
-            tagsInput.add(tag.id, false);
-          });
+          postPreview.setAttribute('post-id', post.id);
           this.pendingPostsContainer.appendChild(postModerationWrapper);
           if (this.latest < post.created_at) this.latest = post.created_at;
         });

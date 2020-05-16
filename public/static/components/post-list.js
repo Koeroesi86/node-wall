@@ -2,7 +2,7 @@ class PostList extends Component {
   static styleSheet = '/static/components/post-list.css';
 
   // TODO: connect
-  static get observedAttributes() { return ['liked-tags', 'disliked-tags']; }
+  static get observedAttributes() { return ['liked-tags', 'disliked-tags', 'instance']; }
 
   constructor() {
     super();
@@ -14,7 +14,6 @@ class PostList extends Component {
     this.lastNewest = null;
     this.likedTags = [];
     this.dislikedTags = [];
-    this.loadMoreInterval = 6 * 60 * 60 * 1000;
     this._dispatch = () => {};
 
     this.mapState = this.mapState.bind(this);
@@ -36,14 +35,17 @@ class PostList extends Component {
     `;
     this.notificationNode = this.querySelector('.notification');
     this.endNode = this.querySelector('.end');
-    this._isLoading = false;
     this.addEventListener('scroll', e => {
-      if (!this._isLoading) this.loadMore();
+      this.loadMore();
     }, false);
     window.connectRedux(this.mapState, this.mapDispatch);
   }
 
-  mapState(state) {
+  disconnectedCallback() {
+    window.disconnectRedux(this.mapState);
+  }
+
+  mapState(state, prevState) {
     if (state.bounds.newest !== this.newest) {
       if (this.newest && this.newest < state.bounds.newest) {
         setTimeout(() => {
@@ -59,9 +61,20 @@ class PostList extends Component {
 
     if (state.bounds.oldest !== this.oldest) {
       this.oldest = state.bounds.oldest;
-      if (!this._isLoading) this.loadMore();
+      this.loadMore();
     }
 
+    const instance = this.getAttribute('instance');
+    if (state.postsList && instance && state.postsList[instance]) {
+      const postsListInstance = state.postsList[instance];
+      const prevPostsListInstance = prevState ? prevState.postsList[instance] : {};
+
+      if (postsListInstance && !shallowEqual(postsListInstance.posts, prevPostsListInstance.posts)) {
+        postsListInstance.posts.forEach(id => {
+          this.addPostBefore({ id }, this.endNode);
+        });
+      }
+    }
   }
 
   mapDispatch(dispatch) {
@@ -70,16 +83,15 @@ class PostList extends Component {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (this.isConnected && (name === 'liked-tags' || name === 'disliked-tags')) {
-      this.querySelectorAll('post-preview').forEach(previewNode => {
-        previewNode.remove();
-      });
-      this.loadMore();
+      // this.querySelectorAll('post-preview').forEach(previewNode => {
+      //   previewNode.remove();
+      // });
+      // this.loadMore();
     }
   }
 
   getNewPosts() {
-    getPosts(this.newest, null, this.likedTags, this.dislikedTags).then(({ posts, nextPageBefore }) => {
-      this.nextPageBefore = nextPageBefore;
+    getPosts(this.newest, null, this.likedTags, this.dislikedTags).then(({ posts }) => {
       for (let i = posts.length - 1; i >= 0; i--) {
         const post = posts[i];
 
@@ -93,41 +105,11 @@ class PostList extends Component {
     const bottomEdge = this.scrollTop + this.clientHeight;
     const endTop = this.endNode.offsetTop;
 
-    if (this.since && this.since < this.oldest) {
-      return;
-    }
     if (endTop > bottomEdge) {
       return;
     }
-    let latest;
-    if (this.nextPageBefore) {
-      this.latest = this.nextPageBefore;
-      latest = this.latest;
-    } else if (!this.latest) {
-      this.latest = this.newest + 1;
-      latest = this.latest;
-    } else {
-      latest = this.since;
-    }
-    this.since = latest - this.loadMoreInterval;
 
-    this.endNode.classList.add('loading');
-    this._isLoading = true;
-
-    getPosts(this.since, latest, this.likedTags, this.dislikedTags).then(({ posts, nextPageBefore }) => {
-      this._isLoading = false;
-      this.nextPageBefore = nextPageBefore;
-      this.endNode.classList.remove('loading');
-
-      posts.forEach(post => {
-        this.addPostBefore(post, this.endNode);
-      });
-
-      this.loadMore();
-    }).catch(() => {
-      this._isLoading = false;
-      this.loadMore();
-    });
+    this._dispatch(postsListActions.loadMore(this.getAttribute('instance')));
   }
 
   addPostBefore(post, node) {

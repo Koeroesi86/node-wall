@@ -5,30 +5,38 @@ class PostWall extends Component {
     super();
 
     this._dispatch = () => {};
-    this._tags = [];
 
     this.mapState = this.mapState.bind(this);
     this.mapDispatch = this.mapDispatch.bind(this);
   }
 
   connectedCallback() {
+    const instance = this.getAttribute('instance');
+    window.connectRedux(this.mapState, this.mapDispatch);
+    this._dispatch(postsListActions.createFilter(instance, [], []));
+
     this.innerHTML = `
       <compose-post></compose-post>
-      <post-list></post-list>
+      <post-list instance="${instance}"></post-list>
     `;
     this.postList = this.querySelector('post-list');
-
-    window.connectRedux(this.mapState, this.mapDispatch);
     this._dispatch(userActions.requestTags());
   }
 
-  mapState(state) {
-    if (state.user.tags && this._tags !== state.user.tags) {
-      this._tags = state.user.tags;
+  mapState(state, prevState) {
+    if (state.user.tags && !shallowEqual(state.user.tags, prevState.user.tags)) {
+      const instance = this.getAttribute('instance');
+      if (!instance) return;
+
       const postList = document.createElement('post-list');
-      postList.setAttribute('liked-tags', this._tags.filter(t => t.type === 'liked').map(t => t.tag_id).join(','));
-      postList.setAttribute('disliked-tags', this._tags.filter(t => t.type === 'disliked').map(t => t.tag_id).join(','));
+      const likedTags = state.user.tags.filter(t => t.type === 'liked').map(t => t.tag_id);
+      const dislikedTags = state.user.tags.filter(t => t.type === 'disliked').map(t => t.tag_id);
+      postList.setAttribute('instance', instance);
+      postList.setAttribute('liked-tags', likedTags.join(','));
+      postList.setAttribute('disliked-tags', dislikedTags.join(','));
+      this._dispatch(postsListActions.createFilter(instance, likedTags, dislikedTags));
       this.postList.replaceWith(postList);
+      this._dispatch(postsListActions.loadMore(instance));
     }
   }
 

@@ -280,21 +280,25 @@ module.exports = async (event, callback) => {
 
           if (event.queryStringParameters) {
             const { before, since, likedTags, dislikedTags } = event.queryStringParameters;
+            const nextPageBeforePromise = knex('posts').max('created_at', { as: 'nextPageBefore' }).groupBy('posts.id');
+            nextPageBeforePromise.where('status', status);
 
             if (before) {
               postsPromise.where('created_at', '<', before);
-              const nextPageBeforePromise = knex('posts').max('created_at', { as: 'nextPageBefore' });
-              nextPageBeforePromise.where('status', status);
-              nextPageBeforePromise.where('created_at', '<', since);
-              nextPageBefore = (await nextPageBeforePromise.first()).nextPageBefore;
             }
 
             if (since) {
               postsPromise.where('created_at', '>=', since);
+              nextPageBeforePromise.where('created_at', '<', since);
             }
 
             if (likedTags) {
               postsPromise.havingExists(function () {
+                this.select('*').from('posts_tags')
+                  .whereRaw('posts.id = posts_tags.post_id')
+                  .whereIn('tag_id', likedTags.split(','));
+              });
+              nextPageBeforePromise.havingExists(function () {
                 this.select('*').from('posts_tags')
                   .whereRaw('posts.id = posts_tags.post_id')
                   .whereIn('tag_id', likedTags.split(','));
@@ -307,6 +311,16 @@ module.exports = async (event, callback) => {
                   .whereRaw('posts.id = posts_tags.post_id')
                   .whereIn('tag_id', dislikedTags.split(','));
               });
+              nextPageBeforePromise.havingNotExists(function () {
+                this.select('*').from('posts_tags')
+                  .whereRaw('posts.id = posts_tags.post_id')
+                  .whereIn('tag_id', dislikedTags.split(','));
+              });
+            }
+
+            const nextPageBeforeResult = await nextPageBeforePromise.first();
+            if (nextPageBeforeResult)  {
+              nextPageBefore = nextPageBeforeResult.nextPageBefore;
             }
           }
 

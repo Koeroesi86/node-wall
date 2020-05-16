@@ -56,6 +56,9 @@ class TagInline extends Component {
       linkElement.setAttribute('href', `/tag/${this._tag.id}`);
       linkElement.setAttribute('target', '_blank');
       this._label.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+
         linkElement.click();
       });
     }
