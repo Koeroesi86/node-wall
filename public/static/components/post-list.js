@@ -70,9 +70,14 @@ class PostList extends Component {
       const prevPostsListInstance = prevState ? prevState.postsList[instance] : {};
 
       if (postsListInstance && !shallowEqual(postsListInstance.posts, prevPostsListInstance.posts)) {
-        postsListInstance.posts.forEach(id => {
-          this.addPostBefore({ id }, this.endNode);
-        });
+        for (let i = postsListInstance.posts.length - 1; i >= 0; i--) {
+          const id = postsListInstance.posts[i];
+          if (i < postsListInstance.posts.length - 1 && postsListInstance.posts.length > 1) {
+            this.addPostBefore({ id }, this.querySelector('post-preview:first-of-type'));
+          } else {
+            this.addPostBefore({ id }, this.endNode);
+          }
+        }
       }
 
       if (postsListInstance.isLoading) {
