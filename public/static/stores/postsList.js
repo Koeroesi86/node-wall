@@ -1,6 +1,8 @@
 const POSTS_LIST_ACTIONS = {
   APPEND: 'POSTS_LIST_APPEND',
+  PREPEND: 'POSTS_LIST_PREPEND',
   LOAD_MORE: 'POSTS_LIST_LOAD_MORE',
+  LOAD_NEW: 'POSTS_LIST_LOAD_NEW',
   SET_BEFORE: 'POSTS_LIST_SET_BEFORE',
   SET_SINCE: 'POSTS_LIST_SET_SINCE',
   SET_NEXT_PAGE: 'POSTS_LIST_SET_NEXT_PAGE',
@@ -15,6 +17,11 @@ const postsListActions = {
    * @returns {{payload: {}, type: string}}
    */
   loadMore: (instance) => ({ type: POSTS_LIST_ACTIONS.LOAD_MORE, payload: { instance } }),
+  /**
+   * @param {String} instance
+   * @returns {{payload: {}, type: string}}
+   */
+  loadNew: (instance) => ({ type: POSTS_LIST_ACTIONS.LOAD_NEW, payload: { instance } }),
   /**
    * @param {String} instance
    * @param {String[]} [likedTags]
@@ -91,6 +98,20 @@ function postsListReducer(state = {}, action = {}) {
         posts: [
           ...state[instance].posts,
           ...posts
+        ],
+      }
+    };
+  }
+
+  if (action.type === POSTS_LIST_ACTIONS.PREPEND) {
+    const { instance, posts } = action.payload;
+    return {
+      ...state,
+      [instance]: {
+        ...state[instance],
+        posts: [
+          ...posts,
+          ...state[instance].posts,
         ],
       }
     };
@@ -225,6 +246,33 @@ const postsListMiddleware = store => next => action => {
           });
         });
     }
+  }
+
+  if (action.type === POSTS_LIST_ACTIONS.LOAD_NEW) {
+    const { instance } = action.payload;
+    const state = store.getState();
+    const {
+      likedTags,
+      dislikedTags,
+      before,
+    } = state.postsList[instance];
+    const { newest } = state.bounds;
+
+    Promise.resolve()
+      .then(() => getPosts(before, newest, likedTags, dislikedTags))
+      .then(({ posts }) => {
+        if (posts.length > 0) {
+          store.dispatch({
+            type: POSTS_LIST_ACTIONS.SET_BEFORE,
+            payload: { before: posts[0].created_at, instance }
+          });
+          store.dispatch({
+            type: POSTS_LIST_ACTIONS.PREPEND,
+            payload: { posts: posts.map(post => post.id) },
+          });
+        }
+      })
+      .catch(console.error);
   }
 
   next(action);

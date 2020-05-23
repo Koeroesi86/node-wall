@@ -19,7 +19,6 @@ class PostList extends Component {
     this.mapState = this.mapState.bind(this);
     this.mapDispatch = this.mapDispatch.bind(this);
     this.loadMore = this.loadMore.bind(this);
-    this.getNewPosts = this.getNewPosts.bind(this);
   }
 
   connectedCallback() {
@@ -46,17 +45,11 @@ class PostList extends Component {
   }
 
   mapState(state, prevState) {
-    if (state.bounds.newest !== this.newest) {
-      if (this.newest && this.newest < state.bounds.newest) {
-        setTimeout(() => {
-          this.notificationNode.play();
-          this.getNewPosts();
-        }, 2000);
-      }
-      if (!this.lastNewest) {
-        this.lastNewest = this.newest;
-      }
-      this.newest = state.bounds.newest;
+    if (prevState && state.bounds.newest !== prevState.bounds.newest) {
+      setTimeout(() => {
+        this.notificationNode.play();
+        this._dispatch(postsListActions.loadNew(this.getAttribute('instance')));
+      }, 2000);
     }
 
     if (state.bounds.oldest !== this.oldest) {
@@ -73,7 +66,7 @@ class PostList extends Component {
         for (let i = postsListInstance.posts.length - 1; i >= 0; i--) {
           const id = postsListInstance.posts[i];
           if (i < postsListInstance.posts.length - 1 && postsListInstance.posts.length > 1) {
-            this.addPostBefore({ id }, this.querySelector('post-preview:first-of-type'));
+            this.addPostBefore({ id }, this.querySelector(`post-preview[post-id="${postsListInstance.posts[i + 1]}"]`));
           } else {
             this.addPostBefore({ id }, this.endNode);
           }
@@ -99,17 +92,6 @@ class PostList extends Component {
       // });
       // this.loadMore();
     }
-  }
-
-  getNewPosts() {
-    getPosts(this.newest, null, this.likedTags, this.dislikedTags).then(({ posts }) => {
-      for (let i = posts.length - 1; i >= 0; i--) {
-        const post = posts[i];
-
-        const first = this.querySelector('post-preview:first-of-type');
-        this.addPostBefore(post, first);
-      }
-    });
   }
 
   loadMore() {
