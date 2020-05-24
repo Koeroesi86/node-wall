@@ -45,7 +45,7 @@ class PostList extends Component {
   }
 
   mapState(state, prevState) {
-    if (prevState && state.bounds.newest !== prevState.bounds.newest) {
+    if (prevState && prevState.bounds.newest && state.bounds.newest > prevState.bounds.newest) {
       setTimeout(() => {
         this.notificationNode.play();
         this._dispatch(postsListActions.loadNew(this.getAttribute('instance')));
@@ -71,6 +71,7 @@ class PostList extends Component {
             this.addPostBefore({ id }, this.endNode);
           }
         }
+        this.loadMore();
       }
 
       if (postsListInstance.isLoading) {

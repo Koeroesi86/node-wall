@@ -191,15 +191,16 @@ function getPosts(since, before, likedTags = [], dislikedTags = []) {
 const postsListMiddleware = store => next => action => {
   if (action.type === POSTS_LIST_ACTIONS.LOAD_MORE && action.payload.instance) {
     const { instance } = action.payload;
+    const state = store.getState();
     const {
       likedTags,
       dislikedTags,
       nextPageBefore: currentNextPageBefore,
       posts: currentPosts,
       isLoading,
-    } = store.getState().postsList[instance];
+    } = state.postsList[instance];
 
-    if (!isLoading) {
+    if (!isLoading && currentNextPageBefore !== -1) {
       store.dispatch({
         type: POSTS_LIST_ACTIONS.SET_IS_LOADING,
         payload: { instance, isLoading: true }
@@ -211,10 +212,10 @@ const postsListMiddleware = store => next => action => {
             type: POSTS_LIST_ACTIONS.SET_IS_LOADING,
             payload: { instance, isLoading: false }
           });
-
-          if (nextPageBefore) {
-            store.dispatch({ type: POSTS_LIST_ACTIONS.SET_NEXT_PAGE, payload: { nextPageBefore, instance } });
-          }
+          store.dispatch({
+            type: POSTS_LIST_ACTIONS.SET_NEXT_PAGE,
+            payload: { nextPageBefore, instance }
+          });
 
           if (posts && posts.length > 0) {
             store.dispatch({
@@ -233,6 +234,9 @@ const postsListMiddleware = store => next => action => {
                 posts: posts.map(post => post.id),
                 instance
               }
+            });
+            posts.forEach(post => {
+              store.dispatch(postsActions.request(post.id));
             });
           } else if (nextPageBefore) {
             store.dispatch(postsListActions.loadMore(instance));
@@ -269,6 +273,9 @@ const postsListMiddleware = store => next => action => {
           store.dispatch({
             type: POSTS_LIST_ACTIONS.PREPEND,
             payload: { posts: posts.map(post => post.id) },
+          });
+          posts.forEach(post => {
+            store.dispatch(postsActions.request(post.id));
           });
         }
       })
