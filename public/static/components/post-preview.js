@@ -64,6 +64,7 @@ class PostPreview extends Component {
     this.parseContent();
     this.checkOwner();
     this.refreshTags();
+    this.sentDateContainer.setAttribute('href', `/post/${this.getAttribute('post-id')}`);
     this.sentDateContainer.innerHTML = new Date(parseInt(this._post.created_at, 10)).toLocaleString();
   }
 
@@ -86,7 +87,7 @@ class PostPreview extends Component {
       <div class="meta">
         <div class="sent">
           <translate-text alias="post-preview.sent-at"></translate-text>&nbsp;
-          <span class="date"></span>
+          <a class="date"></a>
         </div>
         <div class="owner"></div>
       </div>

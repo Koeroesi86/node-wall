@@ -8,6 +8,7 @@ const tagTemplate = require('lib/templates/page/tag');
 const moderationTemplate = require('lib/templates/page/moderation');
 const loginTemplate = require('lib/templates/page/login');
 const profileTemplate = require('lib/templates/page/profile');
+const postTemplate = require('lib/templates/page/post');
 
 const keepAliveTimeout = 60 * 60 * 1000;
 const keepAliveCallback = () => {
@@ -89,6 +90,34 @@ module.exports = async (event, callback) => {
             'Cache-Control': 'public, max-age=0',
           },
           body: tagTemplate({ language, tag, sessionId: cookies.sessionId }),
+          isBase64Encoded: false,
+        });
+      }
+    }
+
+    /** @route /post/* */
+    if (pathFragments[0] === 'post' && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/.test(pathFragments[1])) {
+      const post = await knex('posts')
+        .select('id', 'type', 'created_at', 'status')
+        .where({
+          id: pathFragments[1],
+          type: 'post',
+          status: 'public'
+        })
+        .first();
+
+      if (post) {
+        return callback({
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'text/html',
+            'Cache-Control': 'public, max-age=0',
+          },
+          body: postTemplate({
+            language,
+            sessionId: cookies.sessionId,
+            postId: post.id,
+          }),
           isBase64Encoded: false,
         });
       }
