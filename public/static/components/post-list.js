@@ -37,7 +37,7 @@ class PostList extends Component {
     this.addEventListener('scroll', e => {
       this.loadMore();
     }, false);
-    window.connectRedux(this.mapState, this.mapDispatch);
+    connectRedux(this.mapState, this.mapDispatch);
   }
 
   disconnectedCallback() {

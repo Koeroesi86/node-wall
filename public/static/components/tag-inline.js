@@ -73,7 +73,7 @@ class TagInline extends Component {
       linkElement.click();
     });
 
-    window.connectRedux(this.mapState, this.mapDispatch);
+    connectRedux(this.mapState, this.mapDispatch);
     this.requestTag();
 
     this.addEventListener('mouseover', e => {

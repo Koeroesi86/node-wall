@@ -36,7 +36,7 @@ class TagPage extends Component {
 
   connectedCallback() {
     const tagId = this.getAttribute('tag-id');
-    window.connectRedux(this.mapState, this.mapDispatch);
+    connectRedux(this.mapState, this.mapDispatch);
     this._dispatch(postsListActions.createFilter(tagId, [tagId], []));
     this._dispatch(tagsActions.request(tagId));
     this._dispatch(postsListActions.loadMore(tagId));

@@ -40,7 +40,7 @@ class TranslateText extends Component {
   }
 
   connectedCallback() {
-    window.connectRedux(this.mapState, dispatch => this._dispatch = dispatch);
+    connectRedux(this.mapState, dispatch => this._dispatch = dispatch);
     this.requestTranslation();
   }
 

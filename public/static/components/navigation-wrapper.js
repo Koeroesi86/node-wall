@@ -194,7 +194,7 @@ class NavigationWrapper extends Component {
       this.updateTheme();
     });
 
-    window.connectRedux(this.mapState, this.mapDispatch);
+    connectRedux(this.mapState, this.mapDispatch);
 
     this._dispatch(translationsActions.request('post-preview.unknown-user'));
     this._dispatch(translationsActions.request('navigation-wrapper.user.logged-in-as'));

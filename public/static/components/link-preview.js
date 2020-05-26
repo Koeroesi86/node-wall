@@ -24,7 +24,7 @@ class LinkPreview extends HTMLAnchorElement {
     this.innerHTML = innerHTML;
 
     this.preview = this.querySelector('.preview');
-    window.connectRedux(this.mapState, this.mapDispatch);
+    connectRedux(this.mapState, this.mapDispatch);
 
     this._dispatch(linksActions.request(this.getAttribute('href'), this.getAttribute('post-id')));
   }

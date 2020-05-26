@@ -102,7 +102,7 @@ const middlewares = [
   }
 
   const connectedListeners = [];
-  window.connectRedux = (mapState = () => {}, connectDispatch = () => {}) => {
+  connectRedux = (mapState = () => {}, connectDispatch = () => {}) => {
     if (!connectedListeners.includes(mapState)) {
       connectedListeners.push(mapState);
       try {

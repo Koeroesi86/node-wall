@@ -40,7 +40,7 @@ class LoginPage extends Component {
   }
 
   connectedCallback() {
-    window.connectRedux(this.mapState, this.mapDispatch);
+    connectRedux(this.mapState, this.mapDispatch);
     this._dispatch(translationsActions.request('login-page.activate-session.input.placeholder'));
     this._dispatch(translationsActions.request('login-page.create-session.input.placeholder'));
 

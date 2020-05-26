@@ -25,8 +25,12 @@ class PostPage extends Component {
     this.ownerContainer = this.querySelector('.owner');
     this.tagsContainer = this.querySelector('.tags');
 
-    window.connectRedux(this.mapState, this.mapDispatch);
+    connectRedux(this.mapState, this.mapDispatch);
     this._dispatch(postsActions.request(id));
+  }
+
+  disconnectedCallback() {
+    disconnectRedux(this.mapState);
   }
 
   mapState(state) {

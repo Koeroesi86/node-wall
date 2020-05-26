@@ -12,7 +12,7 @@ class PostWall extends Component {
 
   connectedCallback() {
     const instance = this.getAttribute('instance');
-    window.connectRedux(this.mapState, this.mapDispatch);
+    connectRedux(this.mapState, this.mapDispatch);
     this._dispatch(postsListActions.createFilter(instance, [], []));
 
     this.innerHTML = `

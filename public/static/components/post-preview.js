@@ -81,7 +81,7 @@ class PostPreview extends Component {
       }, 300);
     });
 
-    window.connectRedux(this.mapState, this.mapDispatch);
+    connectRedux(this.mapState, this.mapDispatch);
     this.requestPost();
   }
 
