@@ -18,22 +18,6 @@ function postsReducer(state = {}, action = {}) {
   return state;
 }
 
-const getPost = (id) => new Promise((resolve, reject) => {
-  const request = new XMLHttpRequest();
-  request.onreadystatechange = e => {
-    if (request.readyState === 4) {
-      if (request.status === 200) {
-        const post = JSON.parse(request.responseText);
-        if (post) resolve(post);
-      } else {
-        reject(request);
-      }
-    }
-  };
-  request.open("GET", `/api/posts/${id}`, true);
-  request.send();
-})
-
 const postsMiddleware = store => next => action => {
   if (action.type === POSTS_ACTIONS.REQUEST) {
     const { id } = action.payload;

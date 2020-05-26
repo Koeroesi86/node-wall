@@ -8,6 +8,7 @@ a[is="link-preview"] {
     border-radius: 3px;
     overflow: hidden;
     transition: all .2s ease-in-out;
+    color: inherit;
 }
 
 a[is="link-preview"]:hover {

@@ -1,25 +1,3 @@
-function linkify(content = '', postId) {
-  let result = content;
-
-  result = result.replace(
-    /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/igm,
-    `<a is="link-preview" href="$1" post-id="${postId}"></a>`
-  );
-
-  result = result.replace(
-    /(^|[^\/])(www\.[\S]+(\b|$))/gim,
-    `$1<a is="link-preview" href="https://$2" post-id="${postId}"></a>`
-  );
-
-  return result;
-}
-
-function stripLine(line = '') {
-  const tmp = document.createElement('span');
-  tmp.innerHTML = line;
-  return tmp.innerText.replace(/&amp;nbsp;/gi, '&nbsp;');
-}
-
 class PostPreview extends Component {
   static styleSheet = '/static/components/post-preview.css';
 
@@ -109,19 +87,9 @@ class PostPreview extends Component {
 
   parseContent() {
     if (!this.isConnected || !this._post) return;
-    let content = this._post.content;
-    content = content.trim();
-    content = content.replace(/\n{3,}/gi, '\n\n');
-    content = content.split('\n').map(line =>
-      `<div class="contentLine">${linkify(stripLine(line), this.getAttribute('post-id')) || '&nbsp;'}</div>`).join('\n');
 
-    [...content.matchAll(/#!([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/g)]
-      .filter(match => match && match[1])
-      .forEach(match => {
-        content = content.replace(`#!${match[1]}`, `<tag-inline tag-id="${match[1]}"></tag-inline>`);
-      });
+    this.contentContainer.innerHTML = parsePostContent(this._post.content, this.getAttribute('post-id'));
 
-    this.contentContainer.innerHTML = content;
     if (this.querySelectorAll('.contentLine').length > 5) {
       this.classList.add('long');
     }

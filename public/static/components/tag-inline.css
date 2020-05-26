@@ -17,3 +17,7 @@ tag-inline .tooltip {
 tag-inline .tooltip.visible {
     display: block;
 }
+
+tag-inline a {
+    color: inherit;
+}

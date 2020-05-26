@@ -1,4 +1,25 @@
 post-page {
     display: block;
     padding: 20px 12px;
+    font-size: 14px;
+}
+
+post-page .sentDate {
+    margin-bottom: 12px;
+}
+
+post-page .tags {
+    margin-bottom: 12px;
+}
+
+post-page .tags tag-inline {
+    margin-right: 6px;
+}
+
+post-page .postContent {
+
+}
+
+post-page .owner {
+    margin-top: 12px;
 }
