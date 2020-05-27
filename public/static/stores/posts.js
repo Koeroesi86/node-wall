@@ -27,20 +27,16 @@ const postsMiddleware = store => next => action => {
         type: POSTS_ACTIONS.RECEIVE,
         payload: { id, post: { content: '', tags: [], created_at: Date.now() } },
       });
-      const request = new XMLHttpRequest();
-      request.onreadystatechange = e => {
-        if (request.readyState === 4) {
-          if (request.status === 200) {
-            const post = JSON.parse(request.responseText);
-            if (post) store.dispatch({
-              type: POSTS_ACTIONS.RECEIVE,
-              payload: { id, post },
-            });
-          }
-        }
-      };
-      request.open("GET", `/api/posts/${id}`, true);
-      request.send();
+
+      Promise.resolve()
+        .then(() => getPost(id))
+        .then(post => {
+          if (post) store.dispatch({
+            type: POSTS_ACTIONS.RECEIVE,
+            payload: { id, post },
+          });
+        })
+        .catch(console.error);
     }
   }
 

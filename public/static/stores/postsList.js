@@ -228,16 +228,24 @@ const postsListMiddleware = store => next => action => {
                 payload: { before: posts[0].created_at, instance }
               });
             }
-            store.dispatch({
-              type: POSTS_LIST_ACTIONS.APPEND,
-              payload: {
-                posts: posts.map(post => post.id),
-                instance
-              }
-            });
-            posts.forEach(post => {
-              store.dispatch(postsActions.request(post.id));
-            });
+            Promise.resolve()
+              .then(() => Promise.all(posts.map(post => getPost(post.id))))
+              .then(postsDetails => {
+                postsDetails.forEach(post => {
+                  store.dispatch({
+                    type: POSTS_ACTIONS.RECEIVE,
+                    payload: { id: post.id, post },
+                  });
+                })
+                store.dispatch({
+                  type: POSTS_LIST_ACTIONS.APPEND,
+                  payload: {
+                    posts: posts.map(post => post.id),
+                    instance
+                  }
+                });
+              })
+              .catch(console.error);
           } else if (nextPageBefore) {
             store.dispatch(postsListActions.loadMore(instance));
           }

@@ -119,7 +119,7 @@ class ModerationPage extends Component {
 
             const newTags = [...postDetails.content.matchAll(/#[a-z\u00C0-\u017F0-9]+/gi)]
               .map(m => m[0])
-              .filter(text => !post.tags.find(t => `#${t.name}` === text));
+              .filter(text => !postDetails.tags.find(t => `#${t.name}` === text));
             if (newTags.length > 0) {
               newTagsWrapper.style.display = '';
             }
