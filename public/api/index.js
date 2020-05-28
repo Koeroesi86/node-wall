@@ -195,6 +195,60 @@ module.exports = async (event, callback) => {
         });
       }
 
+      if (httpMethod === 'PUT' && pathFragments[2] && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
+        const id = pathFragments[2];
+        if (userInfo && ['admin'].includes(userInfo.user.role)) {
+          const payload = JSON.parse(event.body);
+
+          if (!payload.status) throw new Error('no status');
+          if (!['public', 'pending', 'moderated', 'deleted'].includes(payload.status)) throw new Error('invalid status');
+
+          if (payload.status === 'public') {
+            let content = await getData(id, 'post');
+            const tagMatches = matchAll(content, /#([a-z\u00C0-\u017F0-9]+)/gi).toArray();
+            for (let i = 0; i < tagMatches.length; i++) {
+              const tagRaw = tagMatches[i];
+              const existingTag = await knex('tags').select('id', 'type').where('name', tagRaw).first();
+              if (existingTag) {
+                tagMatches.splice(i, 1);
+                content = content.replace(`#${tagRaw}`, `#!${existingTag.id}`);
+              }
+            }
+            const newTags = tagMatches.map(text => ({
+              id: uuid(),
+              name: text,
+              type: 'text',
+            }));
+
+            for (let i = 0; i < newTags.length; i++) {
+              await knex.insert(newTags[i]).into('tags')
+            }
+
+            newTags.forEach(tag => {
+              content = content.replace(`#${tag.name}`, `#!${tag.id}`);
+            });
+
+            await setData(id, 'post', content);
+          }
+
+          await knex('posts').where({ id: id }).update({ status: payload.status });
+
+          return callback({
+            statusCode: 201,
+            headers: getResponseHeaders(),
+            body: '',
+            isBase64Encoded: false,
+          });
+        }
+
+        return callback({
+          statusCode: 401,
+          headers: getResponseHeaders(),
+          body: '',
+          isBase64Encoded: false,
+        });
+      }
+
       if (httpMethod === 'GET') {
         if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
           const postId = pathFragments[2];
@@ -340,53 +394,6 @@ module.exports = async (event, callback) => {
             isBase64Encoded: false,
           });
         }
-      }
-
-      if (httpMethod === 'PUT') {
-        const { id } = (queryStringParameters || {});
-        if (id && userInfo && ['admin'].includes(userInfo.user.role)) {
-          const payload = JSON.parse(event.body);
-
-          if (!payload.status) throw new Error('no status');
-          if (!['public', 'pending', 'moderated', 'deleted'].includes(payload.status)) throw new Error('invalid status');
-
-          if (payload.status === 'public') {
-            let content = await getData(id, 'post');
-            const tagMatches = matchAll(content, /#([a-z\u00C0-\u017F0-9]+)/gi).toArray();
-            for (let i = 0; i < tagMatches.length; i++) {
-              const tagRaw = tagMatches[i];
-              const existingTag = await knex('tags').select('id', 'type').where('name', tagRaw).first();
-              if (existingTag) {
-                tagMatches.splice(i, 1);
-                content = content.replace(`#${tagRaw}`, `#!${existingTag.id}`);
-              }
-            }
-            const newTags = tagMatches.map(text => ({
-              id: uuid(),
-              name: text,
-              type: 'text',
-            }));
-
-            for (let i = 0; i < newTags.length; i++) {
-              await knex.insert(newTags[i]).into('tags')
-            }
-
-            newTags.forEach(tag => {
-              content = content.replace(`#${tag.name}`, `#!${tag.id}`);
-            });
-
-            await setData(id, 'post', content);
-          }
-
-          await knex('posts').where({ id: id }).update({ status: payload.status })
-        }
-
-        return callback({
-          statusCode: 201,
-          headers: getResponseHeaders(),
-          body: '',
-          isBase64Encoded: false,
-        });
       }
 
       if (httpMethod === 'POST') {
