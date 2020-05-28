@@ -78,7 +78,7 @@ class LoginPage extends Component {
     this.activateSession = this.querySelector('.activateSession');
     this.createSession = this.querySelector('.createSession');
 
-    const currentUrl = new URL(window.location.toString());
+    const currentUrl = new URL(location.toString());
     const sessionId = currentUrl.searchParams.get('session');
     if (sessionId) {
       this.activateSession.classList.remove('hidden');
@@ -89,7 +89,7 @@ class LoginPage extends Component {
         if (activateSessionInput.value && activateSessionInput.value.length === 6 && /^[A-Z0-9]+$/.test(activateSessionInput.value)) {
           currentUrl.searchParams.set('code', activateSessionInput.value);
           currentUrl.pathname = '/login/email';
-          window.location.href = currentUrl.toString();
+          location.href = currentUrl.toString();
         }
       });
     } else {
@@ -106,7 +106,7 @@ class LoginPage extends Component {
           request.onreadystatechange  = e => {
             if (request.readyState === 4 && request.status === 200) {
               const loginData = JSON.parse(request.responseText);
-              window.location.replace(`/login?session=${loginData.sessionId}`);
+              location.replace(`/login?session=${loginData.sessionId}`);
             }
           };
           request.onerror = () => {
@@ -123,4 +123,4 @@ class LoginPage extends Component {
   }
 }
 
-window.customElements.define('login-page', LoginPage);
+customElements.define('login-page', LoginPage);

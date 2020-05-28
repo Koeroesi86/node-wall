@@ -45,4 +45,4 @@ class PostWall extends Component {
   }
 }
 
-window.customElements.define('post-wall', PostWall);
+customElements.define('post-wall', PostWall);

@@ -211,7 +211,7 @@ class ModerationPage extends Component {
     const request = new XMLHttpRequest();
     request.onreadystatechange = e => {
       if (request.readyState === 4 && [200, 201].includes(request.status)) {
-        window.location.reload();
+        location.reload();
       }
     };
     // TODO: fix `/api/posts/${postId}` access
@@ -221,4 +221,4 @@ class ModerationPage extends Component {
   }
 }
 
-window.customElements.define('moderation-page', ModerationPage);
+customElements.define('moderation-page', ModerationPage);

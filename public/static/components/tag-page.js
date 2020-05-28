@@ -43,8 +43,8 @@ class TagPage extends Component {
   }
 
   disconnectedCallback() {
-    window.disconnectRedux(this.mapState);
+    disconnectRedux(this.mapState);
   }
 }
 
-window.customElements.define('tag-page', TagPage);
+customElements.define('tag-page', TagPage);

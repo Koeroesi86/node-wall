@@ -13,4 +13,4 @@ class WelcomePage extends Component {
   }
 }
 
-window.customElements.define('welcome-page', WelcomePage);
+customElements.define('welcome-page', WelcomePage);

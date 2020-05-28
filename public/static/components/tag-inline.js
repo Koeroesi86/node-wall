@@ -105,8 +105,8 @@ class TagInline extends Component {
   }
 
   disconnectedCallback() {
-    window.disconnectRedux(this.mapState);
+    disconnectRedux(this.mapState);
   }
 }
 
-window.customElements.define('tag-inline', TagInline);
+customElements.define('tag-inline', TagInline);

@@ -1,4 +1,4 @@
-(function () {
+(function (g) {
   function parseLinks(content = '', postId) {
     let result = content;
 
@@ -37,7 +37,7 @@
     return content;
   }
 
-  window.parsePostContent = function(content, postId) {
+  g.parsePostContent = function(content, postId) {
     return (content + '')
       .trim()
       .replace(/\n{3,}/gi, '\n\n')
@@ -45,7 +45,7 @@
       .map(line => `<div class="contentLine">${parsePostLine(line, postId) || '&nbsp;'}</div>`)
       .join('\n');
   }
-})();
+})(window || module.exports);
 
 function getPost(id) {
   return new Promise((resolve, reject) => {

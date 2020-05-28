@@ -74,4 +74,4 @@ class PostPage extends Component {
   }
 }
 
-window.customElements.define('post-page', PostPage);
+customElements.define('post-page', PostPage);

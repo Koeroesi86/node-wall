@@ -19,7 +19,7 @@ class PostEditor extends Component {
       e.stopPropagation();
       e.preventDefault();
 
-      let clipboardData = e.clipboardData || window.clipboardData;
+      let clipboardData = e.clipboardData || clipboardData;
       let pastedData = clipboardData.getData('Text');
 
       document.execCommand('insertText', false, pastedData);
@@ -115,4 +115,4 @@ class PostEditor extends Component {
   }
 }
 
-window.customElements.define('post-editor', PostEditor);
+customElements.define('post-editor', PostEditor);

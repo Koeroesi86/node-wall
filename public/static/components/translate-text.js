@@ -45,7 +45,7 @@ class TranslateText extends Component {
   }
 
   disconnectedCallback() {
-    window.disconnectRedux(this.mapState);
+    disconnectRedux(this.mapState);
   }
 
   requestTranslation() {
@@ -60,4 +60,4 @@ class TranslateText extends Component {
   }
 }
 
-window.customElements.define('translate-text', TranslateText);
+customElements.define('translate-text', TranslateText);

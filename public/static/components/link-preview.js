@@ -68,4 +68,4 @@ class LinkPreview extends HTMLAnchorElement {
   }
 }
 
-window.customElements.define('link-preview', LinkPreview, { extends: 'a' });
+customElements.define('link-preview', LinkPreview, { extends: 'a' });

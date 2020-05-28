@@ -176,7 +176,7 @@ class ProfilePage extends Component {
       const request = new XMLHttpRequest();
       request.onreadystatechange  = e => {
         if (request.readyState === 4 && request.status === 200) {
-          window.location.reload();
+          location.reload();
         }
       };
       request.open("PUT", "/api/user/name", true);
@@ -186,4 +186,4 @@ class ProfilePage extends Component {
   }
 }
 
-window.customElements.define('profile-page', ProfilePage);
+customElements.define('profile-page', ProfilePage);

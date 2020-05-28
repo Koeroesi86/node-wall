@@ -127,8 +127,8 @@ class NavigationWrapper extends Component {
           </a>
         `;
       } else if (userInfo.session.status === 'pending') {
-        if (window.location.pathname !== '/login') {
-          window.location.replace(`/login?session=${userInfo.session.id}`);
+        if (location.pathname !== '/login') {
+          location.replace(`/login?session=${userInfo.session.id}`);
         }
         this.userPanel.innerHTML = `
           <a href="/login?session=${userInfo.session.id}" class="login">
@@ -238,4 +238,4 @@ class NavigationWrapper extends Component {
   }
 }
 
-window.customElements.define('navigation-wrapper', NavigationWrapper);
+customElements.define('navigation-wrapper', NavigationWrapper);

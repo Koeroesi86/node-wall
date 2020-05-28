@@ -41,7 +41,7 @@ class PostList extends Component {
   }
 
   disconnectedCallback() {
-    window.disconnectRedux(this.mapState);
+    disconnectRedux(this.mapState);
   }
 
   mapState(state, prevState) {
@@ -118,4 +118,4 @@ class PostList extends Component {
   }
 }
 
-window.customElements.define('post-list', PostList);
+customElements.define('post-list', PostList);

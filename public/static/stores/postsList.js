@@ -177,7 +177,7 @@ function getPosts(since, before, likedTags = [], dislikedTags = []) {
         }
       }
     };
-    const url = new URL(window.location.origin);
+    const url = new URL(location.origin);
     url.pathname = '/api/posts';
     if (since) url.searchParams.set('since', since + '');
     if (before) url.searchParams.set('before', before + '');

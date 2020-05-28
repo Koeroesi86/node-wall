@@ -226,4 +226,4 @@ class PostTagsInput extends Component {
   }
 }
 
-window.customElements.define('post-tags-input', PostTagsInput);
+customElements.define('post-tags-input', PostTagsInput);

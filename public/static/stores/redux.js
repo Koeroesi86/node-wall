@@ -21,12 +21,12 @@ const middlewares = [
   postsListMiddleware,
 ];
 
-(function (reducer = s => s, m = []) {
+(function (reducer = s => s, m = [], g) {
   const ReduxEventTypes = {
     dispatch: 'dispatch',
     stateChange: 'state-change',
   };
-  window.ReduxEventTypes = ReduxEventTypes;
+  g.ReduxEventTypes = ReduxEventTypes;
 
   class ReduxDispatchEvent extends CustomEvent {
     /** @param {Object} action */
@@ -42,21 +42,21 @@ const middlewares = [
     }
   }
 
-  window.ReduxEvents = {
+  g.ReduxEvents = {
     Dispatch: ReduxDispatchEvent,
   };
 
   let composeEnhancers;
-  if (window && window['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__']) { // /.+\.localhost$/.test(location.hostname)
-    composeEnhancers = window['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__'];
+  if (g && g['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__']) { // /.+\.localhost$/.test(location.hostname)
+    composeEnhancers = g['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__'];
   } else {
     composeEnhancers = Redux.compose;
   }
 
   const enhancer = composeEnhancers(Redux.applyMiddleware(...m));
 
-  const store = Redux.createStore(reducer, window['__STATE__'] || {}, enhancer);
-  delete window['__STATE__'];
+  const store = Redux.createStore(reducer, g['__STATE__'] || {}, enhancer);
+  delete g['__STATE__'];
 
   const cloneState = a => a; // safer but slower: JSON.stringify;
 
@@ -97,12 +97,12 @@ const middlewares = [
     return true
   }
 
-  window.shallowEqual = function (a, b) {
+  g.shallowEqual = function (a, b) {
     return shallowEqual(a, b);
   }
 
   const connectedListeners = [];
-  connectRedux = (mapState = () => {}, connectDispatch = () => {}) => {
+  g.connectRedux = (mapState = () => {}, connectDispatch = () => {}) => {
     if (!connectedListeners.includes(mapState)) {
       connectedListeners.push(mapState);
       try {
@@ -113,7 +113,7 @@ const middlewares = [
       }
     }
   };
-  window.disconnectRedux = (mapState) => {
+  g.disconnectRedux = (mapState) => {
     const index = connectedListeners.indexOf(mapState);
     if (index !== -1) {
       connectedListeners.splice(index, 1);
@@ -126,10 +126,12 @@ const middlewares = [
     currentState = cloneState(store.getState());
 
     if (!shallowEqual(previousState, currentState)) {
-      window.dispatchEvent(new ReduxStateChangeEvent({
-        dispatch: store.dispatch,
-        getState: store.getState,
-      }));
+      if (window) {
+        window.dispatchEvent(new ReduxStateChangeEvent({
+          dispatch: store.dispatch,
+          getState: store.getState,
+        }));
+      }
 
       connectedListeners.forEach(mapState => {
         try {
@@ -142,9 +144,11 @@ const middlewares = [
   }
   store.subscribe(handleChange);
 
-  function dispatchListener(e) {
-    e.stopPropagation();
-    store.dispatch(e.detail.action);
+  if (window){
+    function dispatchListener(e) {
+      e.stopPropagation();
+      store.dispatch(e.detail.action);
+    }
+    window.addEventListener(ReduxEventTypes.dispatch, dispatchListener);
   }
-  window.addEventListener(ReduxEventTypes.dispatch, dispatchListener);
-})(reducers, middlewares);
+})(reducers, middlewares, window || module.exports);

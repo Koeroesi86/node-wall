@@ -51,4 +51,4 @@ class ComposePost extends Component {
   }
 }
 
-window.customElements.define('compose-post', ComposePost);
+customElements.define('compose-post', ComposePost);

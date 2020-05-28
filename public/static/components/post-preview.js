@@ -132,4 +132,4 @@ class PostPreview extends Component {
   }
 }
 
-window.customElements.define('post-preview', PostPreview);
+customElements.define('post-preview', PostPreview);
