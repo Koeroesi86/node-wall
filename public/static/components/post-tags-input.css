@@ -89,7 +89,7 @@ post-tags-input .tags .results {
     left: 0;
     width: 100%;
     max-height: 200px;
-    background: rgba(var(--main-button-background-color-rgb), 0.05);
+    background: rgba(var(--main-input-background-color-rgb), 0.8);
     box-shadow: 2px 4px 4px rgba(var(--main-link-highlighted-color-rgb), 0.2);
 }
 
