@@ -1,8 +1,7 @@
 class PostList extends Component {
   static styleSheet = '/static/components/post-list.css';
 
-  // TODO: connect
-  static get observedAttributes() { return ['liked-tags', 'disliked-tags', 'instance']; }
+  static get observedAttributes() { return ['instance']; }
 
   constructor() {
     super();
@@ -11,9 +10,6 @@ class PostList extends Component {
     this.since = null;
     this.oldest = null;
     this.newest = null;
-    this.lastNewest = null;
-    this.likedTags = [];
-    this.dislikedTags = [];
     this._dispatch = () => {};
 
     this.mapState = this.mapState.bind(this);
@@ -21,11 +17,13 @@ class PostList extends Component {
     this.loadMore = this.loadMore.bind(this);
   }
 
+  onStyleSheetLoaded() {
+    setTimeout(() => {
+      this.loadMore();
+    }, 500);
+  }
+
   connectedCallback() {
-    const likedTags = this.getAttribute('liked-tags');
-    if (likedTags) this.likedTags = likedTags.split(',');
-    const dislikedTags = this.getAttribute('disliked-tags');
-    if (dislikedTags) this.dislikedTags = dislikedTags.split(',');
     this.innerHTML += `
       <audio src="/static/media/notification.mp3" class="notification"></audio>
       <div class="end">

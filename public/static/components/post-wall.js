@@ -32,8 +32,8 @@ class PostWall extends Component {
       const likedTags = state.user.tags.filter(t => t.type === 'liked').map(t => t.tag_id);
       const dislikedTags = state.user.tags.filter(t => t.type === 'disliked').map(t => t.tag_id);
       postList.setAttribute('instance', instance);
-      postList.setAttribute('liked-tags', likedTags.join(','));
-      postList.setAttribute('disliked-tags', dislikedTags.join(','));
+      if (likedTags.length > 0) postList.setAttribute('liked-tags', likedTags.join(','));
+      if (dislikedTags.length > 0) postList.setAttribute('disliked-tags', dislikedTags.join(','));
       if (!state.postsList[instance]) {
         this._dispatch(postsListActions.createFilter(instance, likedTags, dislikedTags));
       }
