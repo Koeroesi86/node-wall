@@ -13,7 +13,7 @@ const userActions = {
 function userReducer(state = {
   session: null,
   received: false,
-  tags: [],
+  tags: null,
 }, action = {}) {
   if (action.type === USER_ACTIONS.RECEIVE) {
     return {

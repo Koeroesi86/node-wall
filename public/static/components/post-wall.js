@@ -24,7 +24,7 @@ class PostWall extends Component {
   }
 
   mapState(state, prevState) {
-    if (prevState && !shallowEqual(state.user.tags, prevState.user.tags)) {
+    if (prevState && JSON.stringify(state.user.tags) !== JSON.stringify(prevState.user.tags)) {
       const instance = this.getAttribute('instance');
       if (!instance) return;
 

@@ -206,9 +206,9 @@ class NavigationWrapper extends Component {
     this._dispatch(translationsActions.request('navigation-wrapper.menu.collapse-toggle'));
     this._dispatch(translationsActions.request('navigation-wrapper.toggle-theme'));
 
-    if (this.getAttribute('session-id')) {
+    // if (this.getAttribute('session-id')) {
       this._dispatch(userActions.request());
-    }
+    // }
 
     this.updateTheme();
   }

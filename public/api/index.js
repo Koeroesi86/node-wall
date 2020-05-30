@@ -800,7 +800,14 @@ module.exports = async (event, callback) => {
       /** @route /api/user/tags */
       if (pathFragments[2] === 'tags') {
         if (httpMethod === 'GET') {
-          if (!userInfo) throw new Error('not logged in');
+          if (!userInfo) {
+            return callback({
+              statusCode: 401,
+              headers: getResponseHeaders(),
+              body: JSON.stringify([], null, 2),
+              isBase64Encoded: false,
+            });
+          }
 
           const tags = await knex('users_tags')
             .select('tag_id', 'type')
