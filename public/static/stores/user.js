@@ -14,7 +14,7 @@ function userReducer(state = {
   user: null,
   session: null,
   received: false,
-  tags: null,
+  tags: [],
 }, action = {}) {
   if (action.type === USER_ACTIONS.RECEIVE) {
     return {

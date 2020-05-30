@@ -1,3 +1,53 @@
+/**
+ * @param {string} id
+ * @param {string} type
+ * @returns {Promise<void>}
+ */
+function addLikedTag(id, type) {
+  return new Promise((resolve, reject) => {
+    if (!id) return reject(new Error('Tag id is required'));
+    if (!['liked', 'disliked'].includes(type)) return reject(new Error('Invalid type'));
+
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = e => {
+      if (request.readyState === 4) {
+        if (request.status === 200) {
+          resolve();
+        } else {
+          reject(request);
+        }
+      }
+    };
+    request.open("PUT", '/api/user/tags', true);
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.send(JSON.stringify({ id, type }));
+  });
+}
+
+/**
+ * @param {string} id
+ * @returns {Promise<void>}
+ */
+function removeLikedTag(id) {
+  return new Promise((resolve, reject) => {
+    if (!id) return reject(new Error('Tag id is required'));
+
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = e => {
+      if (request.readyState === 4) {
+        if (request.status === 200) {
+          resolve();
+        } else {
+          reject(request);
+        }
+      }
+    };
+    request.open("DELETE", '/api/user/tags', true);
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.send(JSON.stringify({ id }));
+  });
+}
+
 class TagInline extends Component {
   static styleSheet = '/static/components/tag-inline.css';
 
@@ -7,6 +57,7 @@ class TagInline extends Component {
     super();
 
     this._tag = null;
+    this._userTags = [];
     this._dispatch = () => {};
 
     this.mapState = this.mapState.bind(this);
@@ -21,11 +72,19 @@ class TagInline extends Component {
     }
   }
 
-  mapState(state) {
+  mapState(state, prevState) {
     const tagId = this.getAttribute('tag-id');
     const tag = state.tags[tagId];
     if (tagId && tag && tag !== this._tag) {
       this._tag = tag;
+      this.render();
+    }
+
+    if (prevState && !shallowEqual(state.user.tags, prevState.user.tags)) {
+      this._userTags = state.user.tags;
+      this.render();
+    } else if (!prevState) {
+      this._userTags = state.user.tags;
       this.render();
     }
   }
@@ -37,6 +96,7 @@ class TagInline extends Component {
   requestTag() {
     const id = this.getAttribute('tag-id');
     this._dispatch(tagsActions.request(id));
+    this._dispatch(userActions.requestTags());
   }
 
   render() {
@@ -49,8 +109,56 @@ class TagInline extends Component {
       // TODO: like/dislike tag
       this._tooltip.innerHTML = `
         <translate-text alias="tag-inline.tooltip.prefix"></translate-text>
-        &nbsp;<a href="/tag/${this._tag.id}" target="_blank">${this._tag.name}</a>
+        <a href="/tag/${this._tag.id}" target="_blank">${this._tag.name}</a>
+        <div class="actions">
+          <span class="likeTag">
+            <i class="fas fa-folder-plus"></i>
+          </span>
+          <span class="dislikeTag">
+            <i class="fas fa-ban"></i>
+          </span>
+        </div>
       `;
+
+      const currentUserTag = this._userTags.find(tag => tag.tag_id === this._tag.id);
+
+      const likeTagElement = this._tooltip.querySelector('.likeTag');
+      likeTagElement.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        Promise.resolve()
+          .then(() => currentUserTag.type === 'liked'
+            ? removeLikedTag(this._tag.id)
+            : addLikedTag(this._tag.id, 'liked')
+          )
+          .then(() => this._dispatch(userActions.requestTags()))
+          .catch(console.error);
+      });
+
+      const dislikeTagElement = this._tooltip.querySelector('.dislikeTag');
+      dislikeTagElement.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        Promise.resolve()
+          .then(() => currentUserTag.type === 'disliked'
+            ? removeLikedTag(this._tag.id)
+            : addLikedTag(this._tag.id, 'disliked')
+          )
+          .then(() => this._dispatch(userActions.requestTags()))
+          .catch(console.error);
+      });
+
+      if (currentUserTag) {
+        if (currentUserTag.type === 'liked') {
+          likeTagElement.classList.add('active');
+        } else if (currentUserTag.type === 'disliked') {
+          dislikeTagElement.classList.add('active');
+        } else {
+          console.warn('Unknown type for tag', currentUserTag)
+        }
+      }
     }
   }
 

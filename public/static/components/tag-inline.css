@@ -12,6 +12,7 @@ tag-inline .tooltip {
     line-height: 16px;
     background: var(--main-input-background-color);
     border: 1px solid var(--main-text-color);
+    z-index: 2;
 }
 
 tag-inline .tooltip.visible {
@@ -20,4 +21,21 @@ tag-inline .tooltip.visible {
 
 tag-inline a {
     color: inherit;
+}
+
+tag-inline .tooltip .actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    padding: 6px 0;
+}
+
+tag-inline .tooltip .actions .likeTag,
+tag-inline .tooltip .actions .dislikeTag {
+    opacity: .6;
+}
+
+tag-inline .tooltip .actions .likeTag.active,
+tag-inline .tooltip .actions .dislikeTag.active {
+    opacity: 1;
 }

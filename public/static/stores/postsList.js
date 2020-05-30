@@ -214,7 +214,7 @@ const postsListMiddleware = store => next => action => {
           });
           store.dispatch({
             type: POSTS_LIST_ACTIONS.SET_NEXT_PAGE,
-            payload: { nextPageBefore, instance }
+            payload: { nextPageBefore: parseInt(nextPageBefore, 10), instance }
           });
 
           if (posts && posts.length > 0) {

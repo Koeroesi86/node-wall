@@ -24,7 +24,7 @@ class PostWall extends Component {
   }
 
   mapState(state, prevState) {
-    if (state.user.tags && !shallowEqual(state.user.tags, prevState.user.tags)) {
+    if (prevState && !shallowEqual(state.user.tags, prevState.user.tags)) {
       const instance = this.getAttribute('instance');
       if (!instance) return;
 
@@ -34,7 +34,9 @@ class PostWall extends Component {
       postList.setAttribute('instance', instance);
       postList.setAttribute('liked-tags', likedTags.join(','));
       postList.setAttribute('disliked-tags', dislikedTags.join(','));
-      this._dispatch(postsListActions.createFilter(instance, likedTags, dislikedTags));
+      if (!state.postsList[instance]) {
+        this._dispatch(postsListActions.createFilter(instance, likedTags, dislikedTags));
+      }
       this.postList.replaceWith(postList);
       this._dispatch(postsListActions.loadMore(instance));
     }

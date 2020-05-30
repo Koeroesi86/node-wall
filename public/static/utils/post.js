@@ -63,4 +63,4 @@ function getPost(id) {
     request.open("GET", `/api/posts/${id}`, true);
     request.send();
   });
-};
+}
