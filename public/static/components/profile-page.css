@@ -53,6 +53,23 @@ profile-page .renameUserWrapper .button:hover {
     background: rgba(var(--tooltip-button-background-color-rgb), 0.2);
 }
 
+profile-page .userTagsWrapper {
+    padding: 0 20px;
+}
+
+profile-page .userTagsWrapper .list {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    color: var(--main-text-color);
+    border: 1px solid var(--tooltip-button-border-color);
+    background: rgba(var(--tooltip-button-background-color-rgb), 0.05);
+}
+
+profile-page .userTagsWrapper .list tag-inline {
+    margin-right: 6px;
+}
+
 profile-page .sessionListWrapper {
     padding: 0 20px;
 }

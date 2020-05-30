@@ -62,7 +62,7 @@ class PostList extends Component {
       const postsListInstance = state.postsList[instance];
       const prevPostsListInstance = prevState ? prevState.postsList[instance] : {};
 
-      if (postsListInstance && !shallowEqual(postsListInstance.posts, prevPostsListInstance.posts)) {
+      if (postsListInstance && JSON.stringify(postsListInstance.posts) !== JSON.stringify(prevPostsListInstance.posts)) {
         for (let i = postsListInstance.posts.length - 1; i >= 0; i--) {
           const id = postsListInstance.posts[i];
           if (i < postsListInstance.posts.length - 1 && postsListInstance.posts.length > 1) {

@@ -11,7 +11,6 @@ const userActions = {
 };
 
 function userReducer(state = {
-  user: null,
   session: null,
   received: false,
   tags: [],

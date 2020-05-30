@@ -1,6 +1,15 @@
 class ProfilePage extends Component {
   static styleSheet = '/static/components/profile-page.css';
 
+  constructor() {
+    super();
+
+    this._dispatch = () => {};
+
+    this.mapState = this.mapState.bind(this);
+    this.mapDispatch = this.mapDispatch.bind(this);
+  }
+
   connectedCallback() {
     this.innerHTML = `
       <h2><translate-text alias="profile-page.header"></translate-text></h2>
@@ -9,6 +18,16 @@ class ProfilePage extends Component {
         <button type="button" class="button">
           <translate-text alias="profile-page.rename.button"></translate-text>
         </button>
+      </div>
+      <div class="userTagsWrapper">
+        <div class="likedTags">
+          <h3><translate-text alias="profile-page.liked-tags-list.header"></translate-text></h3>
+          <div class="list"></div>
+        </div>
+        <div class="dislikedTags">
+          <h3><translate-text alias="profile-page.disliked-tags-list.header"></translate-text></h3>
+          <div class="list"></div>
+        </div>
       </div>
       <div class="sessionListWrapper">
         <h3><translate-text alias="profile-page.session-list.header"></translate-text></h3>
@@ -19,6 +38,8 @@ class ProfilePage extends Component {
     const renameUserWrapper = this.querySelector('.renameUserWrapper');
     this.renameInput = renameUserWrapper.querySelector('.name');
     this.sessionList = this.querySelector('.sessionList');
+    this.likedTagsList = this.querySelector('.userTagsWrapper .likedTags .list');
+    this.dislikedTagsList = this.querySelector('.userTagsWrapper .dislikedTags .list');
 
     TranslateText.getTranslation('profile-page.rename.input.placeholder')
       .then(translation => {
@@ -40,6 +61,31 @@ class ProfilePage extends Component {
       .then(() => this.getUserInfo())
       .then(() => this.parseUserSessions())
       .catch(e => console.error(e))
+
+    connectRedux(this.mapState, this.mapDispatch);
+    this._dispatch(userActions.requestTags());
+  }
+
+  mapState(state, prevState) {
+    if (prevState && JSON.stringify(state.user.tags) !== JSON.stringify(prevState.user.tags)) {
+      const likedTags = state.user.tags
+        .slice()
+        .filter(tag => tag.type === 'liked');
+      this.likedTagsList.innerHTML = likedTags.length > 0
+        ? likedTags.map(tag => `<tag-inline tag-id="${tag.tag_id}"></tag-inline>`).join('\n')
+        : `No liked tags`;
+
+      const dislikedTags = state.user.tags
+        .slice()
+        .filter(tag => tag.type === 'disliked');
+      this.dislikedTagsList.innerHTML = dislikedTags.length > 0
+        ? dislikedTags.map(tag => `<tag-inline tag-id="${tag.tag_id}"></tag-inline>`).join('\n')
+        : `No disliked tags`;
+    }
+  }
+
+  mapDispatch(dispatch) {
+    this._dispatch = dispatch;
   }
 
   parseUserSessions() {

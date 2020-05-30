@@ -64,6 +64,7 @@ class TagInline extends Component {
     this.mapDispatch = this.mapDispatch.bind(this);
     this.requestTag = this.requestTag.bind(this);
     this.render = this.render.bind(this);
+    this.isChildNode = this.isChildNode.bind(this);
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -72,15 +73,20 @@ class TagInline extends Component {
     }
   }
 
+  /** @param {HTMLElement} node */
+  isChildNode(node) {
+    return node && (node === this || node.parentElement === this || this.isChildNode(node.parentElement));
+  }
+
   mapState(state, prevState) {
     const tagId = this.getAttribute('tag-id');
     const tag = state.tags[tagId];
-    if (tagId && tag && tag !== this._tag) {
+    if (tagId && tag && JSON.stringify(tag) !== JSON.stringify(this._tag)) {
       this._tag = tag;
       this.render();
     }
 
-    if (prevState && !shallowEqual(state.user.tags, prevState.user.tags)) {
+    if (prevState && JSON.stringify(state.user.tags) !== JSON.stringify(prevState.user.tags)) {
       this._userTags = state.user.tags;
       this.render();
     } else if (!prevState) {
@@ -184,7 +190,9 @@ class TagInline extends Component {
     connectRedux(this.mapState, this.mapDispatch);
     this.requestTag();
 
+    let hideTimer;
     this.addEventListener('mouseover', e => {
+      if (hideTimer) clearTimeout(hideTimer);
       // if (this._tooltipTimer) clearTimeout(this._tooltipTimer);
       // this._tooltipTimer = setTimeout(() => {
         const rect = this.getBoundingClientRect();
@@ -203,12 +211,20 @@ class TagInline extends Component {
         this._tooltip.classList.add('visible');
       // }, 200);
     });
+    // this._tooltip.addEventListener('mouseover', e => {
+    //   if (hideTimer) clearTimeout(hideTimer);
+    // });
 
-    this.addEventListener('mouseout', e => {
+    this.addEventListener('mouseleave', e => {
       // if (this._tooltipTimer) clearTimeout(this._tooltipTimer);
       // this._tooltipTimer = null;
-      this._tooltip.style = {};
-      this._tooltip.classList.remove('visible');
+      if (!this.isChildNode(e.relatedTarget)) {
+        if (hideTimer) clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => {
+          this._tooltip.style = {};
+          this._tooltip.classList.remove('visible');
+        }, 200);
+      }
     });
   }
 
