@@ -209,10 +209,6 @@ const postsListMiddleware = store => next => action => {
         .then(() => getPosts(currentNextPageBefore - 100, currentNextPageBefore + 1, likedTags, dislikedTags))
         .then(({ posts, nextPageBefore }) => {
           store.dispatch({
-            type: POSTS_LIST_ACTIONS.SET_IS_LOADING,
-            payload: { instance, isLoading: false }
-          });
-          store.dispatch({
             type: POSTS_LIST_ACTIONS.SET_NEXT_PAGE,
             payload: { nextPageBefore: parseInt(nextPageBefore, 10), instance }
           });
@@ -231,6 +227,10 @@ const postsListMiddleware = store => next => action => {
             Promise.resolve()
               .then(() => Promise.all(posts.map(post => getPost(post.id))))
               .then(postsDetails => {
+                store.dispatch({
+                  type: POSTS_LIST_ACTIONS.SET_IS_LOADING,
+                  payload: { instance, isLoading: false }
+                });
                 postsDetails.forEach(post => {
                   store.dispatch({
                     type: POSTS_ACTIONS.RECEIVE,
@@ -247,7 +247,16 @@ const postsListMiddleware = store => next => action => {
               })
               .catch(console.error);
           } else if (nextPageBefore) {
+            store.dispatch({
+              type: POSTS_LIST_ACTIONS.SET_IS_LOADING,
+              payload: { instance, isLoading: false }
+            });
             store.dispatch(postsListActions.loadMore(instance));
+          } else {
+            store.dispatch({
+              type: POSTS_LIST_ACTIONS.SET_IS_LOADING,
+              payload: { instance, isLoading: false }
+            });
           }
         })
         .catch(e => {
