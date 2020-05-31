@@ -57,6 +57,7 @@ class TagInline extends Component {
     super();
 
     this._tag = null;
+    this._role = 'guest';
     this._userTags = [];
     this._dispatch = () => {};
 
@@ -80,6 +81,12 @@ class TagInline extends Component {
 
   mapState(state, prevState) {
     const tagId = this.getAttribute('tag-id');
+
+    if (state.user.role !== this._role) {
+      this._role = state.user.role;
+      this.render();
+    }
+
     const tag = state.tags[tagId];
     if (tagId && tag && JSON.stringify(tag) !== JSON.stringify(this._tag)) {
       this._tag = tag;
@@ -112,7 +119,7 @@ class TagInline extends Component {
       }
 
       this._label.innerText += this._tag.name;
-      // TODO: like/dislike tag
+
       this._tooltip.innerHTML = `
         <translate-text alias="tag-inline.tooltip.prefix"></translate-text>
         <a href="/tag/${this._tag.id}" target="_blank">${this._tag.name}</a>
@@ -126,44 +133,51 @@ class TagInline extends Component {
         </div>
       `;
 
-      const currentUserTag = this._userTags.find(tag => tag.tag_id === this._tag.id);
+      if (this._role !== 'guest') {
+        const currentUserTag = this._userTags.find(tag => tag.tag_id === this._tag.id);
 
-      const likeTagElement = this._tooltip.querySelector('.likeTag');
-      likeTagElement.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
+        const likeTagElement = this._tooltip.querySelector('.likeTag');
+        likeTagElement.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
 
-        Promise.resolve()
-          .then(() => currentUserTag.type === 'liked'
-            ? removeLikedTag(this._tag.id)
-            : addLikedTag(this._tag.id, 'liked')
-          )
-          .then(() => this._dispatch(userActions.requestTags()))
-          .catch(console.error);
-      });
+          Promise.resolve()
+            .then(() => currentUserTag.type === 'liked'
+              ? removeLikedTag(this._tag.id)
+              : addLikedTag(this._tag.id, 'liked')
+            )
+            .then(() => this._dispatch(userActions.requestTags()))
+            .catch(console.error);
+        });
 
-      const dislikeTagElement = this._tooltip.querySelector('.dislikeTag');
-      dislikeTagElement.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
+        const dislikeTagElement = this._tooltip.querySelector('.dislikeTag');
+        dislikeTagElement.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
 
-        Promise.resolve()
-          .then(() => currentUserTag.type === 'disliked'
-            ? removeLikedTag(this._tag.id)
-            : addLikedTag(this._tag.id, 'disliked')
-          )
-          .then(() => this._dispatch(userActions.requestTags()))
-          .catch(console.error);
-      });
+          Promise.resolve()
+            .then(() => currentUserTag.type === 'disliked'
+              ? removeLikedTag(this._tag.id)
+              : addLikedTag(this._tag.id, 'disliked')
+            )
+            .then(() => this._dispatch(userActions.requestTags()))
+            .catch(console.error);
+        });
 
-      if (currentUserTag) {
-        if (currentUserTag.type === 'liked') {
-          likeTagElement.classList.add('active');
-        } else if (currentUserTag.type === 'disliked') {
-          dislikeTagElement.classList.add('active');
-        } else {
-          console.warn('Unknown type for tag', currentUserTag)
+        if (currentUserTag) {
+          if (currentUserTag.type === 'liked') {
+            likeTagElement.classList.add('active');
+          } else if (currentUserTag.type === 'disliked') {
+            dislikeTagElement.classList.add('active');
+          } else {
+            console.warn('Unknown type for tag', currentUserTag)
+          }
         }
+      } else {
+        const actionsElement = this._tooltip.querySelector('.actions');
+        actionsElement.innerHTML = `
+          <translate-text alias="tag-inline.tooltip.not-logged-in"></translate-text>
+        `;
       }
     }
   }
