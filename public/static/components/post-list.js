@@ -61,6 +61,12 @@ class PostList extends Component {
       const prevPostsListInstance = prevState ? prevState.postsList[instance] : {};
 
       if (postsListInstance && JSON.stringify(postsListInstance.posts) !== JSON.stringify(prevPostsListInstance.posts)) {
+        this.querySelectorAll('post-preview').forEach(postPreviewNode => {
+          if (!postsListInstance.posts.includes(postPreviewNode.getAttribute('post-id'))) {
+            postPreviewNode.remove();
+          }
+        });
+
         for (let i = postsListInstance.posts.length - 1; i >= 0; i--) {
           const id = postsListInstance.posts[i];
           if (i < postsListInstance.posts.length - 1 && postsListInstance.posts.length > 1) {

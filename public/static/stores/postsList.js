@@ -9,6 +9,7 @@ const POSTS_LIST_ACTIONS = {
   SET_LOADING_STARTED: 'POSTS_LIST_SET_LOADING_STARTED',
   SET_IS_LOADING: 'POSTS_LIST_SET_IS_LOADING',
   CREATE_FILTER: 'POSTS_LIST_CREATE_FILTER',
+  SET_FILTER_TAGS: 'POSTS_LIST_SET_FILTER_TAGS',
 };
 
 const postsListActions = {
@@ -32,6 +33,16 @@ const postsListActions = {
     type: POSTS_LIST_ACTIONS.CREATE_FILTER,
     payload: { instance, likedTags, dislikedTags },
   }),
+  /**
+   * @param {String} instance
+   * @param {String[]} likedTags
+   * @param {String[]} dislikedTags
+   * @returns {{payload: {likedTags: *[], instance: *, dislikedTags: *[]}, type: string}}
+   */
+  setFilterTags: (instance, likedTags = [], dislikedTags = []) => ({
+    type: POSTS_LIST_ACTIONS.SET_FILTER_TAGS,
+    payload: { instance, likedTags, dislikedTags },
+  }),
 };
 
 function postsListReducer(state = {}, action = {}) {
@@ -52,6 +63,22 @@ function postsListReducer(state = {}, action = {}) {
         nextPageBefore: Date.now() + 1,
         posts: [],
         isLoading: false,
+      },
+    };
+  }
+  if (action.type === POSTS_LIST_ACTIONS.SET_FILTER_TAGS) {
+    const {
+      instance,
+      likedTags,
+      dislikedTags,
+    } = action.payload;
+
+    return {
+      ...state,
+      [instance]: {
+        likedTags: likedTags,
+        dislikedTags: dislikedTags,
+        posts: [],
       },
     };
   }
@@ -210,7 +237,7 @@ const postsListMiddleware = store => next => action => {
         .then(({ posts, nextPageBefore }) => {
           store.dispatch({
             type: POSTS_LIST_ACTIONS.SET_NEXT_PAGE,
-            payload: { nextPageBefore: parseInt(nextPageBefore, 10), instance }
+            payload: { nextPageBefore: nextPageBefore ? parseInt(nextPageBefore, 10) : -1, instance }
           });
 
           if (posts && posts.length > 0) {

@@ -19,7 +19,6 @@ class PostWall extends Component {
       <compose-post></compose-post>
       <post-list instance="${instance}"></post-list>
     `;
-    this.postList = this.querySelector('post-list');
     this._dispatch(userActions.requestTags());
   }
 
@@ -28,17 +27,14 @@ class PostWall extends Component {
       const instance = this.getAttribute('instance');
       if (!instance) return;
 
-      const postList = document.createElement('post-list');
       const likedTags = state.user.tags.filter(t => t.type === 'liked').map(t => t.tag_id);
       const dislikedTags = state.user.tags.filter(t => t.type === 'disliked').map(t => t.tag_id);
-      postList.setAttribute('instance', instance);
-      if (likedTags.length > 0) postList.setAttribute('liked-tags', likedTags.join(','));
-      if (dislikedTags.length > 0) postList.setAttribute('disliked-tags', dislikedTags.join(','));
+
       if (!state.postsList[instance]) {
         this._dispatch(postsListActions.createFilter(instance, likedTags, dislikedTags));
+      } else {
+        this._dispatch(postsListActions.setFilterTags(instance, likedTags, dislikedTags));
       }
-      this.postList.replaceWith(postList);
-      this._dispatch(postsListActions.loadMore(instance));
     }
   }
 
