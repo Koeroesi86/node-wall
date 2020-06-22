@@ -17,7 +17,6 @@ class PostWall extends Component {
 
     this.innerHTML = `
       <compose-post></compose-post>
-      <post-list instance="${instance}"></post-list>
     `;
     this._dispatch(userActions.requestTags());
   }
@@ -34,6 +33,12 @@ class PostWall extends Component {
         this._dispatch(postsListActions.createFilter(instance, likedTags, dislikedTags));
       } else {
         this._dispatch(postsListActions.setFilterTags(instance, likedTags, dislikedTags));
+      }
+
+      if (!this.querySelector('post-list')) {
+        const postList = document.createElement('post-list');
+        postList.setAttribute('instance', instance);
+        this.appendChild(postList);
       }
     }
   }
