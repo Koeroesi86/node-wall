@@ -45,22 +45,23 @@
       .map(line => `<div class="contentLine">${parsePostLine(line, postId) || '&nbsp;'}</div>`)
       .join('\n');
   }
-})(window || module.exports);
 
-function getPost(id) {
-  return new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    request.onreadystatechange = e => {
-      if (request.readyState === 4) {
-        if (request.status === 200) {
-          const post = JSON.parse(request.responseText);
-          if (post) resolve(post);
-        } else {
-          reject(request);
+  function getPost(id) {
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = e => {
+        if (request.readyState === 4) {
+          if (request.status === 200) {
+            const post = JSON.parse(request.responseText);
+            if (post) resolve(post);
+          } else {
+            reject(request);
+          }
         }
-      }
-    };
-    request.open("GET", `/api/posts/${id}`, true);
-    request.send();
-  });
-}
+      };
+      request.open("GET", `/api/posts/${id}`, true);
+      request.send();
+    });
+  }
+  g.getPost = getPost;
+})(window || module.exports);

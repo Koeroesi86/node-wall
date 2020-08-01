@@ -11,7 +11,7 @@ class Component extends HTMLElement {
   }
 
   _init() {
-    if (this.constructor.styleSheet) {
+    if (this.constructor.styleSheet && document) {
       if (!styleRegistry[this.localName]) {
         const styleElement = document.createElement('link');
         styleElement.setAttribute('rel', 'stylesheet');

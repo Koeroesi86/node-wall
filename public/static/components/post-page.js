@@ -13,11 +13,18 @@ class PostPage extends Component {
 
   connectedCallback() {
     const id = this.getAttribute('post-id');
+
     this.innerHTML = `
       <div class="sentDate"></div>
       <h3 class="tags"></h3>
       <div class="postContent"></div>
       <h4 class="owner"></h4>
+      <div class="commentSection">
+        <h4>
+          <translate-text alias="post-page.comments-header"></translate-text>
+        </h4>
+        <post-comments post-id="${id}"></post-comments>
+      </div>
     `;
 
     this.postContent = this.querySelector('.postContent');
@@ -50,8 +57,10 @@ class PostPage extends Component {
     const id = this.getAttribute('post-id');
 
     this.postContent.innerHTML = parsePostContent(this._post.content, id);
-    // this.sentDateContainer.setAttribute('href', `/post/${this.getAttribute('post-id')}`);
-    this.sentDateContainer.innerHTML = new Date(parseInt(this._post.created_at, 10)).toLocaleString();
+    this.sentDateContainer.innerHTML = `
+      <i class="far fa-calendar-alt"></i>
+      <span>${new Date(parseInt(this._post.created_at, 10)).toLocaleString()}</span>
+    `;
 
     if (!this._post.owner) {
       this.ownerContainer.innerHTML = '';

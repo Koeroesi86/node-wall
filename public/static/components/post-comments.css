@@ -1,0 +1,43 @@
+post-comments {
+    display: block;
+}
+
+post-comments .composer {
+    display: flex;
+    flex-direction: row;
+    padding-top: 12px;
+    margin-top: 3px;
+    border-top: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
+}
+
+post-comments .composer button {
+    flex: 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    height: 35px;
+    font-size: 12px;
+    border: 2px solid rgba(var(--main-button-background-color-rgb), 0.4);
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    color: var(--main-button-text-color);
+    background: rgba(var(--main-button-background-color-rgb), 0);
+    cursor: pointer;
+    transition: all .2s ease-in-out;
+}
+
+post-comments .composer button:hover {
+    background: rgba(var(--main-button-background-color-rgb), 0.05);
+    border-color: rgba(var(--main-button-border-color-rgb), 0.8);
+}
+
+post-comments .composer .body {
+    flex: 1 1 auto;
+    padding: 3px 6px;
+    border: 1px solid rgba(var(--main-button-background-color-rgb), 0.2);
+    border-right: 0;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    transition: all .2s ease-in-out;
+}

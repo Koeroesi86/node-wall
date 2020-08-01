@@ -9,4 +9,6 @@ lib/data/post/*
 lib/data/link/*
 !lib/data/session/.gitkeep
 lib/data/session/*
+!lib/data/comment/.gitkeep
+lib/data/comment/*
 .env

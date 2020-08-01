@@ -37,6 +37,51 @@ async function getPostTags(postId) {
     .select('tags.id', 'tags.name', 'tags.type');
 }
 
+async function getComment(id) {
+  const knex = await createDatabase();
+  const comment = await knex('posts_comments')
+    .where({
+      id: id,
+      status: 'public',
+    })
+    .select('*')
+    .first();
+
+  if (comment) {
+    return {
+      ...comment,
+      body: await getData(id, 'comment'),
+    }
+  }
+
+  throw new Error(`no comment with id ${id}`);
+}
+
+async function getPostComments(postId, status = 'public') {
+  const knex = await createDatabase();
+  return knex('posts_comments')
+    .where({
+      post: postId,
+      status: status,
+    })
+    .select('id', 'parent', 'owner', 'created_at');
+}
+
+async function createPostComment(postId, parent, owner, content) {
+  const id = uuid();
+  const knex = await createDatabase();
+
+  await setData(id, 'comment', content);
+
+  await knex.insert({
+    id: id,
+    post: postId,
+    parent: parent,
+    owner: owner,
+    status: 'public', // TODO: approval?
+  }).into('posts_comments');
+}
+
 function detectLanguage(headers) {
   if (headers['accept-language']) {
     return Promise.resolve(headers['accept-language'].substr(0, 5));
@@ -184,6 +229,38 @@ module.exports = async (event, callback) => {
       }
     }
 
+    if (pathFragments[1] === 'comment') {
+      if (httpMethod === 'POST' && pathFragments.length === 2) {
+        const payload = JSON.parse(event.body);
+        const owner = userInfo ? userInfo.user.id : null;
+
+        if (!payload.postId) {
+          throw new Error('no postId defined');
+        }
+
+        await createPostComment(payload.postId, payload.parent, owner, payload.body);
+
+        return callback({
+          statusCode: 200,
+          headers: getResponseHeaders(),
+          body: JSON.stringify({}, null, 2),
+          isBase64Encoded: false,
+        });
+      }
+
+      if (httpMethod === 'GET' && pathFragments[2] && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
+        const id = pathFragments[2];
+        const comment = await getComment(id);
+
+        return callback({
+          statusCode: 200,
+          headers: getResponseHeaders(),
+          body: JSON.stringify(comment, null, 2),
+          isBase64Encoded: false,
+        });
+      }
+    }
+
     /** @route /api/posts */
     if (pathFragments[1] === 'posts') {
       if (httpMethod === 'OPTIONS') {
@@ -252,9 +329,14 @@ module.exports = async (event, callback) => {
       if (httpMethod === 'GET') {
         if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
           const postId = pathFragments[2];
-          const post = await knex('posts').select('id', 'owner', 'type', 'status', 'created_at').where('id', postId).first();
+          const post = await knex('posts')
+            .select('id', 'owner', 'type', 'status', 'created_at')
+            .where('id', postId)
+            .first();
 
           if (!post) {
+            console.log('postId', postId)
+            console.log('post', post)
             return callback({
               statusCode: 404,
               headers: getResponseHeaders(),
@@ -283,6 +365,7 @@ module.exports = async (event, callback) => {
                 type: post.type,
                 content: await getData(post.id, post.type),
                 created_at: post.created_at,
+                comments: (await getPostComments(postId)).map(c => c.id),
                 owner: post.owner ? await knex('users').select('name', 'id').where('id', post.owner).first() : null,
                 tags: postTags
               }, null, 2),
@@ -290,13 +373,15 @@ module.exports = async (event, callback) => {
             });
           }
 
-          if (pathFragments.length === 4 && pathFragments[3] === 'tags') {
-            return callback({
-              statusCode: 200,
-              headers: getResponseHeaders(),
-              body: JSON.stringify(postTags, null, 2),
-              isBase64Encoded: false,
-            });
+          if (pathFragments.length === 4) {
+            if (pathFragments[3] === 'tags') {
+              return callback({
+                statusCode: 200,
+                headers: getResponseHeaders(),
+                body: JSON.stringify(postTags, null, 2),
+                isBase64Encoded: false,
+              });
+            }
           }
         }
 
@@ -423,7 +508,7 @@ module.exports = async (event, callback) => {
         }
 
         if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
-          if (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role))) {
+          if (pathFragments.length === 3 && !userInfo || (userInfo && !['admin'].includes(userInfo.user.role))) {
             return callback({
               statusCode: 401,
               headers: getResponseHeaders(),

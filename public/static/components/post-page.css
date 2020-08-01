@@ -5,7 +5,16 @@ post-page {
 }
 
 post-page .sentDate {
-    margin-bottom: 12px;
+    margin-bottom: 6px;
+    padding: 6px 12px;
+    font-size: 20px;
+    font-weight: 100;
+    background-color: rgba(var(--main-link-highlighted-color-rgb), 0.01);
+    border-radius: 3px;
+}
+
+post-page .sentDate span {
+    margin-left: 6px;
 }
 
 post-page .tags {
@@ -17,9 +26,18 @@ post-page .tags tag-inline {
 }
 
 post-page .postContent {
-
+    padding: 6px 12px;
+    background-color: rgba(var(--main-link-highlighted-color-rgb), 0.05);
+    border-radius: 3px;
 }
 
 post-page .owner {
     margin-top: 12px;
+    font-weight: 400;
+}
+
+post-page .commentSection {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
 }
