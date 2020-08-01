@@ -13,10 +13,10 @@ module.exports = {
     // cert: resolve(__dirname, './.certificates/localhost/cert1.pem'),
   },
   workerOptions: {
-    root: resolve('./public').replace('\\', '/'),
+    root: resolve(__dirname, './public').replace('\\', '/'),
     env: {
       DB_DRIVER: process.env.DB_DRIVER || 'sqlite3',
-      DB_DATABASE: process.env.DB_DATABASE || resolve('./lib/data/wall.sqlite').replace('\\', '/'),
+      DB_DATABASE: process.env.DB_DATABASE || resolve(__dirname, './lib/data/wall.sqlite').replace('\\', '/'),
       NODEMAILER_HOST: process.env.NODEMAILER_HOST,
       NODEMAILER_PORT: process.env.NODEMAILER_PORT,
       NODEMAILER_USER: process.env.NODEMAILER_USER,
@@ -24,7 +24,7 @@ module.exports = {
       SITE_PROTOCOL: process.env.SITE_PROTOCOL || 'http',
       SITE_DOMAIN: process.env.SITE_DOMAIN || 'localhost',
     },
-    cwd: resolve('.'),
+    cwd: resolve(__dirname),
     limit: 0,
     limitPerPath: 1,
     index: [
