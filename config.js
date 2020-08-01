@@ -13,18 +13,18 @@ module.exports = {
     // cert: resolve(__dirname, './.certificates/localhost/cert1.pem'),
   },
   workerOptions: {
-    root: 'D:\\Chris\\Documents\\Developement\\uzenofal\\public',
+    root: resolve('./public').replace('\\', '/'),
     env: {
       DB_DRIVER: process.env.DB_DRIVER || 'sqlite3',
-      DB_DATABASE: process.env.DB_DATABASE || 'D:/Chris/Documents/Developement/uzenofal/lib/data/wall.sqlite',
+      DB_DATABASE: process.env.DB_DATABASE || resolve('./lib/data/wall.sqlite').replace('\\', '/'),
       NODEMAILER_HOST: process.env.NODEMAILER_HOST,
       NODEMAILER_PORT: process.env.NODEMAILER_PORT,
       NODEMAILER_USER: process.env.NODEMAILER_USER,
       NODEMAILER_PASS: process.env.NODEMAILER_PASS,
-      SITE_PROTOCOL: process.env.SITE_PROTOCOL,
-      SITE_DOMAIN: process.env.SITE_DOMAIN,
+      SITE_PROTOCOL: process.env.SITE_PROTOCOL || 'http',
+      SITE_DOMAIN: process.env.SITE_DOMAIN || 'localhost',
     },
-    cwd: 'D:\\Chris\\Documents\\Developement\\uzenofal',
+    cwd: resolve('.'),
     limit: 0,
     limitPerPath: 1,
     index: [

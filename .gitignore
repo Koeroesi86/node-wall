@@ -9,5 +9,4 @@ lib/data/post/*
 lib/data/link/*
 !lib/data/session/.gitkeep
 lib/data/session/*
-config.js
 .env
