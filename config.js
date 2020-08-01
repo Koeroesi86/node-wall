@@ -9,8 +9,8 @@ module.exports = {
   serverOptions: {
     hostname: process.env.SITE_DOMAIN,
     protocol: process.env.SITE_PROTOCOL || 'http',
-    // key: resolve(__dirname, './.certificates/localhost/privkey1.pem'),
-    // cert: resolve(__dirname, './.certificates/localhost/cert1.pem'),
+    key: process.env.SITE_KEY || resolve(__dirname, './.certificates/localhost/privkey1.pem'),
+    cert: process.env.SITE_CERT || resolve(__dirname, './.certificates/localhost/cert1.pem'),
   },
   workerOptions: {
     root: resolve(__dirname, './public').replace('\\', '/'),
