@@ -1,5 +1,6 @@
 const moment = require('moment');
 const cookie = require('cookie');
+const crypto = require('crypto');
 const createDatabase = require('lib/utils/createDatabase');
 const getUserInfoFromSession = require('lib/utils/getUserInfoFromSession');
 const welcomeTemplate = require('lib/templates/page/welcome');
@@ -243,9 +244,13 @@ module.exports = async (event, callback) => {
           const { code, session } = queryStringParameters;
 
           if (code && session) {
+            const hash = crypto
+              .createHash("sha256")
+              .update(code)
+              .digest("hex");
             const currentSession = await knex('users_session').where('id', session).first();
 
-            if (currentSession && currentSession.secret === code) {
+            if (currentSession && currentSession.secret === hash) {
               await knex('users_session')
                 .where({ id: session })
                 .update({ status: 'active', secret: '' });

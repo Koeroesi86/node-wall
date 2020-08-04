@@ -1,5 +1,6 @@
 const uuid = require('uuid/v4');
 const cookie = require('cookie');
+const crypto = require('crypto');
 const axios = require('axios');
 const { JSDOM } = require('jsdom');
 const moment = require('moment');
@@ -715,7 +716,11 @@ module.exports = async (event, callback) => {
             status: 'pending',
             secret: generateCode(),
           };
-          await knex.insert(session).into('users_session');
+          const hash = crypto
+            .createHash("sha256")
+            .update(session.secret)
+            .digest("hex");
+          await knex.insert({ ...session, secret: hash }).into('users_session');
 
           if (payload.type === 'email') {
             const verifyUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login/email`);
