@@ -31,7 +31,7 @@ class PostCommentsItem extends Component {
     const id = this.getAttribute('comment-id');
 
     if (state.comments[id] && state.comments[id] !== prevState.comments[id]) {
-      this.bodyNode.innerHTML = state.comments[id].body;
+      this.bodyNode.innerHTML = parseCommentContent(state.comments[id].body);
       this.createdAtNode.innerHTML = new Date(state.comments[id].created_at).toLocaleString();
     }
   }

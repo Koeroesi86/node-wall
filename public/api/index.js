@@ -15,6 +15,11 @@ const generateCode = require('lib/utils/generateCode');
 const verifyLoginTemplate = require('lib/templates/email/verifyLogin');
 const createMailer = require('lib/utils/createMailer');
 const getTranslation = require('lib/translations/getTranslation');
+const detectLanguage = require('lib/utils/detectLanguage');
+const getPostTags = require('lib/utils/getPostTags');
+const getPostComments = require('lib/utils/getPostComments');
+const getComment = require('lib/utils/getComment');
+const createPostComment = require('lib/utils/createPostComment');
 
 const keepAliveTimeout = 30 * 1000;
 const keepAliveCallback = () => {
@@ -29,66 +34,6 @@ const getResponseHeaders = (headers = {}) => ({
   ...headers,
 });
 const transporter = createMailer();
-
-async function getPostTags(postId) {
-  const knex = await createDatabase();
-  return knex('posts_tags')
-    .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
-    .where('posts_tags.post_id', postId)
-    .select('tags.id', 'tags.name', 'tags.type');
-}
-
-async function getComment(id) {
-  const knex = await createDatabase();
-  const comment = await knex('posts_comments')
-    .where({
-      id: id,
-      status: 'public',
-    })
-    .select('*')
-    .first();
-
-  if (comment) {
-    return {
-      ...comment,
-      body: await getData(id, 'comment'),
-    }
-  }
-
-  throw new Error(`no comment with id ${id}`);
-}
-
-async function getPostComments(postId, status = 'public') {
-  const knex = await createDatabase();
-  return knex('posts_comments')
-    .where({
-      post: postId,
-      status: status,
-    })
-    .select('id', 'parent', 'owner', 'created_at');
-}
-
-async function createPostComment(postId, parent, owner, content) {
-  const id = uuid();
-  const knex = await createDatabase();
-
-  await setData(id, 'comment', content);
-
-  await knex.insert({
-    id: id,
-    post: postId,
-    parent: parent,
-    owner: owner,
-    status: 'public', // TODO: approval?
-  }).into('posts_comments');
-}
-
-function detectLanguage(headers) {
-  if (headers['accept-language']) {
-    return Promise.resolve(headers['accept-language'].substr(0, 5));
-  }
-  return Promise.resolve('en-GB');
-}
 
 module.exports = async (event, callback) => {
   clearTimeout(keepAliveTimer);
@@ -230,6 +175,7 @@ module.exports = async (event, callback) => {
       }
     }
 
+    /** @route /api/comment */
     if (pathFragments[1] === 'comment') {
       if (httpMethod === 'POST' && pathFragments.length === 2) {
         const payload = JSON.parse(event.body);

@@ -13,6 +13,10 @@ post-comments-item .body {
     border-bottom: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
 }
 
+post-comments-item .body .line {
+
+}
+
 post-comments-item .createdAt {
     margin-top: 3px;
     font-size: 12px;

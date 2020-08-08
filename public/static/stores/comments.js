@@ -35,7 +35,22 @@ const commentsMiddleware = store => next => action => {
   if (action.type === COMMENTS_ACTIONS.CREATE) {
     const { id, parent, body } = action.payload;
 
-    createComment(id, body, parent).then(res => {
+    const tmpNode  = document.createElement('div');
+    tmpNode.innerHTML = body;
+    // [...tmpNode.querySelectorAll('span[tag-id]')].forEach(tagNode => {
+    //   tagNode.replaceWith(`#!${tagNode.getAttribute('tag-id')}`)
+    // });
+    [...tmpNode.querySelectorAll('div')].forEach(divNode => {
+      if (divNode.innerHTML === '<br>')  {
+        divNode.replaceWith('\n\n');
+      } else {
+        divNode.replaceWith('\n' + divNode.innerHTML)
+      }
+    });
+
+    tmpNode.innerHTML = tmpNode.innerHTML.replace(/\r/gi, '\n')
+
+    createComment(id, tmpNode.innerHTML, parent).then(res => {
       console.log('createComment', res)
       location.reload(); // TODO: dynamic comment loading
     });
