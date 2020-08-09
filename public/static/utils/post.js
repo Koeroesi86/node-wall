@@ -64,4 +64,25 @@
     });
   }
   g.getPost = getPost;
-})(window || module.exports);
+
+  function createPost(content = '') {
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange  = e => {
+        if (request.readyState === 4) {
+          if (request.status === 200) {
+            resolve(request);
+          } else {
+            reject(request);
+          }
+        }
+      };
+      request.onerror = () => {
+      };
+      request.open("POST", "/api/posts", true);
+      request.setRequestHeader('Content-Type', 'application/json');
+      request.send(JSON.stringify({ content }));
+    });
+  }
+  g.createPost = createPost;
+})(window || global || module.exports);

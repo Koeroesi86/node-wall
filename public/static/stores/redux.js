@@ -153,4 +153,4 @@ const middlewares = [
     }
     window.addEventListener(ReduxEventTypes.dispatch, dispatchListener);
   }
-})(reducers, middlewares, window || module.exports);
+})(reducers, middlewares, window || global || module.exports);

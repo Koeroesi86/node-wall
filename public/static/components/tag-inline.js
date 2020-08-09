@@ -134,7 +134,7 @@ class TagInline extends Component {
       `;
 
       if (this._role !== 'guest') {
-        const currentUserTag = this._userTags.find(tag => tag.tag_id === this._tag.id);
+        const currentUserTag = (this._userTags || []).find(tag => tag.tag_id === this._tag.id);
 
         const likeTagElement = this._tooltip.querySelector('.likeTag');
         likeTagElement.addEventListener('click', e => {

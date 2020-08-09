@@ -90,9 +90,13 @@ class PostPreview extends Component {
 
     this.contentContainer.innerHTML = parsePostContent(this._post.content, this.getAttribute('post-id'));
 
-    if (this.querySelectorAll('.contentLine').length > 5) {
-      this.classList.add('long');
-    }
+    setTimeout(() => {
+      if (this.contentContainer.scrollHeight > this.contentContainer.clientHeight) {
+        this.classList.add('long');
+      } else {
+        this.classList.remove('long');
+      }
+    });
   }
 
   checkOwner() {

@@ -24,6 +24,9 @@ post-preview .tags tag-inline {
 post-preview .content {
     padding: 6px 0;
     font-size: 12px;
+    max-height: 100px;
+    overflow: hidden;
+    transition: max-height .3s ease-in-out;
 }
 
 post-preview .meta {
@@ -78,9 +81,6 @@ post-preview.long .contentToggleWrapper {
 }
 
 post-preview.long .content {
-    max-height: 100px;
-    overflow: hidden;
-    transition: max-height .3s ease-in-out;
 }
 
 post-preview.long .content::after {

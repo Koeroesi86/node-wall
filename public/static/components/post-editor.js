@@ -1,12 +1,12 @@
 class PostEditor extends Component {
   static styleSheet = '/static/components/post-editor.css';
 
-  static get observedAttributes() { return ['placeholder']; }
-
   connectedCallback() {
     let beforeValue = this.innerText;
     this.innerHTML = `
-      <div class="postEditorPlaceHolder">${this.getAttribute('placeholder')}</div>
+      <div class="postEditorPlaceHolder">
+        <translate-text alias="compose-post.input.placeholder"></translate-text>
+      </div>
       <div class="postEditorInput" contenteditable="true">${beforeValue}</div>
     `;
     this.placeholder = this.querySelector('.postEditorPlaceHolder');
@@ -69,12 +69,6 @@ class PostEditor extends Component {
     });
 
     this.tributeMultipleTriggers.attach(this.editor);
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (name === 'placeholder' && this.isConnected && this.placeholder) {
-      this.placeholder.innerHTML = this.getAttribute('placeholder');
-    }
   }
 
   get value() {

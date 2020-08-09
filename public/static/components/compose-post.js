@@ -8,11 +8,8 @@ class ComposePost extends Component {
   static styleSheet = '/static/components/compose-post.css';
 
   connectedCallback() {
-    TranslateText.getTranslation('compose-post.input.placeholder')
-      .then(translation => {
-
         let innerHTML = `
-          <post-editor placeholder="${translation.value}"></post-editor>
+          <post-editor></post-editor>
           <button class="send" type="button">
             <span class="toSend">
               <translate-text alias="compose-post.button.to-send"></translate-text>
@@ -32,22 +29,15 @@ class ComposePost extends Component {
           const message = this.editor.value;
           if (message && message.length > 0) {
             this.classList.add('sending');
-            const request = new XMLHttpRequest();
-            request.onreadystatechange  = e => {
-              if (request.readyState === 4 && request.status === 200) {
+            Promise.resolve()
+              .then(() => createPost(message))
+              .then((res) => {
                 this.editor.value = '';
                 this.classList.remove('sending');
-              }
-            };
-            request.onerror = () => {
-            };
-            request.open("POST", "/api/posts", true);
-            request.setRequestHeader('Content-Type', 'application/json');
-            request.send(JSON.stringify({ content: message }));
+              })
+              .catch(console.error);
           }
         });
-      })
-      .catch(console.error);
   }
 }
 

@@ -47,4 +47,4 @@
     });
   }
   g.createComment = createComment;
-})(window || global);
+})(window || global || module.exports);
