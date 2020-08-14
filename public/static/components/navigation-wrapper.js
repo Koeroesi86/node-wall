@@ -210,6 +210,12 @@ class NavigationWrapper extends Component {
       this._dispatch(userActions.request());
     // }
 
+    if (location && location.href) {
+      const url = new URL(location.href);
+      const currentLink = this.querySelector(`a[href="${url.pathname}"]`);
+      if (currentLink) currentLink.classList.add('current');
+    }
+
     this.updateTheme();
   }
 
