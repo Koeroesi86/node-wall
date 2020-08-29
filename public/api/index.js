@@ -6,9 +6,9 @@ const { JSDOM } = require('jsdom');
 const moment = require('moment');
 const matchAll = require('match-all');
 const createDatabase = require('lib/utils/createDatabase');
-const getData = require('lib/utils/getData');
-const setData = require('lib/utils/setData');
-const hasData = require('lib/utils/hasData');
+const storageService = require('lib/services/storage');
+const postService = require('lib/services/post');
+const commentService = require('lib/services/comment');
 const getUserInfoFromSession = require('lib/utils/getUserInfoFromSession');
 const getUserSessions = require('lib/utils/getUserSessions');
 const generateCode = require('lib/utils/generateCode');
@@ -16,10 +16,6 @@ const verifyLoginTemplate = require('lib/templates/email/verifyLogin');
 const createMailer = require('lib/utils/createMailer');
 const getTranslation = require('lib/translations/getTranslation');
 const detectLanguage = require('lib/utils/detectLanguage');
-const getPostTags = require('lib/utils/getPostTags');
-const getPostComments = require('lib/utils/getPostComments');
-const getComment = require('lib/utils/getComment');
-const createPostComment = require('lib/utils/createPostComment');
 
 const keepAliveTimeout = 30 * 1000;
 const keepAliveCallback = () => {
@@ -53,8 +49,8 @@ module.exports = async (event, callback) => {
 
     if (cookies.sessionId) {
       userInfo = await getUserInfoFromSession(cookies.sessionId);
-      if (!await hasData(cookies.sessionId, 'session')) {
-        await setData(cookies.sessionId, 'session', JSON.stringify({
+      if (!await storageService.has(cookies.sessionId, 'session')) {
+        await storageService.write(cookies.sessionId, 'session', JSON.stringify({
           userAgent: headers['user-agent'],
           remoteAddress: event.remoteAddress,
         }, null, 2));
@@ -73,7 +69,7 @@ module.exports = async (event, callback) => {
         if (!post) throw new Error('No post specified');
         if (!/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(post)) throw new Error('Invalid post id');
 
-        const postContent = await getData(post, 'post');
+        const postContent = await storageService.read(post, 'post');
         if (!(postContent || '').includes(uri.replace(/^https?:\/\//, ''))) throw new Error('Uri not present in post.');
 
         let url = uri;
@@ -85,7 +81,7 @@ module.exports = async (event, callback) => {
         const existingLink = await knex('links').select('id', 'created_at').where('url', url).first();
 
         if (existingLink) {
-          const linkData = await getData(existingLink.id, 'link');
+          const linkData = await storageService.read(existingLink.id, 'link');
 
           if (linkData) {
             return callback({
@@ -156,14 +152,14 @@ module.exports = async (event, callback) => {
           // headers: response.headers,
         };
 
-        const postRecord = await knex('posts').select('status', 'type').where('id', post).first();
+        const postRecord = await postService.get(post);
         if (postRecord && postRecord.status === 'public') {
           const newLinkId = uuid();
           await knex.insert({
             id: newLinkId,
             url: url,
           }).into('links');
-          await setData(newLinkId, 'link', JSON.stringify(newLinkData, null, 2));
+          await storageService.write(newLinkId, 'link', JSON.stringify(newLinkData, null, 2));
         }
 
         return callback({
@@ -185,7 +181,7 @@ module.exports = async (event, callback) => {
           throw new Error('no postId defined');
         }
 
-        await createPostComment(payload.postId, payload.parent, owner, payload.body);
+        await postService.createComment(payload.postId, payload.parent, owner, payload.body);
 
         return callback({
           statusCode: 200,
@@ -197,7 +193,7 @@ module.exports = async (event, callback) => {
 
       if (httpMethod === 'GET' && pathFragments[2] && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
         const id = pathFragments[2];
-        const comment = await getComment(id);
+        const comment = await commentService.get(id);
 
         return callback({
           statusCode: 200,
@@ -228,7 +224,7 @@ module.exports = async (event, callback) => {
           if (!['public', 'pending', 'moderated', 'deleted'].includes(payload.status)) throw new Error('invalid status');
 
           if (payload.status === 'public') {
-            let content = await getData(id, 'post');
+            let content = await storageService.read(id, 'post');
             const tagMatches = matchAll(content, /#([a-z\u00C0-\u017F0-9]+)/gi).toArray();
             for (let i = 0; i < tagMatches.length; i++) {
               const tagRaw = tagMatches[i];
@@ -252,7 +248,7 @@ module.exports = async (event, callback) => {
               content = content.replace(`#${tag.name}`, `#!${tag.id}`);
             });
 
-            await setData(id, 'post', content);
+            await storageService.write(id, 'post', content);
           }
 
           await knex('posts').where({ id: id }).update({ status: payload.status });
@@ -276,10 +272,7 @@ module.exports = async (event, callback) => {
       if (httpMethod === 'GET') {
         if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
           const postId = pathFragments[2];
-          const post = await knex('posts')
-            .select('id', 'owner', 'type', 'status', 'created_at')
-            .where('id', postId)
-            .first();
+          const post = await postService.get(postId);
 
           if (!post) {
             console.log('postId', postId)
@@ -301,7 +294,7 @@ module.exports = async (event, callback) => {
             });
           }
 
-          const postTags = await getPostTags(postId);
+          const postTags = await postService.getTags(postId);
 
           if (pathFragments.length === 3) {
             return callback({
@@ -310,9 +303,9 @@ module.exports = async (event, callback) => {
               body: JSON.stringify({
                 id: post.id,
                 type: post.type,
-                content: await getData(post.id, post.type),
+                content: await storageService.read(post.id, post.type),
                 created_at: post.created_at,
-                comments: (await getPostComments(postId)).map(c => c.id),
+                comments: (await postService.getComments(postId)).map(c => c.id),
                 owner: post.owner ? await knex('users').select('name', 'id').where('id', post.owner).first() : null,
                 tags: postTags
               }, null, 2),
@@ -444,7 +437,7 @@ module.exports = async (event, callback) => {
           content = content.replace(/\n{3,}/gi, '\n\n');
           content = content.replace(/&nbsp;/gi, ' ');
           content = content.replace(/<[^>]*>/g, ''); //strip html
-          await setData(post.id, post.type, content);
+          await storageService.write(post.id, post.type, content);
           await knex.insert(post).into('posts');
           return callback({
             statusCode: 200,
@@ -775,8 +768,8 @@ module.exports = async (event, callback) => {
             .map(async session => ({
               ...session,
               sessionCreatedAt: new Date(session.sessionCreatedAt).valueOf(),
-              details: await hasData(session.sessionId, 'session')
-                ? JSON.parse(await getData(session.sessionId, 'session'))
+              details: await storageService.has(session.sessionId, 'session')
+                ? JSON.parse(await storageService.read(session.sessionId, 'session'))
                 : null,
             }))
         );
