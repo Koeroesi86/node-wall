@@ -1,14 +1,16 @@
 const uuid = require('uuid/v4');
 const cookie = require('cookie');
 const crypto = require('crypto');
-const axios = require('axios');
-const { JSDOM } = require('jsdom');
 const moment = require('moment');
 const matchAll = require('match-all');
 const createDatabase = require('lib/utils/createDatabase');
 const storageService = require('lib/services/storage');
 const postService = require('lib/services/post');
 const commentService = require('lib/services/comment');
+const sessionService = require('lib/services/session');
+const linkService = require('lib/services/link');
+const tagService = require('lib/services/tag');
+const userService = require('lib/services/user');
 const getUserInfoFromSession = require('lib/utils/getUserInfoFromSession');
 const getUserSessions = require('lib/utils/getUserSessions');
 const generateCode = require('lib/utils/generateCode');
@@ -55,9 +57,8 @@ module.exports = async (event, callback) => {
           remoteAddress: event.remoteAddress,
         }, null, 2));
       }
-      await knex('users_session')
-        .where({ id: cookies.sessionId })
-        .update({ last_active: Date.now() })
+
+      await sessionService.setLastActive(cookies.sessionId, Date.now());
     }
 
     /** @route /api/link */
@@ -78,10 +79,10 @@ module.exports = async (event, callback) => {
           url = url.replace(/^http:/, 'https:');
         }
 
-        const existingLink = await knex('links').select('id', 'created_at').where('url', url).first();
+        const existingLink = await linkService.getByUrl(url);
 
         if (existingLink) {
-          const linkData = await storageService.read(existingLink.id, 'link');
+          const linkData = await linkService.getData(existingLink.id);
 
           if (linkData) {
             return callback({
@@ -93,79 +94,22 @@ module.exports = async (event, callback) => {
           }
         }
 
-        const response = await axios({
-          method: 'get',
-          url: url,
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.93 Safari/537.36 Vivaldi/2.8.1664.40',
-          }
-        });
-
-        if (!response.headers['content-type'].includes('text/html')) throw new Error('Not yet supported type');
-
-        const dom = new JSDOM(`${response.data}`);
-
-        let title = dom.window.document.querySelector('head title').textContent;
-        const headers = [...dom.window.document.querySelectorAll("head meta")].map(meta => ({
-          name: meta.getAttribute('name'),
-          property: meta.getAttribute('property'),
-          'http-equiv': meta.getAttribute('http-equiv'),
-          content: meta.getAttribute('content'),
-        }));
-
-        let image = '';
-        const twitterImage = headers.find(meta => meta.property === 'twitter:image');
-        const fbImage = headers.find(meta => meta.property === 'og:image');
-        if (twitterImage) {
-          image = twitterImage.content;
-        } else if (fbImage) {
-          image = fbImage.content;
-        }
-
-        if (/^\/\//.test(image)) {
-          image = `https:${image}`;
-        }
-
-        let description = '';
-        const twitterDescription = headers.find(meta => meta.property === 'twitter:description');
-        const fbDescription = headers.find(meta => meta.property === 'og:description');
-        if (twitterDescription) {
-          description = twitterDescription.content;
-        } else if (fbDescription) {
-          description = fbDescription.content;
-        }
-
-        let embedCode = '';
-        if (/^https:\/\/www.youtube.com\/watch\?v=/.test(uri)) {
-          const videoId = uri.match(/^https:\/\/www.youtube.com\/watch\?v=(.+)/)[1];
-          embedCode = `<iframe src="https://www.youtube.com/embed/${videoId}"></iframe>`;
-        }
-
-        const newLinkData = {
-          'content-type': response.headers['content-type'],
-          title,
-          description,
-          image,
-          url,
-          embedCode,
-          // headers,
-          // headers: response.headers,
-        };
-
         const postRecord = await postService.get(post);
         if (postRecord && postRecord.status === 'public') {
-          const newLinkId = uuid();
-          await knex.insert({
-            id: newLinkId,
-            url: url,
-          }).into('links');
-          await storageService.write(newLinkId, 'link', JSON.stringify(newLinkData, null, 2));
+          const data = await linkService.create(url);
+
+          return callback({
+            statusCode: 200,
+            headers: getResponseHeaders(),
+            body: JSON.stringify(data, null, 2),
+            isBase64Encoded: false,
+          });
         }
 
         return callback({
-          statusCode: 200,
+          statusCode: 400,
           headers: getResponseHeaders(),
-          body: JSON.stringify(newLinkData, null, 2),
+          body: JSON.stringify({}, null, 2),
           isBase64Encoded: false,
         });
       }
@@ -228,7 +172,7 @@ module.exports = async (event, callback) => {
             const tagMatches = matchAll(content, /#([a-z\u00C0-\u017F0-9]+)/gi).toArray();
             for (let i = 0; i < tagMatches.length; i++) {
               const tagRaw = tagMatches[i];
-              const existingTag = await knex('tags').select('id', 'type').where('name', tagRaw).first();
+              const existingTag = await tagService.getByName(tagRaw);
               if (existingTag) {
                 tagMatches.splice(i, 1);
                 content = content.replace(`#${tagRaw}`, `#!${existingTag.id}`);
@@ -240,9 +184,7 @@ module.exports = async (event, callback) => {
               type: 'text',
             }));
 
-            for (let i = 0; i < newTags.length; i++) {
-              await knex.insert(newTags[i]).into('tags')
-            }
+            await Promise.all(newTags.map(tag => tagService.create(tag.id, tag.name, tag.type)));
 
             newTags.forEach(tag => {
               content = content.replace(`#${tag.name}`, `#!${tag.id}`);
@@ -251,7 +193,7 @@ module.exports = async (event, callback) => {
             await storageService.write(id, 'post', content);
           }
 
-          await knex('posts').where({ id: id }).update({ status: payload.status });
+          await postService.setStatus(id, payload.status);
 
           return callback({
             statusCode: 201,
@@ -303,10 +245,10 @@ module.exports = async (event, callback) => {
               body: JSON.stringify({
                 id: post.id,
                 type: post.type,
-                content: await storageService.read(post.id, post.type),
+                content: await postService.getContent(post.id, post.type),
                 created_at: post.created_at,
                 comments: (await postService.getComments(postId)).map(c => c.id),
-                owner: post.owner ? await knex('users').select('name', 'id').where('id', post.owner).first() : null,
+                owner: post.owner ? await userService.get(post.owner) : null,
                 tags: postTags
               }, null, 2),
               isBase64Encoded: false,
@@ -326,11 +268,8 @@ module.exports = async (event, callback) => {
         }
 
         if (pathFragments[2] === 'bounds') {
-          const bounds = (await knex('posts')
-            .where('status', 'public')
-            .min('created_at as oldest')
-            .max('created_at as newest')
-            .first()) || { oldest: null, newest: null };
+          const bounds = await postService.getBounds();
+
           return callback({
             statusCode: 200,
             headers: getResponseHeaders(),
@@ -351,59 +290,36 @@ module.exports = async (event, callback) => {
             status = queryStringParameters.status;
           }
 
-          const postsPromise = knex('posts')
-            .select('id', 'owner', 'type', 'created_at')
-            .orderBy('created_at', 'desc')
-            .groupBy('posts.id')
-            .where('status', status);
+          let before = null;
+          let since = null;
+          let likedTags = [];
+          let dislikedTags = [];
 
           if (event.queryStringParameters) {
-            const { before, since, likedTags, dislikedTags } = event.queryStringParameters;
-            const nextPageBeforePromise = knex('posts').max('created_at', { as: 'nextPageBefore' }).groupBy('posts.id');
-            nextPageBeforePromise.where('status', status);
-
-            if (before) {
-              postsPromise.where('created_at', '<', before);
+            if (event.queryStringParameters.before) {
+              before = event.queryStringParameters.before;
             }
 
-            if (since) {
-              postsPromise.where('created_at', '>=', since);
-              nextPageBeforePromise.where('created_at', '<', since);
+            if (event.queryStringParameters.since) {
+              since = event.queryStringParameters.since;
             }
 
-            if (likedTags) {
-              postsPromise.havingExists(function () {
-                this.select('*').from('posts_tags')
-                  .whereRaw('posts.id = posts_tags.post_id')
-                  .whereIn('tag_id', likedTags.split(','));
-              });
-              nextPageBeforePromise.havingExists(function () {
-                this.select('*').from('posts_tags')
-                  .whereRaw('posts.id = posts_tags.post_id')
-                  .whereIn('tag_id', likedTags.split(','));
-              });
+            if (event.queryStringParameters.likedTags) {
+              likedTags = event.queryStringParameters.likedTags.split(',');
             }
 
-            if (dislikedTags) {
-              postsPromise.havingNotExists(function () {
-                this.select('*').from('posts_tags')
-                  .whereRaw('posts.id = posts_tags.post_id')
-                  .whereIn('tag_id', dislikedTags.split(','));
-              });
-              nextPageBeforePromise.havingNotExists(function () {
-                this.select('*').from('posts_tags')
-                  .whereRaw('posts.id = posts_tags.post_id')
-                  .whereIn('tag_id', dislikedTags.split(','));
-              });
+            if (event.queryStringParameters.dislikedTags) {
+              dislikedTags = event.queryStringParameters.dislikedTags.split(',');
             }
 
-            const nextPageBeforeResult = await nextPageBeforePromise.first();
+            const nextPageBeforeResult = await postService.getNextPage(status, before, since, likedTags, dislikedTags);
             if (nextPageBeforeResult)  {
               nextPageBefore = nextPageBeforeResult.nextPageBefore;
             }
           }
 
-          const posts = await postsPromise;
+          const posts = await postService.getList(status, before, since, likedTags, dislikedTags);
+
           const postsToRender = await Promise.all(posts.map(async post => ({
             id: post.id,
             type: post.type,
