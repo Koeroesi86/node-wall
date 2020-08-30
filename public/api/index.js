@@ -3,7 +3,6 @@ const cookie = require('cookie');
 const crypto = require('crypto');
 const moment = require('moment');
 const matchAll = require('match-all');
-const createDatabase = require('lib/utils/createDatabase');
 const storageService = require('lib/services/storage');
 const postService = require('lib/services/post');
 const commentService = require('lib/services/comment');
@@ -39,7 +38,6 @@ module.exports = async (event, callback) => {
 
   try {
     const httpMethod = (event.httpMethod || '').toUpperCase();
-    const knex = await createDatabase();
     const {
       queryStringParameters,
       pathFragments,
@@ -178,13 +176,9 @@ module.exports = async (event, callback) => {
                 content = content.replace(`#${tagRaw}`, `#!${existingTag.id}`);
               }
             }
-            const newTags = tagMatches.map(text => ({
-              id: uuid(),
-              name: text,
-              type: 'text',
-            }));
-
-            await Promise.all(newTags.map(tag => tagService.create(tag.id, tag.name, tag.type)));
+            const newTags = await Promise.all(
+              tagMatches.map(text => tagService.create(text, 'text'))
+            );
 
             newTags.forEach(tag => {
               content = content.replace(`#${tag.name}`, `#!${tag.id}`);
@@ -341,20 +335,9 @@ module.exports = async (event, callback) => {
         if (pathFragments.length === 2) {
           const payload = JSON.parse(event.body);
           if (!payload.content) throw new Error('no content');
-          const post = {
-            id: uuid(),
-            type: 'post',
-            status: 'pending',
-            created_at: Date.now(),
-            owner: userInfo ? userInfo.user.id : null,
-          };
-          let content = payload.content;
-          content = content.trim();
-          content = content.replace(/\n{3,}/gi, '\n\n');
-          content = content.replace(/&nbsp;/gi, ' ');
-          content = content.replace(/<[^>]*>/g, ''); //strip html
-          await storageService.write(post.id, post.type, content);
-          await knex.insert(post).into('posts');
+
+          await postService.create(payload.content, userInfo ? userInfo.user.id : null)
+
           return callback({
             statusCode: 200,
             headers: getResponseHeaders(),
@@ -373,10 +356,8 @@ module.exports = async (event, callback) => {
             })
           }
           const postId = pathFragments[2];
-          const postTags = await knex('posts_tags')
-            .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
-            .where('posts_tags.post_id', postId)
-            .select('tags.id', 'tags.name', 'tags.type');
+          const postTags = await postService.getTags(postId);
+
           if (pathFragments[3] === 'tags') {
             const payload = JSON.parse(event.body);
             if (!payload.id) throw new Error('no tag id specified');
@@ -391,10 +372,7 @@ module.exports = async (event, callback) => {
               });
             }
 
-            await knex.insert({
-              post_id: postId,
-              tag_id: tagId,
-            }).into('posts_tags');
+            await postService.addTag(postId, tagId);
 
             return callback({
               statusCode: 200,
@@ -409,10 +387,8 @@ module.exports = async (event, callback) => {
       if (httpMethod === 'DELETE') {
         if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
           const postId = pathFragments[2];
-          const postTags = await knex('posts_tags')
-            .leftJoin('tags', 'tags.id', 'posts_tags.tag_id')
-            .where('posts_tags.post_id', postId)
-            .select('tags.id', 'tags.name', 'tags.type');
+          const postTags = await postService.getTags(postId);
+
           if (pathFragments[3] === 'tags') {
             if (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role))) {
               return callback({
@@ -426,12 +402,7 @@ module.exports = async (event, callback) => {
               const tagId = pathFragments[4];
               if (!postTags.find(tag => tag.id === tagId)) throw new Error('tag not assigned to post');
 
-              await knex('posts_tags')
-                .where({
-                  post_id: postId,
-                  tag_id: tagId,
-                })
-                .delete();
+              await postService.removeTag(postId, tagId);
 
               return callback({
                 statusCode: 200,
@@ -458,7 +429,7 @@ module.exports = async (event, callback) => {
 
       if (httpMethod === 'GET') {
         if (pathFragments.length === 3 && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
-          const tag = await knex('tags').select('id', 'name', 'type').where('id', pathFragments[2]).first();
+          const tag = await tagService.get(pathFragments[2]);
 
           if (!tag) {
             return callback({
@@ -478,18 +449,15 @@ module.exports = async (event, callback) => {
         }
 
         if (pathFragments.length === 2) {
-          const tagsPromise = knex('tags').select('id', 'name', 'type');
+          let search = '';
+          let exact = false;
 
           if (queryStringParameters) {
-            if (queryStringParameters.s && !queryStringParameters.exact) {
-              tagsPromise.where('name', 'like', `%${queryStringParameters.s}%`)
-            }
-
-            if (queryStringParameters.s && queryStringParameters.exact) {
-              tagsPromise.where('name', queryStringParameters.s)
-            }
+            search = queryStringParameters.s || '';
+            exact = !!queryStringParameters.exact;
           }
-          const tags = await tagsPromise;
+
+          const tags = await tagService.getList(search, exact);
 
           return callback({
             statusCode: 200,
@@ -509,13 +477,7 @@ module.exports = async (event, callback) => {
           if (!userInfo) throw new Error('Not logged in');
           if (!['admin'].includes(userInfo.user.role)) throw new Error('Not authorized');
 
-          const tag = {
-            id: uuid(),
-            name: payload.name,
-            type: payload.type,
-          };
-
-          await knex.insert(tag).into('tags');
+          const tag = await tagService.create(payload.name, payload.type);
 
           return callback({
             statusCode: 200,
@@ -538,10 +500,7 @@ module.exports = async (event, callback) => {
           let login;
 
           try {
-            const currentLogin = await knex.select('id', 'user_id').where({
-              type: payload.type,
-              value: payload.value,
-            }).from('users_login').first();
+            const currentLogin = await userService.getLogin(payload.type, payload.value);
 
             if (!currentLogin) {
               throw new Error('no login yet');
@@ -549,20 +508,8 @@ module.exports = async (event, callback) => {
 
             login = currentLogin
           } catch (e) {
-            const user = {
-              id: uuid(),
-              name: payload.name || null,
-              role: 'admin', //should be 'user'
-            };
-            await knex.insert(user).into('users');
-
-            login = {
-              id: uuid(),
-              user_id: user.id,
-              type: payload.type,
-              value: payload.value,
-            };
-            await knex.insert(login).into('users_login');
+            const user = await userService.create(payload.name || null);
+            login = await userService.addLogin(user.id, payload.value, payload.type);
           }
 
           const session = {
@@ -575,7 +522,7 @@ module.exports = async (event, callback) => {
             .createHash("sha256")
             .update(session.secret)
             .digest("hex");
-          await knex.insert({ ...session, secret: hash }).into('users_session');
+          await sessionService.create(login.id, hash, 'pending');
 
           if (payload.type === 'email') {
             const verifyUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login/email`);
@@ -586,7 +533,7 @@ module.exports = async (event, callback) => {
             transporter.sendMail({
               from: process.env.NODEMAILER_USER || 'sender@example.com',
               to: payload.value,
-              subject: 'Bejelentkezés',
+              subject: await getTranslation('email.verify.title', await detectLanguage(headers)),
               encoding: 'utf-8',
               html: await verifyLoginTemplate({
                 language: await detectLanguage(headers),
@@ -630,7 +577,7 @@ module.exports = async (event, callback) => {
         if (httpMethod === 'GET') {
           /** @route /api/user/<id> */
           if (pathFragments.length === 3 && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
-            const user = await knex('users').select('id, name, created_at as cratedAt').where('id', event.pathFragments[2]).first();
+            const user = await userService.get(pathFragments[2]);
 
             if (!user) {
               return callback({
@@ -700,9 +647,7 @@ module.exports = async (event, callback) => {
         if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[3]) && httpMethod === 'DELETE') {
           const sessions = await getUserSessions(userInfo.user.id);
           if (sessions.find(session => session.sessionId === pathFragments[3])) {
-            await knex('users_session')
-              .where({ id: pathFragments[3] })
-              .update({ status: 'deleted', secret: '' });
+            await sessionService.remove(pathFragments[3]);
 
             return callback({
               statusCode: 200,
@@ -729,9 +674,7 @@ module.exports = async (event, callback) => {
           const payload = JSON.parse(event.body);
           if (!payload.name) throw new Error('no name');
 
-          await knex('users')
-            .update({ name: payload.name })
-            .where({ id: userInfo.user.id });
+          await userService.setName(userInfo.user.id, payload.name);
 
           return callback({
             statusCode: 200,
@@ -754,9 +697,7 @@ module.exports = async (event, callback) => {
             });
           }
 
-          const tags = await knex('users_tags')
-            .select('tag_id', 'type')
-            .where({ user_id: userInfo.user.id });
+          const tags = await userService.getTags(userInfo.user.id);
 
           return callback({
             statusCode: 200,
@@ -772,23 +713,7 @@ module.exports = async (event, callback) => {
           if (!payload.id) throw new Error('no id');
           if (!payload.type) throw new Error('no type');
 
-          const condition = {
-            tag_id: payload.id,
-            user_id: userInfo.user.id,
-          };
-
-          const existing = await knex('users_tags')
-            .select('tag_id', 'type')
-            .where(condition)
-            .first();
-
-          if (existing) {
-            await knex('users_tags')
-              .update({ type: payload.type })
-              .where(condition);
-          } else {
-            await knex('users_tags').insert({ ...condition, type: payload.type });
-          }
+          await userService.addTag(payload.id, userInfo.user.id, payload.type);
 
           return callback({
             statusCode: 200,
@@ -803,12 +728,7 @@ module.exports = async (event, callback) => {
           if (!userInfo) throw new Error('not logged in');
           if (!payload.id) throw new Error('no id');
 
-          await knex('users_tags')
-            .delete()
-            .where({
-              tag_id: payload.id,
-              user_id: userInfo.user.id,
-            });
+          await userService.removeTag(payload.id, userInfo.user.id);
 
           return callback({
             statusCode: 200,
