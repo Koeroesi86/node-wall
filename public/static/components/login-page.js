@@ -52,12 +52,12 @@ class LoginPage extends Component {
         <div class="note">
           <translate-text alias="login-page.activate-session.note"></translate-text>
         </div>
-        <div class="inputGroup">
+        <form class="inline">
           <input type="text" maxlength="6" class="input" />
-          <button type="button" class="button">
+          <button type="submit" class="button">
             <translate-text alias="login-page.activate-session.button"></translate-text>
           </button>
-        </div>
+        </form>
       </div>
       <div class="createSession hidden">
         <h3>
@@ -66,26 +66,30 @@ class LoginPage extends Component {
         <div class="note">
           <translate-text alias="login-page.create-session.header"></translate-text>
         </div>
-        <div class="inputGroup">
+        <form class="inline">
           <input type="email" class="input" name="email" />
-          <button type="button" class="button">
+          <button type="submit" class="button">
             <translate-text alias="login-page.create-session.button"></translate-text>
           </button>
-        </div>
+          </form>
       </div>
     `;
 
     this.activateSession = this.querySelector('.activateSession');
     this.createSession = this.querySelector('.createSession');
 
+    const activateSessionForm = this.activateSession.querySelector('form.inline');
+    const createSessionForm = this.createSession.querySelector('form.inline');
+
     const currentUrl = new URL(location.toString());
     const sessionId = currentUrl.searchParams.get('session');
     if (sessionId) {
       this.activateSession.classList.remove('hidden');
       const activateSessionInput = this.activateSession.querySelector('.input');
-      const activateSessionButton = this.activateSession.querySelector('.button');
 
-      activateSessionButton.addEventListener('click', e => {
+      activateSessionForm.addEventListener('submit', e => {
+        e.preventDefault();
+        e.stopPropagation();
         if (activateSessionInput.value && activateSessionInput.value.length === 6 && /^[A-Z0-9]+$/.test(activateSessionInput.value)) {
           currentUrl.searchParams.set('code', activateSessionInput.value);
           currentUrl.pathname = '/login/email';
@@ -95,9 +99,8 @@ class LoginPage extends Component {
     } else {
       this.createSession.classList.remove('hidden');
       const emailInput = this.createSession.querySelector('.input');
-      const emailLoginButton = this.createSession.querySelector('.button');
 
-      emailLoginButton.addEventListener('click', e => {
+      createSessionForm.addEventListener('submit', e => {
         e.preventDefault();
         e.stopPropagation();
         const emailValue = emailInput.value;
@@ -106,7 +109,7 @@ class LoginPage extends Component {
           request.onreadystatechange  = e => {
             if (request.readyState === 4 && request.status === 200) {
               const loginData = JSON.parse(request.responseText);
-              location.replace(`/login?session=${loginData.sessionId}`);
+              location.href = `/login?session=${loginData.sessionId}`;
             }
           };
           request.onerror = () => {

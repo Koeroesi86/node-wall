@@ -522,7 +522,7 @@ module.exports = async (event, callback) => {
             .createHash("sha256")
             .update(session.secret)
             .digest("hex");
-          await sessionService.create(login.id, hash, 'pending');
+          await sessionService.create(session.id, login.id, hash, 'pending');
 
           if (payload.type === 'email') {
             const verifyUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login/email`);

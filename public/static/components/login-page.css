@@ -19,13 +19,19 @@ login-page .note a {
     color: inherit;
 }
 
+login-page form.inline {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
 login-page .inputGroup {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-login-page .inputGroup .input {
+login-page form .input {
     display: inline-block;
     margin: 0;
     padding: 0 6px;
@@ -40,7 +46,7 @@ login-page .inputGroup .input {
     color: var(--main-button-text-color);
 }
 
-login-page .inputGroup .button {
+login-page form .button {
     display: inline-block;
     margin: 0;
     padding: 0 6px;
@@ -57,6 +63,6 @@ login-page .inputGroup .button {
     transition: all .2s ease-in-out;
 }
 
-login-page .inputGroup .button:hover {
+login-page form .button:hover {
     background: rgba(var(--main-button-background-color-rgb), 0.2);
 }
