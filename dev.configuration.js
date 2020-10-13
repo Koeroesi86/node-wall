@@ -22,5 +22,5 @@ module.exports = {
   },
   STATS_DOMAIN: 'stats.localhost',
   STATS_REFRESH_INTERVAL: 1000,
-  SERVERS: [ path.resolve(__dirname, './config') ]
+  SERVERS: [ path.resolve(__dirname, './config.js') ]
 };
