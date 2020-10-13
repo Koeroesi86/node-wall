@@ -12,3 +12,5 @@ lib/data/session/*
 !lib/data/comment/.gitkeep
 lib/data/comment/*
 .env
+!.log/.gitkeep
+.log/*
