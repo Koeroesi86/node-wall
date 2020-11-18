@@ -104,7 +104,7 @@ class ProfilePage extends Component {
     const parseLoginType = loginType => {
       switch (loginType) {
         case 'email':
-          return '<i class="fa fa-envelope-o" aria-hidden="true"></i>';
+          return '<x-icon type="emailLogin"></x-icon>';
         default:
           return loginType;
       }
@@ -132,7 +132,7 @@ class ProfilePage extends Component {
             </div>
             <div class="actionsWrapper">
               <button type="button" class="exit" data-session-id="${session.sessionId}">
-                <i class="fa fa-times" aria-hidden="true"></i>
+                <x-icon type="exit"></x-icon>
               </button>
             </div>
           </div>

@@ -114,12 +114,12 @@ class NavigationWrapper extends Component {
         this.userPanel.innerHTML = `
           ${userInfo.role !== 'admin' ? '' : `
             <a href="/moderation" class="moderation">
-              <i class="fas fa-dungeon"></i>
+              <x-icon type="moderation"></x-icon>
               <span><translate-text alias="navigation-wrapper.moderation"></translate-text></span>
             </a>
           `}
           <a href="/profile" class="userNameWrapper">
-            <i class="far fa-user"></i>
+            <x-icon type="user"></x-icon>
             <span>
               ${this._userName}
             </span>
@@ -132,7 +132,7 @@ class NavigationWrapper extends Component {
         }
         this.userPanel.innerHTML = `
           <a href="/login?session=${userInfo.session.id}" class="login">
-            <i class="far fa-user"></i>
+            <x-icon type="user"></x-icon>
             <span><translate-text alias="navigation-wrapper.login"></translate-text></span>
           </a>
         `;
@@ -140,14 +140,14 @@ class NavigationWrapper extends Component {
 
       this.userPanel.innerHTML += `
         <a href="/logout" class="logout">
-          <i class="fas fa-sign-out-alt"></i>
+          <x-icon type="logout"></x-icon>
           <span><translate-text alias="navigation-wrapper.logout"></translate-text></span>
         </a>
       `;
     } else {
       this.userPanel.innerHTML = `
         <a href="/login" title="Bejelentkezés" class="login">
-          <i class="far fa-user"></i>
+          <x-icon type="user"></x-icon>
           <span><translate-text alias="navigation-wrapper.login"></translate-text></span>
         </a>
       `;
@@ -158,18 +158,18 @@ class NavigationWrapper extends Component {
     this.style.display = 'none';
     this.innerHTML += `
       <a href="/" class="home">
-        <i class="fas fa-home"></i>
+        <x-icon type="home"></x-icon>
         <span><translate-text alias="navigation-wrapper.home"></translate-text></span>
       </a>
       <a href="/wall" class="wall">
-        <i class="far fa-comment"></i>
+        <x-icon type="wall"></x-icon>
         <span><translate-text alias="navigation-wrapper.wall"></translate-text></span>
       </a>
       <div class="user"></div>
       <div class="bottom">
         <a href="javascript:void(0)" class="darkThemeToggle"></a>
         <a href="javascript:void(0)" class="menuToggle">
-          <i class="fa fa-bars" aria-hidden="true"></i>
+          <x-icon type="menuToggle"></x-icon>
           <span><translate-text alias="navigation-wrapper.menu"></translate-text></span>
         </a>
       </div>
@@ -223,13 +223,13 @@ class NavigationWrapper extends Component {
     if (localStorage.getItem('darkTheme') !== 'on') {
       document.body.classList.remove('darkTheme');
       this.darkThemeToggle.innerHTML = `
-        <i class="fa fa-moon-o" aria-hidden="true"></i>
+        <x-icon type="darkTheme"></x-icon>
         <span><translate-text alias="navigation-wrapper.theme.dark"></translate-text></span>
       `;
     } else {
       document.body.classList.add('darkTheme');
       this.darkThemeToggle.innerHTML = `
-        <i class="fa fa-sun-o" aria-hidden="true"></i>
+        <x-icon type="lightTheme"></x-icon>
         <span><translate-text alias="navigation-wrapper.theme.bright"></translate-text></span>
       `;
     }

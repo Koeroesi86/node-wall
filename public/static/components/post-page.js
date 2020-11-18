@@ -58,7 +58,7 @@ class PostPage extends Component {
 
     this.postContent.innerHTML = parsePostContent(this._post.content, id);
     this.sentDateContainer.innerHTML = `
-      <i class="far fa-calendar-alt"></i>
+      <x-icon type="sentDate"></x-icon>
       <span>${new Date(parseInt(this._post.created_at, 10)).toLocaleString()}</span>
     `;
 

@@ -125,10 +125,10 @@ class TagInline extends Component {
         <a href="/tag/${this._tag.id}" target="_blank">${this._tag.name}</a>
         <div class="actions">
           <span class="likeTag">
-            <i class="fas fa-folder-plus"></i>
+            <x-icon type="likeTag"></x-icon>
           </span>
           <span class="dislikeTag">
-            <i class="fas fa-ban"></i>
+            <x-icon type="dislikeTag"></x-icon>
           </span>
         </div>
       `;
