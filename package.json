@@ -5,7 +5,7 @@
   "main": "config.js",
   "scripts": {
     "knex": "knex",
-    "dev": "node-webserver --config=\"D:\\Chris\\Documents\\Developement\\uzenofal\\dev.configuration.js\""
+    "dev": "nws-cli --config=\"D:\\Chris\\Documents\\Developement\\uzenofal\\dev.configuration.js\""
   },
   "keywords": [],
   "author": "",
@@ -24,6 +24,6 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "@koeroesi86/node-webserver": "^20.10.104-80ebdf3"
+    "@koeroesi86/node-webserver-cli": "^20.10.2-0efe879"
   }
 }

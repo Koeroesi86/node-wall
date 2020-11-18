@@ -1,26 +1,21 @@
 const path = require('path');
 
 module.exports = {
-  SERVICE_NAME: 'node-webserver',
-  ENABLE_FILE_LOGS: false,
-  FILE_LOG_PATH: path.resolve(__dirname, './.log/'),
-  LOG_LEVELS: {
+  serviceName: 'node-webserver',
+  fileLogPath: false, //path.resolve(__dirname, './.log/'),
+  logLevels: {
     system: true,
     info: true,
     success: false,
     error: true,
     warning: true,
   },
-  PORTS: {
+  ports: {
     http: 80,
     https: 443
   },
-  PORT_LOOKUP: {
-    from: 3000,
-    to: 3010,
-    address: 'localhost'
-  },
-  STATS_DOMAIN: 'stats.localhost',
-  STATS_REFRESH_INTERVAL: 1000,
-  SERVERS: [ path.resolve(__dirname, './config.js') ]
+  portLookup: false, //{from: 3000, to: 3010, address: 'localhost'}
+  statsDomain: 'stats.localhost',
+  statsRefreshInterval: 1000,
+  servers: [ path.resolve(__dirname, './config.js') ]
 };
