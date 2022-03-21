@@ -5,13 +5,12 @@ const dotenv = require('dotenv');
 const env = dotenv.parse(fs.readFileSync(resolve(__dirname, './.env')));
 
 module.exports = {
-  serverOptions: {
-    hostname: env.SITE_DOMAIN,
-    protocol: env.SITE_PROTOCOL || 'http',
-    // key: env.SITE_KEY || resolve(__dirname, './.certificates/localhost/privkey1.pem'),
-    // cert: env.SITE_CERT || resolve(__dirname, './.certificates/localhost/cert1.pem'),
-  },
-  workerOptions: {
+  hostname: env.SITE_DOMAIN,
+  protocol: env.SITE_PROTOCOL || 'http',
+  // key: env.SITE_KEY || resolve(__dirname, './.certificates/localhost/privkey1.pem'),
+  // cert: env.SITE_CERT || resolve(__dirname, './.certificates/localhost/cert1.pem'),
+  type: 'worker',
+  options: {
     root: resolve(__dirname, './public').replace('\\', '/'),
     env: {
       DB_DRIVER: env.DB_DRIVER || 'sqlite3',
