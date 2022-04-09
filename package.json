@@ -19,7 +19,7 @@
     "knex": "^1.0.4",
     "lib": "link:./lib",
     "match-all": "^1.2.6",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "nodemailer": "^6.7.3",
     "sqlite3": "^5.0.2",
     "uuid": "^8.3.2"
