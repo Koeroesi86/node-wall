@@ -16,7 +16,7 @@
     "cookie": "^0.4.2",
     "dotenv": "^16.0.0",
     "jsdom": "^19.0.0",
-    "knex": "^1.0.4",
+    "knex": "^2.4.0",
     "lib": "link:./lib",
     "match-all": "^1.2.6",
     "moment": "^2.29.1",
