@@ -544,32 +544,29 @@ module.exports = async (event, callback) => {
                 verifyUrl: verifyUrl.toString(),
               }),
             }, (err, info) => {
-              if (info) {
-                if (info.envelope) console.log('envelope', info.envelope);
-                if (info.messageId) console.log('messageId', info.messageId);
-                if (info.message) console.log('message', JSON.parse(info.message));
-              }
-
-              if (!info && err && err.responseCode > 500) {
-                console.log('err', err);
+              if (err) {
+                console.log('mail error', err);
                 return callback({
                   statusCode: 400,
                   headers: getResponseHeaders({}),
                   body: '',
                   isBase64Encoded: false,
                 });
-              } else {
-                console.log('mail sent to', payload.value);
-                const expires = moment().add(1, 'year');
-                return callback({
-                  statusCode: 200,
-                  headers: getResponseHeaders({
-                    'Set-Cookie': `sessionId=${session.id}; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`
-                  }),
-                  body: JSON.stringify({ sessionId: session.id }, null, 2),
-                  isBase64Encoded: false,
-                });
               }
+
+              if (info.envelope) console.log('envelope', info.envelope);
+              if (info.messageId) console.log('messageId', info.messageId);
+              if (info.message) console.log('message', JSON.parse(info.message));
+              console.log('mail sent to', payload.value);
+              const expires = moment().add(1, 'year');
+              return callback({
+                statusCode: 200,
+                headers: getResponseHeaders({
+                  'Set-Cookie': `sessionId=${session.id}; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`
+                }),
+                body: JSON.stringify({ sessionId: session.id }, null, 2),
+                isBase64Encoded: false,
+              });
             });
             return;
           }

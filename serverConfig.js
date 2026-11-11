@@ -25,6 +25,7 @@ module.exports = {
       SITE_DOMAIN: env.SITE_DOMAIN || 'localhost',
     },
     cwd: resolve(appRoot),
+    limitRequestBody: 64 * 1024,
     limit: 0,
     limitPerPath: 1,
     index: [
