@@ -11,6 +11,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@vscode/sqlite3": "^5.1.14-vscode",
     "axios": "^0.26.1",
     "cookie": "^0.4.2",
     "dotenv": "^16.0.0",
@@ -20,7 +21,6 @@
     "match-all": "^1.2.6",
     "moment": "^2.29.1",
     "nodemailer": "^6.7.3",
-    "sqlite3": "^5.1.7",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
