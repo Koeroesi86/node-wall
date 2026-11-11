@@ -531,14 +531,15 @@ module.exports = async (event, callback) => {
             verifyUrl.searchParams.set('session', session.id);
             const activateUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login`);
             activateUrl.searchParams.set('session', session.id);
+            const { value: title } = await getTranslation('email.verify.title', await detectLanguage(headers));
             transporter.sendMail({
               from: process.env.NODEMAILER_USER || 'sender@example.com',
               to: payload.value,
-              subject: await getTranslation('email.verify.title', await detectLanguage(headers)),
+              subject: title,
               encoding: 'utf-8',
               html: await verifyLoginTemplate({
                 language: await detectLanguage(headers),
-                title: await getTranslation('email.verify.title', await detectLanguage(headers)),
+                title,
                 code: session.secret,
                 activateUrl: activateUrl.toString(),
                 verifyUrl: verifyUrl.toString(),
