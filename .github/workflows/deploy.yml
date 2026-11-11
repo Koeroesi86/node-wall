@@ -1,0 +1,48 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+
+concurrency: deploy-uzeno
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24 # matches the Node on the server (native sqlite3 module)
+      - run: yarn install --frozen-lockfile
+      - name: Assemble build folder
+        run: |
+          mkdir build
+          cp -a serverConfig.js knexfile.js package.json yarn.lock migrations lib public node_modules build/
+          mkdir build/deploy && cp deploy/pre-activate.sh build/deploy/
+      # A tarball keeps the symlinks in node_modules intact, which upload-artifact would flatten.
+      - run: tar -cf build.tar build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: build.tar
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+      - run: tar -xf build.tar
+      - uses: Koeroesi86/deploy-action@v1
+        with:
+          host: ${{ vars.DEPLOY_HOST }}
+          user: ${{ vars.DEPLOY_USER }}
+          path: /var/www/uzeno.koro.si
+          source: build
+          ssh-key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known-hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          pre-activate: bash deploy/pre-activate.sh
+          health-url: ${{ vars.DEPLOY_HEALTH_URL }} # set to https://uzeno.koro.si/ once the webserver serves the site

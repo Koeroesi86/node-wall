@@ -1,6 +1,7 @@
 const { v4: uuid } = require('uuid');
 const cookie = require('cookie');
 const crypto = require('crypto');
+const { json } = require('stream/consumers');
 const moment = require('moment');
 const matchAll = require('match-all');
 const storageService = require('lib/services/storage');
@@ -116,7 +117,7 @@ module.exports = async (event, callback) => {
     /** @route /api/comment */
     if (pathFragments[1] === 'comment') {
       if (httpMethod === 'POST' && pathFragments.length === 2) {
-        const payload = JSON.parse(event.body);
+        const payload = await json(event.bodyStream);
         const owner = userInfo ? userInfo.user.id : null;
 
         if (!payload.postId) {
@@ -160,7 +161,7 @@ module.exports = async (event, callback) => {
       if (httpMethod === 'PUT' && pathFragments[2] && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
         const id = pathFragments[2];
         if (userInfo && ['admin'].includes(userInfo.user.role)) {
-          const payload = JSON.parse(event.body);
+          const payload = await json(event.bodyStream);
 
           if (!payload.status) throw new Error('no status');
           if (!['public', 'pending', 'moderated', 'deleted'].includes(payload.status)) throw new Error('invalid status');
@@ -333,7 +334,7 @@ module.exports = async (event, callback) => {
 
       if (httpMethod === 'POST') {
         if (pathFragments.length === 2) {
-          const payload = JSON.parse(event.body);
+          const payload = await json(event.bodyStream);
           if (!payload.content) throw new Error('no content');
 
           await postService.create(payload.content, userInfo ? userInfo.user.id : null)
@@ -359,7 +360,7 @@ module.exports = async (event, callback) => {
           const postTags = await postService.getTags(postId);
 
           if (pathFragments[3] === 'tags') {
-            const payload = JSON.parse(event.body);
+            const payload = await json(event.bodyStream);
             if (!payload.id) throw new Error('no tag id specified');
 
             const tagId = payload.id;
@@ -470,7 +471,7 @@ module.exports = async (event, callback) => {
 
       if (httpMethod === 'POST') {
         if (pathFragments.length === 2) {
-          const payload = JSON.parse(event.body);
+          const payload = await json(event.bodyStream);
 
           if (!payload.name) throw new Error('no name');
           if (!payload.type) throw new Error('no type');
@@ -493,7 +494,7 @@ module.exports = async (event, callback) => {
     if (pathFragments[1] === 'user') {
       if (pathFragments.length === 2) {
         if (httpMethod === 'POST') {
-          const payload = JSON.parse(event.body);
+          const payload = await json(event.bodyStream);
           if (!payload.value) throw new Error('no value');
           if (!payload.type) throw new Error('no type');
 
@@ -671,7 +672,7 @@ module.exports = async (event, callback) => {
         }
 
         if (httpMethod === 'PUT') {
-          const payload = JSON.parse(event.body);
+          const payload = await json(event.bodyStream);
           if (!payload.name) throw new Error('no name');
 
           await userService.setName(userInfo.user.id, payload.name);
@@ -708,7 +709,7 @@ module.exports = async (event, callback) => {
         }
 
         if (httpMethod === 'PUT') {
-          const payload = JSON.parse(event.body);
+          const payload = await json(event.bodyStream);
           if (!userInfo) throw new Error('not logged in');
           if (!payload.id) throw new Error('no id');
           if (!payload.type) throw new Error('no type');
@@ -724,7 +725,7 @@ module.exports = async (event, callback) => {
         }
 
         if (httpMethod === 'DELETE') {
-          const payload = JSON.parse(event.body);
+          const payload = await json(event.bodyStream);
           if (!userInfo) throw new Error('not logged in');
           if (!payload.id) throw new Error('no id');
 

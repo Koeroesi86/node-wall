@@ -3,18 +3,20 @@ const { resolve } = require('path');
 const dotenv = require('dotenv');
 
 const env = dotenv.parse(fs.readFileSync(resolve(__dirname, './.env')));
+// On the server APP_ROOT is the stable `build` symlink of the deploy, so new releases are picked up without a reload.
+const appRoot = env.APP_ROOT || __dirname;
 
 module.exports = {
   hostname: env.SITE_DOMAIN,
-  protocol: env.SITE_PROTOCOL || 'http',
+  protocol: env.SERVER_PROTOCOL || 'http', // SITE_PROTOCOL is the public one (links in emails), TLS ends at Apache
   // key: env.SITE_KEY || resolve(__dirname, './.certificates/localhost/privkey1.pem'),
   // cert: env.SITE_CERT || resolve(__dirname, './.certificates/localhost/cert1.pem'),
   type: 'worker',
   options: {
-    root: resolve(__dirname, './public').replace('\\', '/'),
+    root: resolve(appRoot, './public').replace('\\', '/'),
     env: {
       DB_DRIVER: env.DB_DRIVER || 'sqlite3',
-      DB_DATABASE: env.DB_DATABASE || resolve(__dirname, './lib/data/wall.sqlite').replace('\\', '/'),
+      DB_DATABASE: env.DB_DATABASE || resolve(appRoot, './lib/data/wall.sqlite').replace('\\', '/'),
       NODEMAILER_HOST: env.NODEMAILER_HOST,
       NODEMAILER_PORT: env.NODEMAILER_PORT,
       NODEMAILER_USER: env.NODEMAILER_USER,
@@ -22,7 +24,7 @@ module.exports = {
       SITE_PROTOCOL: env.SITE_PROTOCOL || 'http',
       SITE_DOMAIN: env.SITE_DOMAIN || 'localhost',
     },
-    cwd: resolve(__dirname),
+    cwd: resolve(appRoot),
     limit: 0,
     limitPerPath: 1,
     index: [

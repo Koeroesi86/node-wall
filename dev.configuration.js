@@ -14,5 +14,5 @@ module.exports = {
   portLookup: false, //{from: 3000, to: 3010, address: 'localhost'}
   statsDomain: 'stats.localhost',
   statsRefreshInterval: 1000,
-  servers: [ path.resolve(__dirname, './config.js') ]
+  servers: [ path.resolve(__dirname, './serverConfig.js') ]
 };
