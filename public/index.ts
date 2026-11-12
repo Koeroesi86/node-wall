@@ -210,9 +210,8 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
     /** @route /login */
     if (pathFragments[0] === 'login') {
-      if ((!userInfo && cookies.sessionId) || (userInfo && userInfo.session.status === 'active')) {
-        if (!userInfo && cookies.sessionId) console.log(`no session found ${cookies.sessionId}`);
-        if (userInfo && userInfo.session.status === 'active') console.log('already logged in');
+      if (userInfo) {
+        console.log('already logged in');
         return callback({
           statusCode: 302,
           headers: {
@@ -251,7 +250,9 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
               .digest("hex");
             const currentSession = await knex('users_session').where('id', session).first();
 
-            if (currentSession && currentSession.secret === hash) {
+            const verified = currentSession?.status === 'pending' && currentSession.secret === hash;
+
+            if (verified) {
               await knex('users_session')
                 .where({ id: session })
                 .update({ status: 'active', secret: '' });
@@ -263,8 +264,10 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
               headers: {
                 'Content-Type': 'text/html',
                 'Cache-Control': 'public, max-age=0',
-                'Set-Cookie': `sessionId=${session}; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`,
-                'Location': `/login`,
+                ...(verified && {
+                  'Set-Cookie': `sessionId=${session}; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`,
+                }),
+                'Location': verified ? `/` : `/login?session=${encodeURIComponent(session)}`,
               },
               body: '',
               isBase64Encoded: false,

@@ -166,7 +166,7 @@ describe('/login', () => {
   });
 
   test('renders the login page for a pending session', async () => {
-    vi.mocked(getUserInfoFromSession).mockResolvedValue(userInfo('user', 'pending'));
+    vi.mocked(getUserInfoFromSession).mockResolvedValue(null);
     expect((await request({ path: 'login' })).body).toContain('<login-page>');
   });
 
@@ -175,8 +175,8 @@ describe('/login', () => {
     expect(await request({ path: 'login' })).toMatchObject({ statusCode: 302, headers: { Location: '/' } });
   });
 
-  test('redirects to / when the cookie refers to an unknown session', async () => {
-    expect(await request({ path: 'login' })).toMatchObject({ statusCode: 302, headers: { Location: '/' } });
+  test('renders the login page when the cookie refers to an unknown session', async () => {
+    expect((await request({ path: 'login' })).body).toContain('<login-page>');
   });
 
   describe('/login/email', () => {
@@ -185,27 +185,38 @@ describe('/login', () => {
     const hash = createHash('sha256').update(code).digest('hex');
 
     test('activates the session when the code matches', async () => {
-      fakeDb.resolvesInOrder({ id: SESSION_ID, secret: hash });
+      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash });
 
       const response = await verify({ code, session: SESSION_ID });
 
-      expect(response).toMatchObject({ statusCode: 302, headers: { Location: '/login' } });
+      expect(response).toMatchObject({ statusCode: 302, headers: { Location: '/' } });
       expect(response.headers?.['Set-Cookie']).toMatch(new RegExp(`^sessionId=${SESSION_ID}; Expires=.* GMT; Path=/$`));
       expect(fakeDb.calls).toContainEqual(['update', { status: 'active', secret: '' }]);
     });
 
-    test('leaves the session pending when the code is wrong', async () => {
-      fakeDb.resolvesInOrder({ id: SESSION_ID, secret: hash });
+    test('leaves the session pending and sets no cookie when the code is wrong', async () => {
+      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash });
 
       const response = await verify({ code: 'WRONG', session: SESSION_ID });
 
       expect(response.statusCode).toBe(302);
+      expect(response.headers?.['Set-Cookie']).toBeUndefined();
+      expect(fakeDb.calls.map(call => call[0])).not.toContain('update');
+    });
+
+    test('does not reactivate a deleted session', async () => {
+      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'deleted', secret: hash });
+
+      const response = await verify({ code, session: SESSION_ID });
+
+      expect(response.headers?.['Set-Cookie']).toBeUndefined();
       expect(fakeDb.calls.map(call => call[0])).not.toContain('update');
     });
 
     test('leaves everything alone when the session does not exist', async () => {
       fakeDb.resolvesInOrder(undefined);
-      await verify({ code, session: SESSION_ID });
+      const response = await verify({ code, session: SESSION_ID });
+      expect(response.headers?.['Set-Cookie']).toBeUndefined();
       expect(fakeDb.calls.map(call => call[0])).not.toContain('update');
     });
 

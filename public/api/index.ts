@@ -564,12 +564,9 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
               if (info.messageId) console.log('messageId', info.messageId);
               if (info.message) console.log('message', JSON.parse(info.message));
               console.log('mail sent to', payload.value);
-              const expires = moment().add(1, 'year');
               return callback({
                 statusCode: 200,
-                headers: getResponseHeaders({
-                  'Set-Cookie': `sessionId=${session.id}; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`
-                }),
+                headers: getResponseHeaders({}),
                 body: JSON.stringify({ sessionId: session.id }, null, 2),
                 isBase64Encoded: false,
               });
