@@ -14,10 +14,10 @@ export = {
   // cert: env.SITE_CERT || resolve(__dirname, './.certificates/localhost/cert1.pem'),
   type: 'worker',
   options: {
-    root: resolve(appRoot, './public').replace('\\', '/'),
+    root: resolve(appRoot, './public').replace(/\\/g, '/'),
     env: {
       DB_DRIVER: env.DB_DRIVER || 'sqlite3',
-      DB_DATABASE: env.DB_DATABASE || resolve(appRoot, './lib/data/wall.sqlite').replace('\\', '/'),
+      DB_DATABASE: env.DB_DATABASE || resolve(appRoot, './lib/data/wall.sqlite').replace(/\\/g, '/'),
       NODEMAILER_HOST: env.NODEMAILER_HOST,
       NODEMAILER_PORT: env.NODEMAILER_PORT,
       NODEMAILER_USER: env.NODEMAILER_USER,

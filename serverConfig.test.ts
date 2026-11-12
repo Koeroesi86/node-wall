@@ -57,6 +57,13 @@ describe('serverConfig', () => {
     });
   });
 
+  test('turns every backslash of the app root into a forward slash', async () => {
+    const config = await load('APP_ROOT=C:\\www\\wall\\build\n');
+
+    expect(config.options.root).not.toContain('\\');
+    expect(config.options.env.DB_DATABASE).not.toContain('\\');
+  });
+
   test('limits request bodies to 64 KiB', async () => {
     expect((await load('')).options.limitRequestBody).toBe(64 * 1024);
   });

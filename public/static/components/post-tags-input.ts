@@ -159,7 +159,7 @@ class PostTagsInput extends Component {
         const tagNode = document.createElement('div');
         tagNode.className = 'tagResult';
         tagNode.setAttribute('tag-id', tag.id);
-        tagNode.innerHTML = tag.name;
+        tagNode.textContent = tag.name;
         tagNode.addEventListener('click', e => {
           tagNode.remove();
           this.add(tag.id);
@@ -172,9 +172,9 @@ class PostTagsInput extends Component {
       if (!hasExactMatch) {
         const tagNode = document.createElement('div');
         tagNode.className = 'tagResult';
-        tagNode.innerHTML = `
-          "${term}" <translate-text alias="post-tags-input.create-tag"></translate-text>
-        `;
+        const translateNode = document.createElement('translate-text');
+        translateNode.setAttribute('alias', 'post-tags-input.create-tag');
+        tagNode.append(`"${term}" `, translateNode);
         tagNode.addEventListener('click', e => {
           this.createTag(term, 'text').then(() => {
             tagNode.remove();
