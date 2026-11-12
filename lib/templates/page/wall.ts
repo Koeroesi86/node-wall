@@ -12,7 +12,7 @@ export default (props: WallPageProps = {}) => wrapper({
   language: props.language,
   sessionId: props.sessionId,
   headers: `
-    <script src="https://cdn.jsdelivr.net/npm/tributejs@3.7.3/dist/tribute.min.js"></script>
+    <script src="/static/vendor/tribute.min.js"></script>
     <script src="/static/utils/post.js"></script>
     <script src="/static/components/tag-inline.js"></script>
     <script src="/static/components/link-preview.js"></script>

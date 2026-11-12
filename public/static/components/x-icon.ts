@@ -1,6 +1,5 @@
 class Icon extends Component {
   static override styleSheet = '/static/components/x-icon.css';
-  static faLoaded = false;
   static iconSet = {
     'moderation': '<i class="fas fa-dungeon"></i>',
     'user': '<i class="far fa-user"></i>',
@@ -18,21 +17,6 @@ class Icon extends Component {
   };
 
   static get observedAttributes() { return ['type']; }
-
-  constructor() {
-    super();
-
-    // TODO: remove dependency
-    if (!Icon.faLoaded) {
-      Icon.faLoaded = true;
-
-      const fontawesomeScript = document.createElement('script');
-      fontawesomeScript.src = 'https://kit.fontawesome.com/89bcd6101e.js';
-      fontawesomeScript.crossOrigin = 'anonymous';
-      fontawesomeScript.async = true;
-      document.body.append(fontawesomeScript);
-    }
-  }
 
   render() {
     const type = this.getAttribute('type');

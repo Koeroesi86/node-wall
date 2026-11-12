@@ -65,7 +65,7 @@ describe('pages', () => {
     const response = await request({ headers: { cookie: `sessionId=${SESSION_ID}`, 'accept-language': 'hu-HU,hu' } });
 
     expect(response.statusCode).toBe(200);
-    expect(response.headers).toMatchObject({ 'Content-Type': 'text/html' });
+    expect(response.headers).toMatchObject({ 'Content-Type': 'text/html', 'Content-Security-Policy': expect.stringContaining("script-src 'self'") });
     expect(response.body).toContain('<welcome-page>');
     expect(response.body).toContain('<html lang="hu">');
     expect(response.body).toContain(`<meta name="x-session-id" content="${SESSION_ID}" />`);

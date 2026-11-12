@@ -15,8 +15,8 @@ let browser: Browser;
 const page = '<!doctype html><html><head><meta name="x-session-id" content=""></head><body></body></html>';
 
 const boot = async (initialState?: object) => {
-  const state = initialState ? `window.__STATE__ = ${JSON.stringify(initialState)};` : '';
-  browser = await loadBrowser(files, page, `${reduxStub}\n${state}`);
+  const stateElement = initialState ? `<script type="application/json" id="initial-state">${JSON.stringify(initialState)}</script>` : '';
+  browser = await loadBrowser(files, page.replace('</body>', `${stateElement}</body>`), reduxStub);
 };
 
 const call = <T>(code: string) => browser.evaluate<T>(code);
@@ -53,14 +53,14 @@ describe('shallowEqual', () => {
 });
 
 describe('the store', () => {
-  test('starts from the server rendered state and removes it from the window', async () => {
+  test('starts from the server rendered state and removes it from the document', async () => {
     await boot({ tags: { t1: { name: 'news' } } });
     const mapState = vi.fn();
 
     browser.evaluate<(listener: Listener) => void>('connectRedux')(mapState);
 
     expect(mapState.mock.calls[0][0].tags).toEqual({ t1: { name: 'news' } });
-    expect(Object.prototype.hasOwnProperty.call(browser.window, '__STATE__')).toBe(false);
+    expect(browser.window.document.getElementById('initial-state')).toBeNull();
   });
 
   test('exposes the event types and the dispatch event', async () => {

@@ -18,7 +18,7 @@ describe('wrapper', () => {
     expect(html).toContain('<title>Üzenőfal</title>');
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('<meta name="x-language" content="en-GB" />');
-    expect(html).toContain(`window['__STATE__'] = {};`);
+    expect(html).toContain('id="initial-state">{}</script>');
   });
 
   test('renders the given props', () => {
@@ -37,7 +37,7 @@ describe('wrapper', () => {
     expect(html).toContain(`<navigation-wrapper session-id="${SID}">`);
     expect(html).toContain('<p>content</p>');
     expect(html).toContain('<script src="/x.js"></script>');
-    expect(html).toContain(`window['__STATE__'] = {"a":1};`);
+    expect(html).toContain('id="initial-state">{"a":1}</script>');
   });
 });
 
@@ -93,5 +93,16 @@ describe('wrapper escaping', () => {
   test('escapes the language', () => {
     const html = wrapper({ language: '"><script>x</script>' });
     expect(html).not.toContain('<script>x</script>');
+  });
+});
+
+describe('wrapper initial state', () => {
+  test('cannot close the script element', () => {
+    const html = wrapper({ initialState: { a: '</script><script>alert(1)</script>' } });
+    expect(html).not.toContain('</script><script>alert(1)');
+  });
+
+  test('loads third-party scripts from this origin', () => {
+    expect(wrapper()).not.toMatch(/src="https?:\/\//);
   });
 });

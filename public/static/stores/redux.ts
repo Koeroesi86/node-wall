@@ -55,8 +55,11 @@ const middlewares = [
 
   const enhancer = composeEnhancers(Redux.applyMiddleware(...m));
 
-  const store = Redux.createStore(reducer, g['__STATE__'] || {}, enhancer);
-  delete g['__STATE__'];
+  const stateElement = document.getElementById('initial-state');
+  const initialState = JSON.parse(stateElement?.textContent || '{}');
+  stateElement?.remove();
+
+  const store = Redux.createStore(reducer, initialState, enhancer);
 
   const cloneState = a => a; // safer but slower: JSON.stringify;
 
