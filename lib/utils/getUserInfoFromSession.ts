@@ -5,6 +5,7 @@ export default async (sessionId: string) => {
     const knex = await createDatabase();
     const session = await knex.select('id', 'users_login_id', 'status', 'created_at').where({
       id: sessionId,
+      status: 'active',
     }).from('users_session').first();
     if (!session) {
       throw new Error('no session');

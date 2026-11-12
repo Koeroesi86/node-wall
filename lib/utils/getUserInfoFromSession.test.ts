@@ -22,6 +22,12 @@ test('getUserInfoFromSession resolves the session, login and user', async () => 
   expect(fakeDb.calls.filter(call => call[0] === 'from')).toEqual([['from', 'users_session'], ['from', 'users_login'], ['from', 'users']]);
 });
 
+test('getUserInfoFromSession only looks up active sessions', async () => {
+  fakeDb.resolvesInOrder(undefined);
+  expect(await getUserInfoFromSession('s1')).toBeNull();
+  expect(fakeDb.calls).toContainEqual(['where', { id: 's1', status: 'active' }]);
+});
+
 test.each([
   ['session', [undefined]],
   ['login', [session, undefined]],

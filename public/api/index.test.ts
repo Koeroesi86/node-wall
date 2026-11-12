@@ -585,7 +585,7 @@ describe('/api/user', () => {
 
       expect(response.statusCode).toBe(200);
       expect(jsonBody(response)).toEqual({ sessionId: SESSION_ID });
-      expect(response.headers?.['Set-Cookie']).toMatch(new RegExp(`^sessionId=${SESSION_ID}; Expires=.* GMT; Path=/$`));
+      expect(response.headers?.['Set-Cookie']).toBeUndefined();
       expect(userService.create).not.toHaveBeenCalled();
       expect(sessionService.create).toHaveBeenCalledWith(
         SESSION_ID,
