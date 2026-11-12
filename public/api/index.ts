@@ -564,14 +564,13 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             .digest("hex");
           await sessionService.create(session.id, login.id, hash, 'pending');
 
-          if (process.env.LOG_LOGIN_CODE === 'true') {
-            console.log('login code (dev only)', session.secret, 'session', session.id);
-          }
-
           if (payload.type === 'email') {
             const verifyUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login/email`);
             verifyUrl.searchParams.set('code', session.secret);
             verifyUrl.searchParams.set('session', session.id);
+            if (process.env.LOG_LOGIN_CODE === 'true') {
+              console.log('login url (dev only)', verifyUrl.toString());
+            }
             const activateUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login`);
             activateUrl.searchParams.set('session', session.id);
             const { value: title } = await getTranslation('email.verify.title', await detectLanguage(headers));
