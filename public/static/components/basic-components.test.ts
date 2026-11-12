@@ -118,12 +118,6 @@ describe('x-icon', () => {
     element.setAttribute('type', 'user');
     expect(element.innerHTML).toBe('<i class="far fa-user"></i>');
   });
-
-  test('loads the icon font only once', () => {
-    page.mount('<x-icon type="home"></x-icon>');
-    page.mount('<x-icon type="user"></x-icon>');
-    expect(page.document.querySelectorAll('script[src*="fontawesome"]')).toHaveLength(1);
-  });
 });
 
 describe('compose-post', () => {

@@ -30,6 +30,8 @@ export default (props: WrapperProps = {}) => (`
     <meta name="x-session-id" content="${getSessionId(props)}" />
     <meta name="x-language" content="${getLanguage(props)}" />
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap&subset=latin-ext" rel="stylesheet">
+    <link href="/static/vendor/fontawesome/css/all.min.css" rel="stylesheet">
+    <link href="/static/vendor/fontawesome/css/v4-shims.min.css" rel="stylesheet">
     <script src="/static/vendor/webcomponents-bundle.js"></script>
     <script src="/static/vendor/redux.min.js"></script>
     <script type="application/json" id="initial-state">${getInitialState(props)}</script>

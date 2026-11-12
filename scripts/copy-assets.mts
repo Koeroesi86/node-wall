@@ -12,6 +12,12 @@ mkdirSync('dist/public/static/vendor', { recursive: true });
   'node_modules/tributejs/dist/tribute.min.js',
 ].forEach((source) => cpSync(source, `dist/public/static/vendor/${source.split('/').pop()}`));
 
+cpSync('node_modules/@fortawesome/fontawesome-free/webfonts', 'dist/public/static/vendor/fontawesome/webfonts', { recursive: true });
+['all.min.css', 'v4-shims.min.css'].forEach((file) => {
+  mkdirSync('dist/public/static/vendor/fontawesome/css', { recursive: true });
+  cpSync(`node_modules/@fortawesome/fontawesome-free/css/${file}`, `dist/public/static/vendor/fontawesome/css/${file}`);
+});
+
 cpSync('lib/translations', 'dist/lib/translations', { recursive: true, filter: isAsset });
 
 ['comment', 'link', 'post', 'session']
