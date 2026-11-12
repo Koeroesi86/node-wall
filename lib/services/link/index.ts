@@ -3,15 +3,14 @@ import create from './queries/create';
 import getByUrl from './queries/getByUrl';
 import storageService from '../storage';
 import { JSDOM } from 'jsdom';
+import safeFetch from '../../utils/safeFetch';
 
 export default {
   create: async (url: string) => {
     const id: string = uuid();
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.93 Safari/537.36 Vivaldi/2.8.1664.40',
-      },
+    const { response, text } = await safeFetch(url, {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.93 Safari/537.36 Vivaldi/2.8.1664.40',
     });
 
     if (!response.ok) throw new Error(`Request failed (${response.status})`);
@@ -20,7 +19,7 @@ export default {
 
     if (!contentType.includes('text/html')) throw new Error('Not yet supported type');
 
-    const dom = new JSDOM(await response.text());
+    const dom = new JSDOM(text);
 
     const title = dom.window.document.querySelector('head title')?.textContent ?? '';
     const headers = [...dom.window.document.querySelectorAll("head meta")].map(meta => ({
@@ -52,7 +51,7 @@ export default {
       description = fbDescription.content;
     }
 
-    const videoId = url.match(/^https:\/\/www.youtube.com\/watch\?v=(.+)/)?.[1];
+    const videoId = url.match(/^https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})$/)?.[1];
     const embedCode = videoId ? `<iframe src="https://www.youtube.com/embed/${videoId}"></iframe>` : '';
 
     const newLinkData = {

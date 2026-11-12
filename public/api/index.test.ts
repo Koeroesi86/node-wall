@@ -152,7 +152,7 @@ describe('/api/link', () => {
   const query = { uri: 'https://example.com/page', post };
 
   beforeEach(() => {
-    vi.mocked(storageService.read).mockResolvedValue('look at example.com/page');
+    vi.mocked(storageService.read).mockResolvedValue('look at https://example.com/page now');
   });
 
   test.each([
@@ -161,6 +161,7 @@ describe('/api/link', () => {
     ['no post', { uri: 'https://example.com' }],
     ['an invalid post id', { uri: 'https://example.com', post: 'nope' }],
     ['a uri missing from the post', { uri: 'https://other.com', post }],
+    ['a uri that is only a substring of a post link', { uri: 'https://example.com', post }],
   ])('rejects %s', async (_name, rejectedQuery) => {
     expect((await request({ path: 'api/link', query: rejectedQuery })).statusCode).toBe(400);
   });
