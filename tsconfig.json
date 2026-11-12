@@ -8,5 +8,6 @@
     "rootDir": ".",
     "outDir": "dist"
   },
-  "include": ["serverConfig.ts", "knexfile.ts", "dev.configuration.ts", "lib", "migrations", "types", "public/index.ts", "public/api"]
+  "include": ["serverConfig.ts", "knexfile.ts", "dev.configuration.ts", "lib", "migrations", "types", "public/index.ts", "public/api"],
+  "exclude": ["**/*.test.ts", "lib/test-utils"]
 }

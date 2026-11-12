@@ -8,5 +8,6 @@
     "rootDir": ".",
     "outDir": "../../dist/public/static"
   },
-  "include": ["."]
+  "include": ["."],
+  "exclude": ["**/*.test.ts"]
 }

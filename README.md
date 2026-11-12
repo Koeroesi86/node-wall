@@ -12,6 +12,7 @@ The community building platform.
 npm ci
 npm run build   # TypeScript -> dist/
 npm run typecheck
+npm test        # runs the *.test.ts files with Vitest (npm run test:watch, npm run test:coverage)
 ```
 
 The app is written in TypeScript and runs from `dist/`, which `npm run build` produces (compiled code plus the CSS, translations and media it needs). Put your `.env` in the project root or in `dist/`. `npm run clean` removes `dist/`, including any local data under `dist/lib/data`.
