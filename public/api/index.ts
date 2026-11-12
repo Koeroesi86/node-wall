@@ -71,13 +71,12 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
         if (!/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(post)) throw new Error('Invalid post id');
 
         const postContent = await storageService.read(post, 'post');
-        if (!(postContent || '').includes(uri.replace(/^https?:\/\//, ''))) throw new Error('Uri not present in post.');
-
-        let url = uri;
-
-        if (/^http:/.test(url)) {
-          url = url.replace(/^http:/, 'https:');
-        }
+        const toHttps = (link: string) => link.replace(/^http:/, 'https:');
+        const url = (postContent || '')
+          .match(/https?:\/\/[^\s<>"']+/gi)
+          ?.map(toHttps)
+          .find(link => link === toHttps(uri));
+        if (!url) throw new Error('Uri not present in post.');
 
         const existingLink = await linkService.getByUrl(url);
 

@@ -1,28 +1,28 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import storage from '../storage';
 import create from './queries/create';
 import getByUrl from './queries/getByUrl';
+import safeFetch from '../../utils/safeFetch';
 import linkService from './index';
 
 vi.mock('crypto', () => ({ randomUUID: () => 'new-id' }));
 vi.mock('../storage');
 vi.mock('./queries/create');
 vi.mock('./queries/getByUrl');
+vi.mock('../../utils/safeFetch');
 
-const fetchMock = vi.fn();
-
-const htmlResponse = (html: string, init: ResponseInit = { headers: { 'content-type': 'text/html; charset=utf-8' } }) => new Response(html, init);
+const htmlResponse = async (html: string, init: ResponseInit = { headers: { 'content-type': 'text/html; charset=utf-8' } }) => {
+  const response = new Response(html, init);
+  return { response, text: html };
+};
 
 beforeEach(() => {
   vi.resetAllMocks();
-  vi.stubGlobal('fetch', fetchMock);
 });
-
-afterEach(() => vi.unstubAllGlobals());
 
 describe('create', () => {
   test('extracts title, description and image and stores the result', async () => {
-    fetchMock.mockResolvedValue(htmlResponse(`
+    vi.mocked(safeFetch).mockResolvedValue(await htmlResponse(`
       <html><head>
         <title>Page title</title>
         <meta property="og:description" content="fb description" />
@@ -44,7 +44,7 @@ describe('create', () => {
   });
 
   test('prefers twitter metadata over open graph', async () => {
-    fetchMock.mockResolvedValue(htmlResponse(`
+    vi.mocked(safeFetch).mockResolvedValue(await htmlResponse(`
       <head><title>t</title>
         <meta property="og:image" content="fb.png" /><meta property="twitter:image" content="tw.png" />
         <meta property="og:description" content="fb" /><meta property="twitter:description" content="tw" />
@@ -56,21 +56,29 @@ describe('create', () => {
   });
 
   test('builds an embed code for YouTube links', async () => {
-    fetchMock.mockResolvedValue(htmlResponse('<head><title>v</title></head>'));
+    vi.mocked(safeFetch).mockResolvedValue(await htmlResponse('<head><title>v</title></head>'));
 
-    const data = await linkService.create('https://www.youtube.com/watch?v=abc123');
+    const data = await linkService.create('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 
-    expect(data.embedCode).toBe('<iframe src="https://www.youtube.com/embed/abc123"></iframe>');
+    expect(data.embedCode).toBe('<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>');
+  });
+
+  test('does not build an embed code for an injected video id', async () => {
+    vi.mocked(safeFetch).mockResolvedValue(await htmlResponse('<head><title>v</title></head>'));
+
+    const data = await linkService.create('https://www.youtube.com/watch?v=x" onload="alert(1)');
+
+    expect(data.embedCode).toBe('');
   });
 
   test('defaults to empty values when the page has no metadata', async () => {
-    fetchMock.mockResolvedValue(htmlResponse('<html></html>'));
+    vi.mocked(safeFetch).mockResolvedValue(await htmlResponse('<html></html>'));
 
     expect(await linkService.create('https://example.com')).toMatchObject({ title: '', description: '', image: '' });
   });
 
   test('fails on a non-2xx response without storing anything', async () => {
-    fetchMock.mockResolvedValue(new Response('', { status: 404 }));
+    vi.mocked(safeFetch).mockResolvedValue({ response: new Response('', { status: 404 }), text: '' });
 
     await expect(linkService.create('https://example.com')).rejects.toThrow('Request failed (404)');
     expect(create).not.toHaveBeenCalled();
@@ -78,7 +86,7 @@ describe('create', () => {
   });
 
   test('fails on non-HTML content', async () => {
-    fetchMock.mockResolvedValue(new Response('{}', { headers: { 'content-type': 'application/json' } }));
+    vi.mocked(safeFetch).mockResolvedValue({ response: new Response('{}', { headers: { 'content-type': 'application/json' } }), text: '{}' });
 
     await expect(linkService.create('https://example.com')).rejects.toThrow('Not yet supported type');
     expect(storage.write).not.toHaveBeenCalled();
