@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import crypto, { createHash } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { LambdaEvent, LambdaResponse } from '../../lib/types';
@@ -16,7 +16,6 @@ import getUserSessions from '../../lib/utils/getUserSessions';
 
 const transporter = vi.hoisted(() => ({ sendMail: vi.fn() }));
 
-vi.mock('uuid', () => ({ v4: () => 'aaaaaaaa-0000-0000-0000-000000000000' }));
 vi.mock('../../lib/services/comment');
 vi.mock('../../lib/services/link');
 vi.mock('../../lib/services/post');
@@ -78,6 +77,7 @@ beforeEach(async () => {
   vi.resetModules();
   vi.useFakeTimers();
   vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  vi.spyOn(crypto, 'randomUUID').mockReturnValue(SESSION_ID);
   vi.stubEnv('SITE_PROTOCOL', 'https');
   vi.stubEnv('SITE_DOMAIN', 'example.com');
   vi.stubEnv('NODEMAILER_USER', '');

@@ -1,5 +1,4 @@
 import type { LambdaCallback, LambdaEvent } from '../../lib/types';
-import { v4 as uuid } from 'uuid';
 import cookie from 'cookie';
 import crypto from 'crypto';
 import moment from 'moment';
@@ -520,7 +519,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           }
 
           const session = {
-            id: uuid(),
+            id: crypto.randomUUID(),
             users_login_id: login.id,
             status: 'pending',
             secret: generateCode(),

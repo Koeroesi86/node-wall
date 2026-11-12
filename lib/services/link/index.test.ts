@@ -4,7 +4,7 @@ import create from './queries/create';
 import getByUrl from './queries/getByUrl';
 import linkService from './index';
 
-vi.mock('uuid', () => ({ v4: () => 'new-id' }));
+vi.mock('crypto', () => ({ randomUUID: () => 'new-id' }));
 vi.mock('../storage');
 vi.mock('./queries/create');
 vi.mock('./queries/getByUrl');

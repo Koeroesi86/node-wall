@@ -9,7 +9,7 @@ import removeTag from './queries/removeTag';
 import setName from './queries/setName';
 import userService from './index';
 
-vi.mock('uuid', () => ({ v4: () => 'new-id' }));
+vi.mock('crypto', () => ({ randomUUID: () => 'new-id' }));
 vi.mock('./queries/addLogin');
 vi.mock('./queries/addTag');
 vi.mock('./queries/create');

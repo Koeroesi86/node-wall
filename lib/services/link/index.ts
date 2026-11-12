@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import create from './queries/create';
 import getByUrl from './queries/getByUrl';
 import storageService from '../storage';
@@ -6,7 +6,7 @@ import { JSDOM } from 'jsdom';
 
 export default {
   create: async (url: string) => {
-    const id = uuid();
+    const id: string = uuid();
 
     const response = await fetch(url, {
       headers: {
