@@ -73,7 +73,7 @@ test('write stores in the database and the file', async () => {
 test('backfill copies the file without overwriting', async () => {
   vi.mocked(fs.promises.readFile).mockResolvedValue('legacy');
 
-  await storage.backfill('a', 'session');
+  await storage.backfill('a', 'post');
 
-  expect(insertContentIfMissing).toHaveBeenCalledWith('a', 'session', 'legacy');
+  expect(insertContentIfMissing).toHaveBeenCalledWith('a', 'post', 'legacy');
 });

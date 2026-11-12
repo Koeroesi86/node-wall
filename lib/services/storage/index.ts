@@ -6,7 +6,7 @@ import writeContent from './queries/writeContent';
 import insertContentIfMissing from './queries/insertContentIfMissing';
 
 export const dataDirectory = path.resolve(__dirname, '../../data');
-export const types = ['comment', 'link', 'post', 'session'];
+export const types = ['comment', 'link', 'post'];
 const idPattern = /^[\w-]+$/;
 
 const isValid = (id: string, type: string) => types.includes(type) && idPattern.test(id);

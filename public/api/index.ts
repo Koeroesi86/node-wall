@@ -74,14 +74,10 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
     if (cookies.sessionId) {
       userInfo = await getUserInfoFromSession(cookies.sessionId);
-      if (userInfo && !await storageService.has(cookies.sessionId, 'session')) {
-        await storageService.write(cookies.sessionId, 'session', JSON.stringify({
-          userAgent: headers['user-agent'],
-          remoteAddress: clientIp,
-        }, null, 2));
+      if (userInfo) {
+        await sessionService.setDetails(cookies.sessionId, headers['user-agent'], clientIp);
+        await sessionService.setLastActive(cookies.sessionId, Date.now());
       }
-
-      if (userInfo) await sessionService.setLastActive(cookies.sessionId, Date.now());
     }
 
     /** @route /api/link */
@@ -691,17 +687,13 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const userSessions = await getUserSessions(userInfo.user.id);
           if (!userSessions) throw new Error('no sessions');
 
-          const sessions = await Promise.all(
-            userSessions
+          const sessions = userSessions
             .filter(session => session.sessionStatus !== 'deleted')
-            .map(async session => ({
+            .map(({ userAgent, remoteAddress, ...session }) => ({
               ...session,
               sessionCreatedAt: new Date(session.sessionCreatedAt).valueOf(),
-              details: await storageService.has(session.sessionId, 'session')
-                ? JSON.parse(await storageService.read(session.sessionId, 'session'))
-                : null,
-            }))
-        );
+              details: userAgent || remoteAddress ? { userAgent, remoteAddress } : null,
+            }));
           return callback({
             statusCode: 200,
             headers: getResponseHeaders(),

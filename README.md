@@ -29,7 +29,7 @@ Pushes to `master` build the app in GitHub Actions and ship it with [deploy-acti
 /var/www/uzeno.koro.si/
   build -> build.<timestamp>   active release (managed by deploy-action)
   shared/.env                  production config, see .env.example
-  shared/data/                 wall.sqlite (content is in its contents table; legacy post/link/session/comment files are still written until they are removed)
+  shared/data/                 wall.sqlite (content is in its contents table; legacy post/link/comment files are still written until they are removed)
   shared/log/
   .deploy-log
 ```
@@ -57,4 +57,4 @@ In the GitHub `production` environment set the variables `DEPLOY_HOST`, `DEPLOY_
 
 ### Content storage migration
 
-Post, comment, link and session content is stored in the `contents` table. While the migration is in progress writes go to both sqlite and the legacy `lib/data` files, and reads fall back to the file when sqlite has no row. After deploying, backfill existing files once on the server (safe to re-run, never overwrites existing rows): `node dist/lib/services/storage/backfill-cli.js` from the release directory with the production `.env`. Removing the file writes and the `lib/data` symlink is a later change, after the backfill is verified.
+Post, comment and link content is stored in the `contents` table; session device details (user agent, remote address) are columns on `users_session`. While the migration is in progress content writes go to both sqlite and the legacy `lib/data` files (session details go to sqlite only), and reads fall back to the file when sqlite has no row. After deploying, backfill existing files once on the server (safe to re-run, never overwrites existing data): `node dist/lib/services/storage/backfill-cli.js` from the release directory with the production `.env`. Removing the file writes and the `lib/data` symlink is a later change, after the backfill is verified.
