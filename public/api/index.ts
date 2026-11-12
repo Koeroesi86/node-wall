@@ -14,6 +14,7 @@ import getUserInfoFromSession from '../../lib/utils/getUserInfoFromSession';
 import readJson from '../../lib/utils/readJson';
 import getUserSessions from '../../lib/utils/getUserSessions';
 import generateCode from '../../lib/utils/generateCode';
+import normalizeLogin from '../../lib/utils/normalizeLogin';
 import { hashLoginCode } from '../../lib/utils/loginCode';
 import verifyLoginTemplate from '../../lib/templates/email/verifyLogin';
 import createMailer from '../../lib/utils/createMailer';
@@ -501,7 +502,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
           // Cap the emails sent per address without refusing the login, so nobody can lock a victim out.
           // The response looks the same either way.
-          if (!await loginAddressLimiter.consume(`${payload.type}:${payload.value.toLowerCase()}`)) {
+          if (!await loginAddressLimiter.consume(`${payload.type}:${normalizeLogin(payload.type, payload.value)}`)) {
             return callback(jsonResponse(LoginResponseSchema, { sessionId: crypto.randomUUID() }));
           }
 
@@ -541,7 +542,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             const { value: title } = await getTranslation('email.verify.title', await detectLanguage(headers));
             transporter.sendMail({
               from: process.env.NODEMAILER_USER || 'sender@example.com',
-              to: payload.value,
+              to: normalizeLogin(payload.type, payload.value),
               subject: title,
               encoding: 'utf-8',
               html: await verifyLoginTemplate({
