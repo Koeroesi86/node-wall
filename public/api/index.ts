@@ -471,6 +471,26 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       }
     }
 
+    /** @route /api/translation/:alias */
+    if (pathFragments[1] === 'translation' && pathFragments.length === 3) {
+      if (httpMethod === 'OPTIONS') {
+        return callback({
+          statusCode: 200,
+          headers: getResponseHeaders(),
+          body: '',
+          isBase64Encoded: false,
+        });
+      }
+      if (httpMethod === 'GET') {
+        return callback({
+          statusCode: 200,
+          headers: getResponseHeaders(),
+          body: JSON.stringify(await getTranslation(pathFragments[2], await detectLanguage(headers)), null, 2),
+          isBase64Encoded: false,
+        });
+      }
+    }
+
     /** @route /api/users */
     if (pathFragments[1] === 'users') {
       if (!userInfo) throw new Error('Not logged in');
