@@ -16,7 +16,7 @@ export const IdSchema = z.guid();
 export const NameSchema = z.string().trim().regex(/^[\p{L}\p{N} .'_-]{1,50}$/u);
 
 /** Mirrors the `#tag` syntax that posts are scanned for. */
-export const TagNameSchema = z.string().trim().max(TagNameMaxLength).regex(/^[a-zÀ-ſ0-9]+$/i);
+export const TagNameSchema = z.string().trim().max(TagNameMaxLength).regex(/^[a-z\u00C0-\u017F0-9]+$/i);
 
 export const PostContentSchema = z.string().trim().min(1).max(PostContentMaxLength);
 export const CommentBodySchema = z.string().trim().min(1).max(CommentBodyMaxLength);
