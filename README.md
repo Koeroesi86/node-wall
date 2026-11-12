@@ -17,7 +17,7 @@ npm test        # runs the *.test.ts files with Vitest (npm run test:watch, npm 
 
 ### Generated Zod schemas
 
-`npm run generate:schemas` runs the TypeScript migrations against a throwaway SQLite database and writes one Zod schema plus its inferred type per application table to `lib/data-schemas/` (kebab-case files, `index.ts` re-exports them; knex and `sqlite_*` tables are skipped). Columns without `NOT NULL` are `.nullable()`. It needs no `.env` or existing database. The folder is gitignored and regenerated automatically before `npm run build` and `npm run typecheck`.
+`npm run generate:schemas` runs the TypeScript migrations against a in-memory SQLite database and writes one Zod schema plus its inferred type per application table to `lib/data-schemas/` (kebab-case files, `index.ts` re-exports them; knex and `sqlite_*` tables are skipped). Columns without `NOT NULL` are `.nullable()`. It needs no `.env` or existing database. The folder is gitignored and regenerated automatically before `npm run build` and `npm run typecheck`.
 
 The app is written in TypeScript and runs from `dist/`, which `npm run build` produces (compiled code plus the CSS, translations and media it needs). Put your `.env` in the project root or in `dist/`. `npm run clean` removes `dist/`, including any local data under `dist/lib/data`.
 

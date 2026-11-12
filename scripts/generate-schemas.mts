@@ -1,5 +1,4 @@
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import Knex from 'knex';
 import { isApplicationTable, renderIndex, renderSchema, schemaFileName, type ColumnInfo } from '../lib/utils/generateSchemas.ts';
@@ -7,9 +6,8 @@ import { isApplicationTable, renderIndex, renderSchema, schemaFileName, type Col
 const OUTPUT_DIR = 'lib/data-schemas';
 const MIGRATIONS_DIR = resolve('migrations');
 
-// Migrates a throwaway sqlite database from the TypeScript migrations, so no .env, build or existing database is needed.
-const tempDir = mkdtempSync(join(tmpdir(), 'wall-schemas-'));
-const knex = Knex({ client: 'sqlite3', connection: { filename: join(tempDir, 'schema.sqlite') }, useNullAsDefault: true });
+// Migrates an in-memory sqlite database from the TypeScript migrations, so no .env, build or existing database is needed.
+const knex = Knex({ client: 'sqlite3', connection: { filename: ':memory:' }, useNullAsDefault: true, pool: { min: 1, max: 1 } });
 
 const migrationSource = {
   getMigrations: async () => readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.ts') && !file.endsWith('.test.ts')).sort(),
@@ -33,5 +31,4 @@ try {
   console.log(`Generated ${tables.length} schemas in ${OUTPUT_DIR}`);
 } finally {
   await knex.destroy();
-  rmSync(tempDir, { recursive: true, force: true });
 }
