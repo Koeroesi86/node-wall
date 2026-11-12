@@ -430,8 +430,7 @@ describe('/api/posts', () => {
         expect(postService.addTag).not.toHaveBeenCalled();
       });
 
-      // Known bug: `a && b || (c && d)` lets anonymous users through on four-part paths.
-      test.fails('rejects anonymous users', async () => {
+      test('rejects anonymous users', async () => {
         vi.mocked(postService.getTags).mockResolvedValue([]);
         expect((await addTagRequest()).statusCode).toBe(401);
         expect(postService.addTag).not.toHaveBeenCalled();
