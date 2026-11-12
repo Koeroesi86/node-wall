@@ -26,10 +26,13 @@ async function main() {
   const contentFiles = (await Promise.all(types.map(async type => (await list(type)).map(id => ({ type, id }))))).flat();
   const sessionFiles = (await list('session')).map(id => ({ type: 'session', id }));
   const files = [...contentFiles, ...sessionFiles];
-  const results = await Promise.allSettled(files.map(({ id, type }) => (
-    type === 'session' ? backfillSession(id) : storage.backfill(id, type)
-  )));
-  const failed = results.flatMap((result, index) => (result.status === 'rejected' ? [files[index]] : []));
+  const failed: typeof files = [];
+
+  // One file at a time: no file descriptor spikes and no queue on the single sqlite connection.
+  for (const file of files) {
+    await (file.type === 'session' ? backfillSession(file.id) : storage.backfill(file.id, file.type))
+      .catch(() => failed.push(file));
+  }
 
   console.log(`backfilled ${files.length - failed.length}/${files.length} files`);
   failed.forEach(({ type, id }) => console.error(`failed: ${type}/${id}`));
