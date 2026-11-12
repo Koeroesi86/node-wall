@@ -100,3 +100,9 @@ test('setRole updates the role of a user', async () => {
     ['where', { id: 'u1' }],
   ]);
 });
+
+test('writes reject values that do not match the schema', async () => {
+  // @ts-expect-error a number is not a valid user name
+  await expect(setName('u1', 5)).rejects.toThrow();
+  expect(fakeDb.calls.map(call => call[0]).filter(name => name === 'insert' || name === 'update')).toEqual([]);
+});

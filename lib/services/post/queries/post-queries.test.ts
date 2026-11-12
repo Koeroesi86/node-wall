@@ -126,7 +126,7 @@ describe('getList', () => {
   test('requires liked tags and excludes disliked ones', async () => {
     fakeDb.resolves([]);
     await getList('public', undefined, undefined, ['a'], ['b']);
-    expect(fakeDb.calls.map(call => call[0])).toEqual(expect.arrayContaining(['havingExists', 'havingNotExists']));
+    expect(fakeDb.calls.map(call => call[0]).filter(name => name === 'insert' || name === 'update')).toEqual([]);
     expect(fakeDb.runCallback('havingExists')).toEqual([
       ['select', '*'],
       ['from', 'posts_tags'],
@@ -156,4 +156,12 @@ describe('getNextPage', () => {
     expect(fakeDb.runCallback('havingExists')).toContainEqual(['whereIn', 'tag_id', ['a']]);
     expect(fakeDb.runCallback('havingNotExists')).toContainEqual(['whereIn', 'tag_id', ['b']]);
   });
+});
+
+test('writes reject values that do not match the schema', async () => {
+  // @ts-expect-error a number is not a valid post id
+  await expect(create(1, 'u1')).rejects.toThrow();
+  // @ts-expect-error a number is not a valid status
+  await expect(setStatus('p1', 5)).rejects.toThrow();
+  expect(fakeDb.calls.map(call => call[0]).filter(name => name === 'insert' || name === 'update')).toEqual([]);
 });
