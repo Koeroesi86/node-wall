@@ -14,3 +14,8 @@ test('falls back to en-GB for an unknown language', async () => {
 test('returns an empty value for an unknown alias', async () => {
   expect(await getTranslation('does.not.exist')).toEqual({ value: '' });
 });
+
+test('does not traverse outside the translations directory', async () => {
+  expect(await getTranslation('package', '../..')).toEqual({ value: '' });
+  expect(await getTranslation('../../package')).toEqual({ value: '' });
+});
