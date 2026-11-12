@@ -599,6 +599,20 @@ describe('/api/user', () => {
       );
     });
 
+    test('logs the login code only when LOG_LOGIN_CODE is enabled', async () => {
+      const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+      await login();
+      expect(log).not.toHaveBeenCalledWith('login code (dev only)', 'SECRET', 'session', SESSION_ID);
+
+      vi.stubEnv('LOG_LOGIN_CODE', 'true');
+      await login();
+      expect(log).toHaveBeenCalledWith('login code (dev only)', 'SECRET', 'session', SESSION_ID);
+
+      vi.unstubAllEnvs();
+      log.mockRestore();
+    });
+
     test('creates a user and login when none exist', async () => {
       vi.mocked(userService.getLogin).mockResolvedValue(undefined);
       vi.mocked(userService.create).mockResolvedValue({ id: 'u2', name: 'Ann', role: 'admin' });

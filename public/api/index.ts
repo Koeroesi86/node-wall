@@ -564,6 +564,10 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             .digest("hex");
           await sessionService.create(session.id, login.id, hash, 'pending');
 
+          if (process.env.LOG_LOGIN_CODE === 'true') {
+            console.log('login code (dev only)', session.secret, 'session', session.id);
+          }
+
           if (payload.type === 'email') {
             const verifyUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login/email`);
             verifyUrl.searchParams.set('code', session.secret);

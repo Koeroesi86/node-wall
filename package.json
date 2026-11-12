@@ -8,7 +8,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p public/static/tsconfig.json --noEmit && tsc -p public/tsconfig.service-worker.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "clean": "node scripts/clean.mts",
     "knex": "knex",
-    "dev": "npm run build && nws-cli --config=./dist/dev.configuration.js",
+    "dev": "npm run build && LOG_LOGIN_CODE=true nws-cli --config=./dist/dev.configuration.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
