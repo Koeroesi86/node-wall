@@ -77,16 +77,16 @@ test('getContent reads the stored post by default', async () => {
 });
 
 test('reads delegate to the queries', async () => {
-  vi.mocked(getPost).mockResolvedValue({ id: 'p1' });
-  vi.mocked(getTags).mockResolvedValue([{ id: 't1' }]);
-  vi.mocked(getComments).mockResolvedValue([{ id: 'c1' }]);
-  vi.mocked(getList).mockResolvedValue([{ id: 'p1' }]);
+  vi.mocked(getPost, { partial: true }).mockResolvedValue({ id: 'p1' });
+  vi.mocked(getTags, { partial: true }).mockResolvedValue([{ id: 't1', name: 'tag', type: null }]);
+  vi.mocked(getComments, { partial: true }).mockResolvedValue([{ id: 'c1', parent: null, owner: null, created_at: null }]);
+  vi.mocked(getList, { partial: true }).mockResolvedValue([{ id: 'p1', owner: null, type: null, created_at: null }]);
   vi.mocked(getNextPage).mockResolvedValue({ nextPageBefore: 5 });
 
   expect(await postService.get('p1')).toEqual({ id: 'p1' });
-  expect(await postService.getTags('p1')).toEqual([{ id: 't1' }]);
-  expect(await postService.getComments('p1')).toEqual([{ id: 'c1' }]);
-  expect(await postService.getList('public', '2', '1', ['a'], ['b'])).toEqual([{ id: 'p1' }]);
+  expect(await postService.getTags('p1')).toEqual([expect.objectContaining({ id: 't1' })]);
+  expect(await postService.getComments('p1')).toEqual([expect.objectContaining({ id: 'c1' })]);
+  expect(await postService.getList('public', '2', '1', ['a'], ['b'])).toEqual([expect.objectContaining({ id: 'p1' })]);
   expect(await postService.getNextPage('public', '2', '1', ['a'], ['b'])).toEqual({ nextPageBefore: 5 });
 
   expect(getComments).toHaveBeenCalledWith('p1', 'public');

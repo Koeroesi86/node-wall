@@ -15,9 +15,7 @@ export default async (userId: string) => {
       'users_session.remote_address as remoteAddress'
     ])
       .from('users')
-      .where({
-        'users.id': userId,
-    })
+      .where('users.id', userId)
       .leftJoin('users_login', 'users.id', 'users_login.user_id')
       .leftJoin('users_session', 'users_login.id', 'users_session.users_login_id');
 

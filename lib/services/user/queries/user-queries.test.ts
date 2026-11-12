@@ -31,8 +31,8 @@ test('create inserts a user with the default role', async () => {
 });
 
 test('getById selects a user', async () => {
-  fakeDb.resolves({ id: 'u1' });
-  expect(await getById('u1')).toEqual({ id: 'u1' });
+  fakeDb.resolves({ id: 'u1', name: 'Ann', role: 'user', created_at: 1 });
+  expect(await getById('u1')).toEqual({ id: 'u1', name: 'Ann', role: 'user', created_at: 1 });
   expect(fakeDb.calls).toEqual([
     ['knex', 'users'],
     ['select', 'name', 'id', 'role', 'created_at'],
@@ -52,6 +52,7 @@ test('getLogin looks a login up by type and value', async () => {
 });
 
 test('getTags lists the tags of a user', async () => {
+  fakeDb.resolves([]);
   await getTags('u1');
   expect(fakeDb.calls).toEqual([['knex', 'users_tags'], ['select', 'tag_id', 'type'], ['where', { user_id: 'u1' }]]);
 });
@@ -82,8 +83,8 @@ describe('addTag', () => {
 });
 
 test('getList selects users newest first', async () => {
-  fakeDb.resolves([{ id: 'u1' }]);
-  expect(await getList()).toEqual([{ id: 'u1' }]);
+  fakeDb.resolves([{ id: 'u1', name: 'Ann', role: 'user', created_at: 1 }]);
+  expect(await getList()).toEqual([{ id: 'u1', name: 'Ann', role: 'user', created_at: 1 }]);
   expect(fakeDb.calls).toEqual([
     ['knex', 'users'],
     ['select', 'id', 'name', 'role', 'created_at'],
@@ -98,4 +99,10 @@ test('setRole updates the role of a user', async () => {
     ['update', { role: 'admin' }],
     ['where', { id: 'u1' }],
   ]);
+});
+
+test('writes reject values that do not match the schema', async () => {
+  // @ts-expect-error a number is not a valid user name
+  await expect(setName('u1', 5)).rejects.toThrow();
+  expect(fakeDb.calls.map(call => call[0]).filter(name => name === 'insert' || name === 'update')).toEqual([]);
 });

@@ -265,7 +265,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
               body: JSON.stringify({
                 id: post.id,
                 type: post.type,
-                content: await postService.getContent(post.id, post.type),
+                content: await postService.getContent(post.id, post.type ?? undefined),
                 created_at: post.created_at,
                 comments: (await postService.getComments(postId)).map(c => c.id),
                 owner: post.owner ? await userService.get(post.owner) : null,

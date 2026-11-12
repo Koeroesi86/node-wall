@@ -1,3 +1,4 @@
+import { RateLimitsSchema } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
 
 /** Counts one hit for `key` in a fixed window stored in sqlite and returns the hits in the current window. */
@@ -13,6 +14,6 @@ async function hit(key: string, windowMs: number, now = Date.now()): Promise<num
   );
   const row = await knex('rate_limits').where({ key }).first('count');
 
-  return row.count;
+  return RateLimitsSchema.pick({ count: true }).parse(row).count;
 }
 export default hit;

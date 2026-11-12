@@ -1,9 +1,10 @@
 import type { Knex } from 'knex';
+import createTableIfMissing from '../lib/utils/createTableIfMissing.ts';
 
 export const up = (knex: Knex) => {
   return Promise.resolve()
     .then(() => knex.schema.renameTable('users_session', 'users_session_old'))
-    .then(() => knex.schema.createTableIfNotExists('users_session', table => {
+    .then(() => createTableIfMissing(knex, 'users_session', table => {
       table.uuid('id').notNullable();
       table.uuid('users_login_id').notNullable();
       table.string('status', 10).defaultTo('pending');
@@ -29,7 +30,7 @@ export const up = (knex: Knex) => {
 export const down = (knex: Knex) => {
   return Promise.resolve()
     .then(() => knex.schema.renameTable('users_session', 'users_session_new'))
-    .then(() => knex.schema.createTableIfNotExists('users_session', table => {
+    .then(() => createTableIfMissing(knex, 'users_session', table => {
       table.uuid('id').notNullable();
       table.uuid('users_login_id').notNullable();
       table.enum('status', ['active', 'pending']).defaultTo('pending');

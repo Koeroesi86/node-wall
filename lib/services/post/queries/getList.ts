@@ -1,5 +1,9 @@
 import type { Knex } from 'knex';
+import { PostsSchema } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
+import { parseRows, TimestampSchema } from '../../../utils/validateRows';
+
+const schema = PostsSchema.pick({ id: true, owner: true, type: true }).extend({ created_at: TimestampSchema });
 
 async function getList(status: string, before: string | undefined, since: string | undefined, likedTags: string[], dislikedTags: string[]) {
   const knex = await createDatabase();
@@ -34,7 +38,7 @@ async function getList(status: string, before: string | undefined, since: string
       });
     }
 
-  return postsPromise;
+  return parseRows(schema, await postsPromise);
 }
 
 export default getList;

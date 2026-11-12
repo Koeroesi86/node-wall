@@ -1,4 +1,6 @@
+import { TagsSchema } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
+import { parseRows } from '../../../utils/validateRows';
 
 async function getList(search = '', exact = false) {
   const knex = await createDatabase();
@@ -13,7 +15,7 @@ async function getList(search = '', exact = false) {
     }
   }
 
-  return tagsPromise;
+  return parseRows(TagsSchema, await tagsPromise);
 }
 
 export default getList;

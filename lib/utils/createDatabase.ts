@@ -1,8 +1,8 @@
 import Knex, { type Knex as KnexInstance } from 'knex';
 
-let db: KnexInstance<any, unknown[]> | undefined;
+let db: KnexInstance | undefined;
 
-function createDatabase(): Promise<KnexInstance<any, unknown[]>> {
+function createDatabase(): Promise<KnexInstance> {
   if (db) {
     return Promise.resolve(db);
   }

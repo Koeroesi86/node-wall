@@ -94,7 +94,7 @@ describe('create', () => {
 });
 
 test('getByUrl delegates to the query', async () => {
-  vi.mocked(getByUrl).mockResolvedValue({ id: 'l1' });
+  vi.mocked(getByUrl, { partial: true }).mockResolvedValue({ id: 'l1' });
   expect(await linkService.getByUrl('https://example.com')).toEqual({ id: 'l1' });
 });
 

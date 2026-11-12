@@ -3,7 +3,7 @@ import wrapper from './wrapper';
 import escapeHtml from '../../utils/escapeHtml';
 
 interface TagPageProps extends PageProps {
-  tag?: { id: string; name: string; type: string };
+  tag?: { id: string; name: string; type: string | null };
 }
 
 const getTag = (props: TagPageProps) => props.tag;

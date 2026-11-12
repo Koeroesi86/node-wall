@@ -31,9 +31,9 @@ function createFakeKnex(tables: Record<string, Record<string, unknown>[]> = {}) 
   const operations: unknown[][] = [];
   const inserts: unknown[][] = [];
   const schema = {
-    createTableIfNotExists: (name: string, define: (table: object) => void) => {
+    hasTable: async () => false,
+    createTable: async (name: string, define: (table: object) => void) => {
       operations.push(['create', name, recordColumns(define)]);
-      return schema;
     },
     dropTableIfExists: (name: string) => {
       operations.push(['drop', name]);

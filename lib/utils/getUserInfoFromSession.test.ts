@@ -46,7 +46,7 @@ test('getUserSessions joins logins and sessions of a user', async () => {
   fakeDb.resolves([{ sessionId: 's1' }]);
   expect(await getUserSessions('u1')).toEqual([{ sessionId: 's1' }]);
   expect(fakeDb.calls.map(call => call[0])).toEqual(['select', 'from', 'where', 'leftJoin', 'leftJoin']);
-  expect(fakeDb.calls).toContainEqual(['where', { 'users.id': 'u1' }]);
+  expect(fakeDb.calls).toContainEqual(['where', 'users.id', 'u1']);
 });
 
 test('getUserSessions returns null when the database fails', async () => {
