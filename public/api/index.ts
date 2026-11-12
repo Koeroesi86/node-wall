@@ -704,8 +704,9 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const payload = await readJson<{ name: string }>(event.bodyStream);
           if (!payload.name) throw new Error('no name');
           if (!userInfo) throw new Error('not logged in');
+          if (typeof payload.name !== 'string' || !/^[\p{L}\p{N} .'_-]{1,50}$/u.test(payload.name.trim())) throw new Error('invalid name');
 
-          await userService.setName(userInfo.user.id, payload.name);
+          await userService.setName(userInfo.user.id, payload.name.trim());
 
           return callback({
             statusCode: 200,

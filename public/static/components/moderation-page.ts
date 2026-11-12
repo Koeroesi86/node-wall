@@ -82,7 +82,7 @@ class ModerationPage extends Component {
             <post-preview
               post-id="${post.id}"
               created="${post.created_at}"
-              ${post.owner ? `owner-id="${post.owner.id}" owner-name="${post.owner.name}" ` : ''}
+              ${post.owner ? `owner-id="${escapeHtml(post.owner.id)}" owner-name="${escapeHtml(post.owner.name)}" ` : ''}
             ></post-preview>
             <div class="newTags" style="display: none;">
               <div class="newTagsNote">

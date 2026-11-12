@@ -50,7 +50,7 @@ class PostEditor extends Component {
           // TODO: add new on not found + space
           trigger: '#',
           selectTemplate: item => {
-            return `<span tag-id="${item.original.id}" contenteditable="false">#${item.original.name}</span>`;
+            return `<span tag-id="${escapeHtml(item.original.id)}" contenteditable="false">#${escapeHtml(item.original.name)}</span>`;
           },
           allowSpaces: true,
           values: (text, cb) => {

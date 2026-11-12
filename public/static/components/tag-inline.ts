@@ -119,7 +119,7 @@ class TagInline extends Component {
 
       this._tooltip.innerHTML = `
         <translate-text alias="tag-inline.tooltip.prefix"></translate-text>
-        <a href="/tag/${this._tag.id}" target="_blank">${this._tag.name}</a>
+        <a href="/tag/${escapeHtml(this._tag.id)}" target="_blank">${escapeHtml(this._tag.name)}</a>
         <div class="actions">
           <span class="likeTag">
             <x-icon type="likeTag"></x-icon>

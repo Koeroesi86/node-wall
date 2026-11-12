@@ -77,6 +77,7 @@ interface CommentData {
   created_at: number | string;
 }
 
+declare function escapeHtml(value?: unknown): string;
 declare function parsePostContent(content: string, postId: string): string;
 declare function parseCommentContent(content: string, postId?: string): string;
 declare function getPost(id: string): Promise<PostData>;
@@ -90,6 +91,7 @@ interface Window {
   shallowEqual: typeof shallowEqual;
   ReduxEventTypes: typeof ReduxEventTypes;
   ReduxEvents: typeof ReduxEvents;
+  escapeHtml: typeof escapeHtml;
   parsePostContent: typeof parsePostContent;
   parseCommentContent: typeof parseCommentContent;
   getPost: typeof getPost;

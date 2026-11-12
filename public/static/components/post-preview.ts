@@ -116,7 +116,7 @@ class PostPreview extends Component {
     const ownerName = this._post.owner.name;
     owner.innerHTML = `
       <translate-text alias="post-preview.sent-by"></translate-text>
-      &nbsp;${ownerName && ownerName !== 'null' ? ownerName : '<translate-text alias="post-preview.unknown-user"></translate-text>'}
+      &nbsp;${ownerName && ownerName !== 'null' ? escapeHtml(ownerName) : '<translate-text alias="post-preview.unknown-user"></translate-text>'}
     `;
   }
 

@@ -4,7 +4,7 @@
       .trim()
       .replace(/\n{3,}/gi, '\n\n')
       .split('\n')
-      .map(line => `<div class="line">${line || '&nbsp;'}</div>`)
+      .map(line => `<div class="line">${escapeHtml(line) || '&nbsp;'}</div>`)
       .join('\n');
   }
   g.parseCommentContent = parseCommentContent;
