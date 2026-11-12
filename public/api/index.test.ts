@@ -19,6 +19,13 @@ const transporter = vi.hoisted(() => ({ sendMail: vi.fn() }));
 vi.mock('../../lib/services/comment');
 vi.mock('../../lib/services/link');
 vi.mock('../../lib/services/post');
+const rateLimitCounts = vi.hoisted(() => new Map<string, number>());
+vi.mock('../../lib/services/rate-limit', () => ({
+  default: {
+    hit: async (key: string) => rateLimitCounts.set(key, (rateLimitCounts.get(key) ?? 0) + 1).get(key),
+    removeExpired: async () => undefined,
+  },
+}));
 vi.mock('../../lib/services/session');
 vi.mock('../../lib/services/storage');
 vi.mock('../../lib/services/tag');
@@ -75,6 +82,7 @@ const anonymous = { cookie: '' };
 beforeEach(async () => {
   vi.resetAllMocks();
   vi.resetModules();
+  rateLimitCounts.clear();
   vi.useFakeTimers();
   vi.spyOn(console, 'log').mockImplementation(() => undefined);
   vi.spyOn(crypto, 'randomUUID').mockReturnValue(SESSION_ID);
@@ -654,13 +662,31 @@ describe('/api/user', () => {
       expect(sessionService.create).not.toHaveBeenCalled();
     });
 
-    test('rate limits per address, case insensitively', async () => {
-      expect((await login({ value: 'a@b.c', type: 'email' })).statusCode).toBe(200);
-      expect((await login({ value: 'A@b.c', type: 'email' })).statusCode).toBe(200);
-      const blocked = await login({ value: 'a@B.c', type: 'email' });
+    test('caps emails per address, case insensitively, without refusing the login', async () => {
+      await login({ value: 'a@b.c', type: 'email' });
+      await login({ value: 'A@b.c', type: 'email' });
+      const capped = await login({ value: 'a@B.c', type: 'email' });
 
-      expect(blocked.statusCode).toBe(429);
+      expect(capped.statusCode).toBe(200);
+      expect(jsonBody(capped)).toEqual({ sessionId: SESSION_ID });
       expect(transporter.sendMail).toHaveBeenCalledTimes(2);
+      expect(sessionService.create).toHaveBeenCalledTimes(2);
+    });
+
+    test('keys the ip limit on the forwarded client address behind the proxy', async () => {
+      const forwarded = (ip: string, value: string) => request({
+        method: 'POST',
+        path: 'api/user',
+        headers: { ...anonymous, 'x-forwarded-for': ip },
+        body: { value, type: 'email' },
+      });
+
+      await forwarded('203.0.113.1', 'a@b.c');
+      await forwarded('203.0.113.1', 'b@b.c');
+      await forwarded('203.0.113.1', 'c@b.c');
+
+      expect((await forwarded('203.0.113.1', 'd@b.c')).statusCode).toBe(429);
+      expect((await forwarded('203.0.113.2', 'e@b.c')).statusCode).toBe(200);
     });
 
     test('rate limits per ip across addresses', async () => {

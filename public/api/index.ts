@@ -21,13 +21,15 @@ import getTranslation from '../../lib/translations/getTranslation';
 import detectLanguage from '../../lib/utils/detectLanguage';
 import isAdmin from '../../lib/utils/isAdmin';
 import isSingleEmail from '../../lib/utils/isSingleEmail';
+import rateLimitService from '../../lib/services/rate-limit';
 import createRateLimiter from '../../lib/utils/createRateLimiter';
+import getClientIp from '../../lib/utils/getClientIp';
 
 const hour = 60 * 60 * 1000;
 // Deliberately very low for now; raise once real usage is known.
-const loginIpLimiter = createRateLimiter({ limit: 3, windowMs: hour });
-const loginAddressLimiter = createRateLimiter({ limit: 2, windowMs: hour });
-const contentLimiter = createRateLimiter({ limit: 3, windowMs: hour });
+const loginIpLimiter = createRateLimiter({ name: 'login-ip', limit: 3, windowMs: hour });
+const loginAddressLimiter = createRateLimiter({ name: 'login-address', limit: 2, windowMs: hour });
+const contentLimiter = createRateLimiter({ name: 'content', limit: 3, windowMs: hour });
 const tooManyRequests = () => ({
   statusCode: 429,
   headers: getResponseHeaders({ 'Retry-After': String(hour / 1000) }),
@@ -60,6 +62,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       pathFragments,
       headers,
     } = event;
+    const clientIp = getClientIp(event);
     const cookiesRaw = headers.Cookie || headers.cookie || '';
     const cookies = parseCookies(cookiesRaw);
     let userInfo = null;
@@ -69,7 +72,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       if (userInfo && !await storageService.has(cookies.sessionId, 'session')) {
         await storageService.write(cookies.sessionId, 'session', JSON.stringify({
           userAgent: headers['user-agent'],
-          remoteAddress: event.remoteAddress,
+          remoteAddress: clientIp,
         }, null, 2));
       }
 
@@ -143,7 +146,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           throw new Error('no body defined');
         }
 
-        if (!contentLimiter.consume(owner ?? `ip:${event.remoteAddress}`)) {
+        if (!await contentLimiter.consume(owner ?? `ip:${clientIp}`)) {
           return callback(tooManyRequests());
         }
 
@@ -360,7 +363,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const payload = await readJson<{ content: string }>(event.bodyStream);
           if (!payload.content) throw new Error('no content');
 
-          if (!contentLimiter.consume(userInfo?.user.id ?? `ip:${event.remoteAddress}`)) {
+          if (!await contentLimiter.consume(userInfo?.user.id ?? `ip:${clientIp}`)) {
             return callback(tooManyRequests());
           }
 
@@ -560,11 +563,21 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           if (!payload.type) throw new Error('no type');
           if (payload.type === 'email' && !isSingleEmail(payload.value)) throw new Error('invalid email');
 
-          if (
-            !loginIpLimiter.consume(`ip:${event.remoteAddress}`)
-            || !loginAddressLimiter.consume(`${payload.type}:${payload.value.toLowerCase()}`)
-          ) {
+          await rateLimitService.removeExpired();
+
+          if (!await loginIpLimiter.consume(`ip:${clientIp}`)) {
             return callback(tooManyRequests());
+          }
+
+          // Cap the emails sent per address without refusing the login, so nobody can lock a victim out.
+          // The response looks the same either way.
+          if (!await loginAddressLimiter.consume(`${payload.type}:${payload.value.toLowerCase()}`)) {
+            return callback({
+              statusCode: 200,
+              headers: getResponseHeaders({}),
+              body: JSON.stringify({ sessionId: crypto.randomUUID() }, null, 2),
+              isBase64Encoded: false,
+            });
           }
 
           let login;
