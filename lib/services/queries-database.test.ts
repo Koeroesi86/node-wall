@@ -10,6 +10,7 @@ import createPost from './post/queries/create';
 import createPostComment from './post/queries/createComment';
 import addPostTag from './post/queries/addTag';
 import getPost from './post/queries/getPost';
+import getBounds from './post/queries/getBounds';
 import getPostList from './post/queries/getList';
 import getPostComments from './post/queries/getComments';
 import getPostTags from './post/queries/getTags';
@@ -66,6 +67,7 @@ test('post queries return valid rows', async () => {
   expect(await getPost('p1')).toMatchObject({ id: 'p1', owner: 'u1' });
   expect(await getPostList('public', undefined, undefined, [], [])).toHaveLength(1);
   expect(await getPostComments('p1')).toHaveLength(1);
+  expect(await getBounds()).toEqual({ oldest: expect.any(Number), newest: expect.any(Number) });
   expect(await getPostTags('p1')).toEqual([{ id: 't1', name: 'news', type: 'text' }]);
 });
 
