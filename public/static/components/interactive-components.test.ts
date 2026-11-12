@@ -577,7 +577,7 @@ describe('moderation-page', () => {
   test('suggests creating tags that are written in the post but do not exist', async () => {
     const element = await mount();
 
-    expect(element.querySelector('.newTags')?.getAttribute('style')).not.toContain('none');
+    expect(element.querySelector('.newTags')?.hasAttribute('hidden')).toBe(false);
     expect(element.querySelector('.newTagsItem .label')?.textContent).toBe('#fresh');
   });
 

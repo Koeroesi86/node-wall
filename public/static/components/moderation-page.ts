@@ -84,7 +84,7 @@ class ModerationPage extends Component {
               created="${post.created_at}"
               ${post.owner ? `owner-id="${escapeHtml(post.owner.id)}" owner-name="${escapeHtml(post.owner.name)}" ` : ''}
             ></post-preview>
-            <div class="newTags" style="display: none;">
+            <div class="newTags" hidden>
               <div class="newTagsNote">
                 <translate-text alias="moderation-page.posts.new-tags-note"></translate-text>
               </div>
@@ -128,7 +128,7 @@ class ModerationPage extends Component {
               .map(m => m[0])
               .filter(text => !postDetails.tags.find(t => `#${t.name}` === text));
             if (newTags.length > 0) {
-              newTagsWrapper.style.display = '';
+              newTagsWrapper.hidden = false;
             }
             newTagsWrapper.querySelector('.newTagsList').innerHTML = newTags.map(t => `
                   <div class="newTagsItem">
