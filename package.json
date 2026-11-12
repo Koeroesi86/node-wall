@@ -17,7 +17,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "cookie": "^0.4.2",
+    "cookie": "^0.7.0",
     "dotenv": "^16.0.0",
     "jsdom": "^19.0.0",
     "knex": "^3.3.0",
