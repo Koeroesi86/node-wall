@@ -1,5 +1,4 @@
 import { v4 as uuid } from 'uuid';
-import axios from 'axios';
 import create from './queries/create';
 import getByUrl from './queries/getByUrl';
 import storageService from '../storage';
@@ -9,17 +8,19 @@ export default {
   create: async (url: string) => {
     const id = uuid();
 
-    const response = await axios({
-      method: 'get',
-      url: url,
+    const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.93 Safari/537.36 Vivaldi/2.8.1664.40',
-      }
+      },
     });
 
-    if (!response.headers['content-type'].includes('text/html')) throw new Error('Not yet supported type');
+    if (!response.ok) throw new Error(`Request failed (${response.status})`);
 
-    const dom = new JSDOM(`${response.data}`);
+    const contentType = response.headers.get('content-type') ?? '';
+
+    if (!contentType.includes('text/html')) throw new Error('Not yet supported type');
+
+    const dom = new JSDOM(await response.text());
 
     const title = dom.window.document.querySelector('head title')?.textContent ?? '';
     const headers = [...dom.window.document.querySelectorAll("head meta")].map(meta => ({
@@ -55,7 +56,7 @@ export default {
     const embedCode = videoId ? `<iframe src="https://www.youtube.com/embed/${videoId}"></iframe>` : '';
 
     const newLinkData = {
-      'content-type': response.headers['content-type'],
+      'content-type': contentType,
       title,
       description,
       image,

@@ -15,7 +15,6 @@
   "license": "MIT",
   "dependencies": {
     "@vscode/sqlite3": "^5.1.14-vscode",
-    "axios": "^0.26.1",
     "cookie": "^0.4.2",
     "dotenv": "^16.0.0",
     "jsdom": "^19.0.0",
