@@ -169,6 +169,40 @@ describe('routing', () => {
   });
 });
 
+describe('/api/translation/:alias', () => {
+  test('returns the translation in the requested language', async () => {
+    vi.mocked(getTranslation).mockResolvedValue({ value: 'Szia' });
+
+    const response = await request({ path: '/api/translation/alias', headers: { 'accept-language': 'hu-HU,hu;q=0.9' } });
+
+    expect(response.statusCode).toBe(200);
+    expect(jsonBody(response)).toEqual({ value: 'Szia' });
+    expect(getTranslation).toHaveBeenCalledWith('alias', 'hu-HU');
+  });
+
+  test('defaults to en-GB', async () => {
+    vi.mocked(getTranslation).mockResolvedValue({ value: 'Hi' });
+    await request({ path: '/api/translation/alias' });
+    expect(getTranslation).toHaveBeenCalledWith('alias', 'en-GB');
+  });
+
+  test('answers OPTIONS without reading translations', async () => {
+    const response = await request({ method: 'OPTIONS', path: '/api/translation/alias' });
+    expect(response).toMatchObject({ statusCode: 200, body: '' });
+    expect(getTranslation).not.toHaveBeenCalled();
+  });
+
+  test('answers 400 when reading fails', async () => {
+    vi.mocked(getTranslation).mockRejectedValue(new Error('broken'));
+    expect((await request({ path: '/api/translation/alias' })).statusCode).toBe(400);
+  });
+
+  test('answers 404 for a missing alias or other methods', async () => {
+    expect((await request({ path: '/api/translation' })).statusCode).toBe(404);
+    expect((await request({ method: 'POST', path: '/api/translation/alias' })).statusCode).toBe(404);
+  });
+});
+
 describe('/api/link', () => {
   const post = `${ID}`;
   const query = { uri: 'https://example.com/page', post };
