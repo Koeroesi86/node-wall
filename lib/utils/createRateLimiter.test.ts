@@ -1,26 +1,23 @@
-import { expect, test } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
+import rateLimitService from '../services/rate-limit';
 import createRateLimiter from './createRateLimiter';
 
-test('allows up to the limit and then blocks', () => {
-  const limiter = createRateLimiter({ limit: 2, windowMs: 1000 });
+vi.mock('../services/rate-limit');
 
-  expect(limiter.consume('a', 0)).toBe(true);
-  expect(limiter.consume('a', 1)).toBe(true);
-  expect(limiter.consume('a', 2)).toBe(false);
+beforeEach(() => vi.resetAllMocks());
+
+test('allows hits up to the limit and then blocks', async () => {
+  const limiter = createRateLimiter({ name: 'login', limit: 2, windowMs: 1000 });
+
+  vi.mocked(rateLimitService.hit).mockResolvedValueOnce(2).mockResolvedValueOnce(3);
+
+  expect(await limiter.consume('a')).toBe(true);
+  expect(await limiter.consume('a')).toBe(false);
 });
 
-test('tracks keys independently', () => {
-  const limiter = createRateLimiter({ limit: 1, windowMs: 1000 });
+test('namespaces keys by limiter name and passes the window', async () => {
+  vi.mocked(rateLimitService.hit).mockResolvedValue(1);
+  await createRateLimiter({ name: 'login', limit: 1, windowMs: 1000 }).consume('a');
 
-  expect(limiter.consume('a', 0)).toBe(true);
-  expect(limiter.consume('b', 0)).toBe(true);
-  expect(limiter.consume('a', 1)).toBe(false);
-});
-
-test('allows again after the window passes', () => {
-  const limiter = createRateLimiter({ limit: 1, windowMs: 1000 });
-
-  limiter.consume('a', 0);
-  expect(limiter.consume('a', 999)).toBe(false);
-  expect(limiter.consume('a', 1000)).toBe(true);
+  expect(rateLimitService.hit).toHaveBeenCalledWith('login:a', 1000);
 });

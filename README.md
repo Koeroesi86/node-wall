@@ -36,6 +36,8 @@ Pushes to `master` build the app in GitHub Actions and ship it with [deploy-acti
 
 The deploy workflow builds `dist/`, installs production dependencies into it with `npm ci --omit=dev` and ships that folder as the release. `deploy/pre-activate.sh` links `shared/` into each new release, runs `knex migrate:latest` and loads `serverConfig.js` as a sanity check, all before the switch. Migrations are not reverted by a rollback, so keep them backward compatible.
 
+Rate limits (login, posts, comments) are stored in sqlite and keyed on the client address. Apache must send `X-Forwarded-For` (`mod_proxy` does by default); it is trusted only when the direct peer is in `TRUSTED_PROXIES` (default loopback, see `.env.example`).
+
 Production `.env` needs `SERVER_PROTOCOL=http`, `SITE_PROTOCOL=https`, `SITE_DOMAIN=uzeno.koro.si`, an absolute `DB_DATABASE=/var/www/uzeno.koro.si/shared/data/wall.sqlite` and `APP_ROOT=/var/www/uzeno.koro.si/build`.
 
 One-time server migration (as root), from the old flat checkout:
