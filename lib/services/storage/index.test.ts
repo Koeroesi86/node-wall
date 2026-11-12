@@ -1,79 +1,50 @@
-import fs from 'fs';
 import { beforeEach, expect, test, vi } from 'vitest';
 import storage from './index';
 import hasContent from './queries/hasContent';
 import readContent from './queries/readContent';
 import writeContent from './queries/writeContent';
-import insertContentIfMissing from './queries/insertContentIfMissing';
 
 vi.mock('./queries/hasContent', () => ({ default: vi.fn() }));
 vi.mock('./queries/readContent', () => ({ default: vi.fn() }));
 vi.mock('./queries/writeContent', () => ({ default: vi.fn() }));
-vi.mock('./queries/insertContentIfMissing', () => ({ default: vi.fn() }));
-vi.mock('fs', () => {
-  const fsMock = {
-    existsSync: vi.fn(),
-    promises: { readFile: vi.fn(), writeFile: vi.fn() },
-  };
-  return { default: fsMock, ...fsMock };
-});
 
 beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(hasContent).mockResolvedValue(false);
-  vi.mocked(fs.existsSync).mockReturnValue(false);
 });
 
 test('rejects unknown types and unsafe ids', async () => {
   await expect(storage.read('abc', 'other')).rejects.toThrow(/invalid storage key/);
   await expect(storage.read('../secret', 'post')).rejects.toThrow(/invalid storage key/);
   await expect(storage.write('a/b', 'post', 'x')).rejects.toThrow(/invalid storage key/);
+  expect(readContent).not.toHaveBeenCalled();
   expect(writeContent).not.toHaveBeenCalled();
 });
 
-test('has is false for invalid keys and when neither store has the record', async () => {
+test('has is false for invalid keys and missing records', async () => {
   expect(await storage.has('../secret', 'post')).toBe(false);
   expect(await storage.has('missing', 'post')).toBe(false);
+  expect(hasContent).toHaveBeenCalledTimes(1);
 });
 
-test('has is true from the database or from the legacy file', async () => {
-  vi.mocked(hasContent).mockResolvedValueOnce(true);
+test('has is true when the database has the record', async () => {
+  vi.mocked(hasContent).mockResolvedValue(true);
+
   expect(await storage.has('a', 'post')).toBe(true);
-
-  vi.mocked(hasContent).mockResolvedValueOnce(false);
-  vi.mocked(fs.existsSync).mockReturnValueOnce(true);
-  expect(await storage.has('b', 'post')).toBe(true);
 });
 
-test('read prefers the database over the file', async () => {
+test('read returns the stored body', async () => {
   vi.mocked(readContent).mockResolvedValue('from db');
 
   expect(await storage.read('a', 'post')).toBe('from db');
-  expect(fs.promises.readFile).not.toHaveBeenCalled();
 });
 
-test('read falls back to the file when the database has no row', async () => {
-  vi.mocked(fs.existsSync).mockReturnValue(true);
-  vi.mocked(fs.promises.readFile).mockResolvedValue('from file');
-
-  expect(await storage.read('a', 'post')).toBe('from file');
-});
-
-test('reading a record missing everywhere throws', async () => {
+test('reading a missing record throws', async () => {
   await expect(storage.read('missing', 'post')).rejects.toThrow(/file not exists/);
 });
 
-test('write stores in the database and the file', async () => {
+test('write stores the body in the database', async () => {
   await storage.write('a', 'post', 'body');
 
   expect(writeContent).toHaveBeenCalledWith('a', 'post', 'body');
-  expect(fs.promises.writeFile).toHaveBeenCalledWith(expect.stringMatching(/post[\\/]a$/), 'body', 'utf8');
-});
-
-test('backfill copies the file without overwriting', async () => {
-  vi.mocked(fs.promises.readFile).mockResolvedValue('legacy');
-
-  await storage.backfill('a', 'post');
-
-  expect(insertContentIfMissing).toHaveBeenCalledWith('a', 'post', 'legacy');
 });

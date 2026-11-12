@@ -3,7 +3,6 @@ import { fakeDb } from '../../../test-utils/fakeDb';
 import hasContent from './hasContent';
 import readContent from './readContent';
 import writeContent from './writeContent';
-import insertContentIfMissing from './insertContentIfMissing';
 
 vi.mock('../../../utils/createDatabase', async () => ({
   default: async () => (await import('../../../test-utils/fakeDb')).fakeDb.knex,
@@ -38,16 +37,5 @@ test('writeContent upserts', async () => {
     ['insert', { type: 'post', id: 'a', body: 'x' }],
     ['onConflict', ['type', 'id']],
     ['merge'],
-  ]);
-});
-
-test('insertContentIfMissing ignores existing rows', async () => {
-  await insertContentIfMissing('a', 'post', 'x');
-
-  expect(fakeDb.calls).toEqual([
-    ['knex', 'contents'],
-    ['insert', { type: 'post', id: 'a', body: 'x' }],
-    ['onConflict', ['type', 'id']],
-    ['ignore'],
   ]);
 });

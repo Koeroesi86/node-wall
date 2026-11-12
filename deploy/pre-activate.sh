@@ -10,13 +10,9 @@ shared="$(cd .. && pwd)/shared"
 [ -f "$shared/.env" ] || { echo "Missing $shared/.env" >&2; exit 1; }
 [ -d "$shared/data" ] || { echo "Missing $shared/data" >&2; exit 1; }
 
-rm -rf lib/data .log
-ln -s "$shared/data" lib/data
+rm -rf .log
 ln -s "$shared/log" .log
 ln -s "$shared/.env" .env
 
 node_modules/.bin/knex migrate:latest
-# Temporary (#42): copy legacy content files into sqlite. Idempotent and never overwrites existing data.
-# A failure must not block the deploy because reads still fall back to the files.
-node lib/services/storage/backfill-cli.js || echo "Warning: content backfill failed, see output above" >&2
 node -e "require('./serverConfig.js')"
