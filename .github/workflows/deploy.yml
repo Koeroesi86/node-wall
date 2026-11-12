@@ -6,6 +6,9 @@ on:
 
 concurrency: deploy-uzeno
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
