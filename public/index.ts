@@ -53,7 +53,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
         statusCode: 200,
         headers: {
           'Content-Type': 'text/html',
-          'Cache-Control': 'public, max-age=0',
+          'Cache-Control': 'private, no-store',
         },
         body: welcomeTemplate({
           language,
@@ -69,7 +69,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
         statusCode: 200,
         headers: {
           'Content-Type': 'text/html',
-          'Cache-Control': 'public, max-age=0',
+          'Cache-Control': 'private, no-store',
         },
         body: wallTemplate({
           language,
@@ -91,7 +91,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
           statusCode: 200,
           headers: {
             'Content-Type': 'text/html',
-            'Cache-Control': 'public, max-age=0',
+            'Cache-Control': 'private, no-store',
           },
           body: tagTemplate({ language, tag, sessionId: cookies.sessionId }),
           isBase64Encoded: false,
@@ -115,7 +115,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
           statusCode: 200,
           headers: {
             'Content-Type': 'text/html',
-            'Cache-Control': 'public, max-age=0',
+            'Cache-Control': 'private, no-store',
           },
           body: postTemplate({
             language,
@@ -134,7 +134,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
           statusCode: 302,
           headers: {
             'Content-Type': 'text/html',
-            'Cache-Control': 'public, max-age=0',
+            'Cache-Control': 'private, no-store',
             'Location': `/`,
           },
           body: '',
@@ -146,7 +146,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
         statusCode: 200,
         headers: {
           'Content-Type': 'text/html',
-          'Cache-Control': 'public, max-age=0',
+          'Cache-Control': 'private, no-store',
         },
         body: moderationTemplate({
           language,
@@ -163,7 +163,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
           statusCode: 302,
           headers: {
             'Content-Type': 'text/html',
-            'Cache-Control': 'public, max-age=0',
+            'Cache-Control': 'private, no-store',
             'Location': `/login`,
           },
           body: '',
@@ -175,7 +175,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
         statusCode: 200,
         headers: {
           'Content-Type': 'text/html',
-          'Cache-Control': 'public, max-age=0',
+          'Cache-Control': 'private, no-store',
         },
         body: profileTemplate({
           language,
@@ -201,7 +201,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
         statusCode: 302,
         headers: {
           'Content-Type': 'text/html',
-          'Cache-Control': 'public, max-age=0',
+          'Cache-Control': 'private, no-store',
           'Set-Cookie': buildSessionCookie('none', expires.format('ddd, DD MMM YYYY HH:mm:ss')),
           'Location': `/login`,
         },
@@ -218,7 +218,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
           statusCode: 302,
           headers: {
             'Content-Type': 'text/html',
-            'Cache-Control': 'public, max-age=0',
+            'Cache-Control': 'private, no-store',
             'Location': `/`,
           },
           body: '',
@@ -231,7 +231,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
           statusCode: 200,
           headers: {
             'Content-Type': 'text/html',
-            'Cache-Control': 'public, max-age=0',
+            'Cache-Control': 'private, no-store',
           },
           body: loginTemplate({
             language,
@@ -272,7 +272,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
               statusCode: 302,
               headers: {
                 'Content-Type': 'text/html',
-                'Cache-Control': 'public, max-age=0',
+                'Cache-Control': 'private, no-store',
                 ...(activated && {
                   'Set-Cookie': buildSessionCookie(activeSessionId, expires.format('ddd, DD MMM YYYY HH:mm:ss')),
                 }),
@@ -288,7 +288,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
           statusCode: 302,
           headers: {
             'Content-Type': 'text/html',
-            'Cache-Control': 'public, max-age=0',
+            'Cache-Control': 'private, no-store',
             'Location': `/login`,
           },
           body: '',
@@ -301,7 +301,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
       statusCode: 404,
       headers: {
         'Content-Type': 'text/html',
-        'Cache-Control': 'public, max-age=0',
+        'Cache-Control': 'private, no-store',
       },
       body: welcomeTemplate({
         language,
@@ -315,7 +315,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
       statusCode: 500,
       headers: {
         'Content-Type': 'text/html;charset=utf-8',
-        'Cache-Control': 'public, max-age=0',
+        'Cache-Control': 'private, no-store',
       },
       body: 'Something went wrong.',
       isBase64Encoded: false,

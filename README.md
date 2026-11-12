@@ -42,6 +42,8 @@ The deploy workflow builds `dist/`, installs production dependencies into it wit
 
 Rate limits (login, posts, comments) are stored in sqlite and keyed on the client address. Apache must send `X-Forwarded-For` (`mod_proxy` does by default); it is trusted only when the direct peer is in `TRUSTED_PROXIES` (default loopback, see `.env.example`).
 
+Pages send a CSP (`default-src 'self'`, `frame-ancestors 'none'`, `form-action 'self'`; styles and fonts also from Google Fonts, images from any https host for link previews), `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` and HSTS (`lib/utils/securityHeaders.ts`). Apache does not need to add them; if it also sets HSTS, keep the values identical. Pages and API responses use `Cache-Control: private, no-store`. Inline `style` attributes are not allowed; use CSS classes or the `hidden` attribute.
+
 Account deletion and data export (GDPR) are on the profile page. Deleting needs a code emailed to the login address (10 minutes, 5 attempts) and removes the user, logins, sessions and tag preferences; posts and comments they wrote are kept with the owner cleared. The export is JSON (profile, logins, sessions without ids or secrets, tag preferences, posts and comments). Both are recorded in the `audit_log` table (action and user id only).
 
 Admin actions (role changes, post status changes, tag creation, tags added to or removed from posts) are recorded in `audit_log` with the actor, action, target id and a per-request id. The newest 50 admin entries (not the users' own `account.*` events) are listed with the actor's name on the moderation page (`GET /api/users/audit`, admins only). Entries older than a year are deleted on the next login request.

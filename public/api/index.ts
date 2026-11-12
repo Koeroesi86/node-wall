@@ -607,7 +607,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
                 statusCode: 401,
                 headers: {
                   'Content-Type': 'text/html',
-                  'Cache-Control': 'public, max-age=0',
+                  'Cache-Control': 'private, no-store',
                   'Set-Cookie': buildSessionCookie('none', expires.format('ddd, DD MMM YYYY HH:mm:ss')),
                 },
                 body: '',
