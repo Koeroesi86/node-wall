@@ -4,26 +4,39 @@
   "description": "",
   "main": "serverConfig.js",
   "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p public/static/tsconfig.json && tsc -p public/tsconfig.service-worker.json && node scripts/copy-assets.mts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p public/static/tsconfig.json --noEmit && tsc -p public/tsconfig.service-worker.json --noEmit",
+    "clean": "node scripts/clean.mts",
     "knex": "knex",
-    "dev": "nws-cli --config=\"D:\\Chris\\Documents\\Developement\\uzenofal\\dev.configuration.js\""
+    "dev": "npm run build && nws-cli --config=./dist/dev.configuration.js"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@vscode/sqlite3": "^5.1.14-vscode",
-    "axios": "^0.26.1",
     "cookie": "^0.4.2",
     "dotenv": "^16.0.0",
     "jsdom": "^19.0.0",
-    "knex": "^1.0.4",
-    "lib": "link:./lib",
+    "knex": "^3.3.0",
     "match-all": "^1.2.6",
     "moment": "^2.29.1",
-    "nodemailer": "^6.7.3",
+    "nodemailer": "^10.5.0",
+    "sqlite3": "^6.0.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@koeroesi86/node-webserver-cli": "^26.11.42482079849-master"
+    "@koeroesi86/node-webserver-cli": "^26.11.42482079849-master",
+    "@types/cookie": "^0.4.1",
+    "@types/jsdom": "^16.2.15",
+    "@types/node": "^24.19.2",
+    "@types/nodemailer": "^8.0.2",
+    "@types/uuid": "^8.3.4",
+    "typescript": "^7.0.2"
+  },
+  "allowScripts": {
+    "sqlite3": true
+  },
+  "engines": {
+    "node": ">=24"
   }
 }

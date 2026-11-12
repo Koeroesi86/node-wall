@@ -4,21 +4,17 @@ The community building platform.
 
 ## Dependencies
 
-* [Node](https://nodejs.org/en/)
-* [Yarn](https://yarnpkg.com/lang/en/) (optional)
+* [Node](https://nodejs.org/en/) 24 or newer, with npm
 
 ## Development
 
 ```bash
-yarn
-yarn dev
+npm ci
+npm run build   # TypeScript -> dist/
+npm run typecheck
 ```
 
-or with npm
-```bash
-npm i
-npm run dev
-```
+The app is written in TypeScript and runs from `dist/`, which `npm run build` produces (compiled code plus the CSS, translations and media it needs). Put your `.env` in the project root or in `dist/`. `npm run clean` removes `dist/`, including any local data under `dist/lib/data`.
 
 ## Deployment
 
@@ -33,7 +29,7 @@ Pushes to `master` build the app in GitHub Actions and ship it with [deploy-acti
   .deploy-log
 ```
 
-`deploy/pre-activate.sh` links `shared/` into each new release, runs `knex migrate:latest` and loads `serverConfig.js` as a sanity check, all before the switch. Migrations are not reverted by a rollback, so keep them backward compatible.
+The deploy workflow builds `dist/`, installs production dependencies into it with `npm ci --omit=dev` and ships that folder as the release. `deploy/pre-activate.sh` links `shared/` into each new release, runs `knex migrate:latest` and loads `serverConfig.js` as a sanity check, all before the switch. Migrations are not reverted by a rollback, so keep them backward compatible.
 
 Production `.env` needs `SERVER_PROTOCOL=http`, `SITE_PROTOCOL=https`, `SITE_DOMAIN=uzeno.koro.si`, an absolute `DB_DATABASE=/var/www/uzeno.koro.si/shared/data/wall.sqlite` and `APP_ROOT=/var/www/uzeno.koro.si/build`.
 
