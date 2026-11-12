@@ -188,12 +188,17 @@ describe('/login', () => {
 
     test('activates the session when the code matches', async () => {
       fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash, created_at: freshlyCreated, attempts: 0 });
+      fakeDb.resolves(1);
 
       const response = await verify({ code, session: SESSION_ID });
 
       expect(response).toMatchObject({ statusCode: 302, headers: { Location: '/' } });
-      expect(response.headers?.['Set-Cookie']).toMatch(new RegExp(`^sessionId=${SESSION_ID}; Expires=.* GMT; Path=/; Secure; HttpOnly; SameSite=Lax$`));
-      expect(fakeDb.calls).toContainEqual(['update', { status: 'active', secret: '' }]);
+      const cookieId = response.headers?.['Set-Cookie']?.match(/^sessionId=([^;]+);/)?.[1];
+      expect(cookieId).toMatch(/^[0-9a-f-]{36}$/);
+      expect(cookieId).not.toBe(SESSION_ID);
+      expect(response.headers?.['Set-Cookie']).toMatch(/; Expires=.* GMT; Path=\/; Secure; HttpOnly; SameSite=Lax$/);
+      expect(fakeDb.calls).toContainEqual(['where', { id: SESSION_ID, status: 'pending' }]);
+      expect(fakeDb.calls).toContainEqual(['update', expect.objectContaining({ id: cookieId, status: 'active', secret: '' })]);
     });
 
     test('leaves the session pending and sets no cookie when the code is wrong', async () => {

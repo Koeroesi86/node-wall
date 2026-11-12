@@ -12,7 +12,7 @@ beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 
-const session = { id: 's1', users_login_id: 'l1', status: 'active', created_at: 1 };
+const session = { id: 's1', users_login_id: 'l1', status: 'active', created_at: Date.now(), last_active: Date.now() };
 const login = { id: 'l1', type: 'email', user_id: 'u1', value: 'a@b.c' };
 const user = { id: 'u1', name: 'Ann', role: 'user', created_at: 1 };
 
@@ -52,4 +52,9 @@ test('getUserSessions joins logins and sessions of a user', async () => {
 test('getUserSessions returns null when the database fails', async () => {
   fakeDb.rejects(new Error('db down'));
   expect(await getUserSessions('u1')).toBeNull();
+});
+
+test('getUserInfoFromSession rejects expired sessions', async () => {
+  fakeDb.resolvesInOrder({ ...session, created_at: 1, last_active: null }, login, user);
+  expect(await getUserInfoFromSession('s1')).toBeNull();
 });

@@ -41,3 +41,24 @@ test.fails('setLastActive stores the given time', async () => {
   await setLastActive('s1', 1234);
   expect(fakeDb.calls).toContainEqual(['update', { last_active: 1234 }]);
 });
+
+test('activate swaps a pending session to a fresh active id', async () => {
+  fakeDb.resolves(1);
+  expect(await (await import('./activate')).default('old', 'new')).toBe(1);
+  expect(fakeDb.calls.slice(0, 3)).toEqual([
+    ['knex', 'users_session'],
+    ['where', { id: 'old', status: 'pending' }],
+    ['update', expect.objectContaining({ id: 'new', status: 'active', secret: '' })],
+  ]);
+});
+
+test('expireStale and purgeUnverified issue the cleanup statements', async () => {
+  await (await import('./expireStale')).default(Date.UTC(2026, 0, 31));
+  await (await import('./purgeUnverified')).default(Date.UTC(2026, 0, 31));
+  const sql = fakeDb.calls.filter(call => call[0] === 'raw').map(call => String(call[1]));
+  expect(sql).toHaveLength(4);
+  expect(sql[0]).toContain("SET status = 'deleted'");
+  expect(sql[1]).toContain("status = 'pending'");
+  expect(sql[2]).toContain('DELETE FROM users_login');
+  expect(sql[3]).toContain('DELETE FROM users');
+});

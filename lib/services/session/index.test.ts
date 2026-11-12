@@ -2,11 +2,17 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import create from './queries/create';
 import remove from './queries/remove';
 import setLastActive from './queries/setLastActive';
+import activate from './queries/activate';
+import expireStale from './queries/expireStale';
+import purgeUnverified from './queries/purgeUnverified';
 import sessionService from './index';
 
 vi.mock('./queries/create');
 vi.mock('./queries/remove');
 vi.mock('./queries/setLastActive');
+vi.mock('./queries/activate');
+vi.mock('./queries/expireStale');
+vi.mock('./queries/purgeUnverified');
 
 beforeEach(() => vi.resetAllMocks());
 
@@ -34,4 +40,16 @@ test('setLastActive delegates to the query', async () => {
 test('remove delegates to the query', async () => {
   await sessionService.remove('s1');
   expect(remove).toHaveBeenCalledWith('s1');
+});
+
+test('cleanup expires stale sessions then purges unverified accounts', async () => {
+  await sessionService.cleanup();
+  expect(expireStale).toHaveBeenCalled();
+  expect(purgeUnverified).toHaveBeenCalled();
+});
+
+test('activate delegates to the query', async () => {
+  vi.mocked(activate).mockResolvedValue(1);
+  expect(await sessionService.activate('old', 'new')).toBe(1);
+  expect(activate).toHaveBeenCalledWith('old', 'new');
 });

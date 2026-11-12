@@ -76,7 +76,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
         }, null, 2));
       }
 
-      await sessionService.setLastActive(cookies.sessionId, Date.now());
+      if (userInfo) await sessionService.setLastActive(cookies.sessionId, Date.now());
     }
 
     /** @route /api/link */
@@ -564,6 +564,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           if (payload.type === 'email' && !isSingleEmail(payload.value)) throw new Error('invalid email');
 
           await rateLimitService.removeExpired();
+          await sessionService.cleanup();
 
           if (!await loginIpLimiter.consume(`ip:${clientIp}`)) {
             return callback(tooManyRequests());
