@@ -18,6 +18,7 @@ import verifyLoginTemplate from '../../lib/templates/email/verifyLogin';
 import createMailer from '../../lib/utils/createMailer';
 import getTranslation from '../../lib/translations/getTranslation';
 import detectLanguage from '../../lib/utils/detectLanguage';
+import isAdmin from '../../lib/utils/isAdmin';
 
 const keepAliveTimeout = 30 * 1000;
 const keepAliveCallback = () => {
@@ -164,7 +165,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
       if (httpMethod === 'PUT' && pathFragments[2] && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
         const id = pathFragments[2];
-        if (userInfo && ['admin'].includes(userInfo.user.role)) {
+        if (isAdmin(userInfo)) {
           const payload = await readJson<{ status: string }>(event.bodyStream);
 
           if (!payload.status) throw new Error('no status');
@@ -226,7 +227,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             });
           }
 
-          if (post.status !== 'public' && (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role)))) {
+          if (post.status !== 'public' && !isAdmin(userInfo)) {
             return callback({
               statusCode: 401,
               headers: getResponseHeaders(),
@@ -282,8 +283,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           let nextPageBefore = null;
           const requestedStatus = queryStringParameters?.status;
           if (
-            userInfo
-            && ['admin'].includes(userInfo.user.role)
+            isAdmin(userInfo)
             && requestedStatus
             && ['public', 'pending', 'moderated', 'deleted'].includes(requestedStatus)
           ) {
@@ -353,7 +353,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
         }
 
         if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
-          if (pathFragments.length === 3 && !userInfo || (userInfo && !['admin'].includes(userInfo.user.role))) {
+          if (!isAdmin(userInfo)) {
             return callback({
               statusCode: 401,
               headers: getResponseHeaders(),
@@ -396,7 +396,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const postTags = await postService.getTags(postId);
 
           if (pathFragments[3] === 'tags') {
-            if (!userInfo || (userInfo && !['admin'].includes(userInfo.user.role))) {
+            if (!isAdmin(userInfo)) {
               return callback({
                 statusCode: 401,
                 headers: getResponseHeaders(),
@@ -481,7 +481,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           if (!payload.name) throw new Error('no name');
           if (!payload.type) throw new Error('no type');
           if (!userInfo) throw new Error('Not logged in');
-          if (!['admin'].includes(userInfo.user.role)) throw new Error('Not authorized');
+          if (!isAdmin(userInfo)) throw new Error('Not authorized');
 
           const tag = await tagService.create(payload.name, payload.type);
 
@@ -498,7 +498,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
     /** @route /api/users */
     if (pathFragments[1] === 'users') {
       if (!userInfo) throw new Error('Not logged in');
-      if (!['admin'].includes(userInfo.user.role)) throw new Error('Not authorized');
+      if (!isAdmin(userInfo)) throw new Error('Not authorized');
 
       if (httpMethod === 'GET' && pathFragments.length === 2) {
         const users = await userService.getList();
