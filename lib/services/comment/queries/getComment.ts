@@ -1,3 +1,4 @@
+import type { PostsComments } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
 
 async function getComment(id: string) {
@@ -8,7 +9,7 @@ async function getComment(id: string) {
       id: id,
       status: 'public',
     })
-    .select('*')
+    .select<Pick<PostsComments, 'id' | 'post' | 'parent' | 'owner' | 'status' | 'created_at'>[]>('*')
     .first();
 }
 

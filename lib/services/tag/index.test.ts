@@ -19,8 +19,8 @@ test('create generates an id and stores the tag', async () => {
 });
 
 test('get, getByName and getList delegate to the queries', async () => {
-  vi.mocked(getById).mockResolvedValue({ id: 't1' });
-  vi.mocked(getByName).mockResolvedValue({ id: 't2' });
+  vi.mocked(getById, { partial: true }).mockResolvedValue({ id: 't1' });
+  vi.mocked(getByName, { partial: true }).mockResolvedValue({ id: 't2' });
   vi.mocked(getList).mockResolvedValue([]);
 
   expect(await tagService.get('t1')).toEqual({ id: 't1' });

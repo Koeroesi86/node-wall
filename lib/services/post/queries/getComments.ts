@@ -1,3 +1,4 @@
+import type { PostsComments } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
 
 async function getComments(postId: string, status = 'public') {
@@ -8,7 +9,7 @@ async function getComments(postId: string, status = 'public') {
       post: postId,
       status: status,
     })
-    .select('id', 'parent', 'owner', 'created_at');
+    .select<Pick<PostsComments, 'id' | 'parent' | 'owner' | 'created_at'>[]>('id', 'parent', 'owner', 'created_at');
 }
 
 export default getComments;

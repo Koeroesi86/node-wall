@@ -1,3 +1,4 @@
+import type { UsersTags } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
 
 async function addTag(tagId: string, userId: string, type: string) {
@@ -9,7 +10,7 @@ async function addTag(tagId: string, userId: string, type: string) {
   };
 
   const existing = await knex('users_tags')
-    .select('tag_id', 'type')
+    .select<Pick<UsersTags, 'tag_id' | 'type'>[]>('tag_id', 'type')
     .where(condition)
     .first();
 

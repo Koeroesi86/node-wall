@@ -182,7 +182,7 @@ describe('/api/link', () => {
   });
 
   test('returns stored link data', async () => {
-    vi.mocked(linkService.getByUrl).mockResolvedValue({ id: 'l1' });
+    vi.mocked(linkService.getByUrl, { partial: true }).mockResolvedValue({ id: 'l1' });
     vi.mocked(linkService.getData).mockResolvedValue('{"title":"t"}');
 
     const response = await request({ path: 'api/link', query });
@@ -193,7 +193,7 @@ describe('/api/link', () => {
 
   test('upgrades http links to https before lookup', async () => {
     vi.mocked(linkService.getByUrl).mockResolvedValue(undefined);
-    vi.mocked(postService.get).mockResolvedValue({ status: 'public' });
+    vi.mocked(postService.get, { partial: true }).mockResolvedValue({ status: 'public' });
     vi.mocked(linkService.create).mockResolvedValue({ title: 't' } as never);
 
     await request({ path: 'api/link', query: { uri: 'http://example.com/page', post } });
@@ -204,7 +204,7 @@ describe('/api/link', () => {
 
   test('creates a link for a public post', async () => {
     vi.mocked(linkService.getByUrl).mockResolvedValue(undefined);
-    vi.mocked(postService.get).mockResolvedValue({ status: 'public' });
+    vi.mocked(postService.get, { partial: true }).mockResolvedValue({ status: 'public' });
     vi.mocked(linkService.create).mockResolvedValue({ title: 't' } as never);
 
     const response = await request({ path: 'api/link', query });
@@ -215,7 +215,7 @@ describe('/api/link', () => {
 
   test('refuses to fetch links for non-public posts', async () => {
     vi.mocked(linkService.getByUrl).mockResolvedValue(undefined);
-    vi.mocked(postService.get).mockResolvedValue({ status: 'pending' });
+    vi.mocked(postService.get, { partial: true }).mockResolvedValue({ status: 'pending' });
 
     expect((await request({ path: 'api/link', query })).statusCode).toBe(400);
     expect(linkService.create).not.toHaveBeenCalled();
@@ -254,7 +254,7 @@ describe('/api/comment', () => {
   });
 
   test('returns a comment by id', async () => {
-    vi.mocked(commentService.get).mockResolvedValue({ id: ID, body: 'hi' });
+    vi.mocked(commentService.get, { partial: true }).mockResolvedValue({ id: ID, body: 'hi' });
 
     const response = await request({ path: `api/comment/${ID}` });
 
@@ -340,10 +340,10 @@ describe('/api/posts', () => {
 
     test('returns the post with content, comments, owner and tags', async () => {
       vi.mocked(postService.get).mockResolvedValue(post);
-      vi.mocked(postService.getTags).mockResolvedValue([{ id: 't1' }]);
+      vi.mocked(postService.getTags, { partial: true }).mockResolvedValue([{ id: 't1', name: 'tag', type: null }]);
       vi.mocked(postService.getContent).mockResolvedValue('hello');
-      vi.mocked(postService.getComments).mockResolvedValue([{ id: 'c1' }, { id: 'c2' }]);
-      vi.mocked(userService.get).mockResolvedValue({ id: 'u1', name: 'Ann' });
+      vi.mocked(postService.getComments, { partial: true }).mockResolvedValue([{ id: 'c1', parent: null, owner: null, created_at: null }, { id: 'c2', parent: null, owner: null, created_at: null }]);
+      vi.mocked(userService.get, { partial: true }).mockResolvedValue({ id: 'u1', name: 'Ann' });
 
       const response = await request({ path: `api/posts/${ID}` });
 
@@ -355,7 +355,7 @@ describe('/api/posts', () => {
         created_at: 1,
         comments: ['c1', 'c2'],
         owner: { id: 'u1', name: 'Ann' },
-        tags: [{ id: 't1' }],
+        tags: [expect.objectContaining({ id: 't1' })],
       });
       expect(postService.getContent).toHaveBeenCalledWith(ID, 'post');
     });
@@ -371,9 +371,9 @@ describe('/api/posts', () => {
 
     test('returns the tags of a post', async () => {
       vi.mocked(postService.get).mockResolvedValue(post);
-      vi.mocked(postService.getTags).mockResolvedValue([{ id: 't1' }]);
+      vi.mocked(postService.getTags, { partial: true }).mockResolvedValue([{ id: 't1', name: 'tag', type: null }]);
 
-      expect(jsonBody(await request({ path: `api/posts/${ID}/tags` }))).toEqual([{ id: 't1' }]);
+      expect(jsonBody(await request({ path: `api/posts/${ID}/tags` }))).toEqual([expect.objectContaining({ id: 't1' })]);
     });
   });
 
@@ -480,7 +480,7 @@ describe('/api/posts', () => {
 
       test('rejects a tag that is already assigned', async () => {
         loggedInAs('admin');
-        vi.mocked(postService.getTags).mockResolvedValue([{ id: TAG_ID }]);
+        vi.mocked(postService.getTags, { partial: true }).mockResolvedValue([{ id: TAG_ID, name: 'tag', type: null }]);
         expect((await addTagRequest()).statusCode).toBe(400);
         expect(postService.addTag).not.toHaveBeenCalled();
       });
@@ -497,7 +497,7 @@ describe('/api/posts', () => {
     const removeTagRequest = () => request({ method: 'DELETE', path: `api/posts/${ID}/tags/${TAG_ID}` });
 
     test('rejects non-admins and anonymous users', async () => {
-      vi.mocked(postService.getTags).mockResolvedValue([{ id: TAG_ID }]);
+      vi.mocked(postService.getTags, { partial: true }).mockResolvedValue([{ id: TAG_ID, name: 'tag', type: null }]);
       expect((await removeTagRequest()).statusCode).toBe(401);
       loggedInAs('user');
       expect((await removeTagRequest()).statusCode).toBe(401);
@@ -506,7 +506,7 @@ describe('/api/posts', () => {
 
     test('removes an assigned tag', async () => {
       loggedInAs('admin');
-      vi.mocked(postService.getTags).mockResolvedValue([{ id: TAG_ID }]);
+      vi.mocked(postService.getTags, { partial: true }).mockResolvedValue([{ id: TAG_ID, name: 'tag', type: null }]);
       expect((await removeTagRequest()).statusCode).toBe(200);
       expect(postService.removeTag).toHaveBeenCalledWith(ID, TAG_ID);
     });
@@ -534,11 +534,11 @@ describe('/api/tags', () => {
   });
 
   test('lists tags with a search term', async () => {
-    vi.mocked(tagService.getList).mockResolvedValue([{ id: 't1' }]);
+    vi.mocked(tagService.getList, { partial: true }).mockResolvedValue([{ id: 't1', name: 'tag', type: null }]);
 
     const response = await request({ path: 'api/tags', query: { s: 'ne', exact: '1' } });
 
-    expect(jsonBody(response)).toEqual([{ id: 't1' }]);
+    expect(jsonBody(response)).toEqual([expect.objectContaining({ id: 't1' })]);
     expect(tagService.getList).toHaveBeenCalledWith('ne', true);
   });
 

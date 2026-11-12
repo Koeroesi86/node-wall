@@ -41,8 +41,8 @@ test('addLogin defaults to an email login', async () => {
 });
 
 test('reads delegate to the queries', async () => {
-  vi.mocked(getById).mockResolvedValue({ id: 'u1' });
-  vi.mocked(getLogin).mockResolvedValue({ id: 'l1' });
+  vi.mocked(getById, { partial: true }).mockResolvedValue({ id: 'u1' });
+  vi.mocked(getLogin, { partial: true }).mockResolvedValue({ id: 'l1' });
   vi.mocked(getTags).mockResolvedValue([]);
 
   expect(await userService.get('u1')).toEqual({ id: 'u1' });
@@ -62,8 +62,8 @@ test('writes delegate to the queries', async () => {
 });
 
 test('getList returns all users', async () => {
-  vi.mocked(getList).mockResolvedValue([{ id: 'u1' }]);
-  expect(await userService.getList()).toEqual([{ id: 'u1' }]);
+  vi.mocked(getList, { partial: true }).mockResolvedValue([{ id: 'u1', name: null, role: null, created_at: null }]);
+  expect(await userService.getList()).toEqual([expect.objectContaining({ id: 'u1' })]);
 });
 
 test('setRole updates the role', async () => {

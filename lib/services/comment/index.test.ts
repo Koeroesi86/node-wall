@@ -9,7 +9,7 @@ vi.mock('./queries/getComment');
 beforeEach(() => vi.resetAllMocks());
 
 test('get merges the stored body into the comment', async () => {
-  vi.mocked(getComment).mockResolvedValue({ id: 'c1', post: 'p1' });
+  vi.mocked(getComment, { partial: true }).mockResolvedValue({ id: 'c1', post: 'p1' });
   vi.mocked(storage.read).mockResolvedValue('hello');
 
   expect(await commentService.get('c1')).toEqual({ id: 'c1', post: 'p1', body: 'hello' });

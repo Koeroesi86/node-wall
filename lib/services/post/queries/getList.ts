@@ -1,11 +1,12 @@
 import type { Knex } from 'knex';
+import type { Posts } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
 
 async function getList(status: string, before: string | undefined, since: string | undefined, likedTags: string[], dislikedTags: string[]) {
   const knex = await createDatabase();
 
   const postsPromise = knex('posts')
-    .select('id', 'owner', 'type', 'created_at')
+    .select<Pick<Posts, 'id' | 'owner' | 'type' | 'created_at'>[]>('id', 'owner', 'type', 'created_at')
     .orderBy('created_at', 'desc')
     .groupBy('posts.id')
     .where('status', status);
