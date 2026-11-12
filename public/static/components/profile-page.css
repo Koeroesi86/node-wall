@@ -137,5 +137,5 @@ profile-page .accountActionsWrapper {
     display: flex;
     flex-direction: row;
     gap: 8px;
-    padding: 0 20px;
+    padding: 12px 20px 20px;
 }

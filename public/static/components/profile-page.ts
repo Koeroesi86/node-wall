@@ -25,14 +25,6 @@ class ProfilePage extends Component {
           <translate-text alias="profile-page.rename.button"></translate-text>
         </button>
       </div>
-      <div class="accountActionsWrapper">
-        <a class="button exportData" href="/api/user/export" download="my-data.json">
-          <translate-text alias="profile-page.export.button"></translate-text>
-        </a>
-        <button type="button" class="button deleteAccount">
-          <translate-text alias="profile-page.delete.button"></translate-text>
-        </button>
-      </div>
       <div class="userTagsWrapper">
         <div class="likedTags">
           <h3><translate-text alias="profile-page.liked-tags-list.header"></translate-text></h3>
@@ -46,6 +38,14 @@ class ProfilePage extends Component {
       <div class="sessionListWrapper">
         <h3><translate-text alias="profile-page.session-list.header"></translate-text></h3>
         <div class="sessionList"></div>
+      </div>
+      <div class="accountActionsWrapper">
+        <a class="button exportData" href="/api/user/export" download="my-data.json">
+          <translate-text alias="profile-page.export.button"></translate-text>
+        </a>
+        <button type="button" class="button deleteAccount">
+          <translate-text alias="profile-page.delete.button"></translate-text>
+        </button>
       </div>
     `;
 
