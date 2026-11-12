@@ -51,7 +51,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
     if (cookies.sessionId) {
       userInfo = await getUserInfoFromSession(cookies.sessionId);
-      if (!await storageService.has(cookies.sessionId, 'session')) {
+      if (userInfo && !await storageService.has(cookies.sessionId, 'session')) {
         await storageService.write(cookies.sessionId, 'session', JSON.stringify({
           userAgent: headers['user-agent'],
           remoteAddress: event.remoteAddress,

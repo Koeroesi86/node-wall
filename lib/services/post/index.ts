@@ -9,6 +9,7 @@ import getBounds from './queries/getBounds';
 import getList from './queries/getList';
 import getNextPage from './queries/getNextPage';
 import create from './queries/create';
+import stripHtml from '../../utils/stripHtml';
 import addTag from './queries/addTag';
 import removeTag from './queries/removeTag';
 
@@ -20,7 +21,7 @@ export default {
     content = content.trim();
     content = content.replace(/\n{3,}/gi, '\n\n');
     content = content.replace(/&nbsp;/gi, ' ');
-    content = content.replace(/<[^>]*>/g, ''); //strip html
+    content = stripHtml(content);
 
     await storage.write(id, type, content);
     await create(id, owner);
@@ -41,7 +42,7 @@ export default {
     content = content.trim();
     content = content.replace(/\n{3,}/gi, '\n\n');
     content = content.replace(/&nbsp;/gi, ' ');
-    content = content.replace(/<[^>]*>/g, ''); //strip html
+    content = stripHtml(content);
 
     await storage.write(id, 'comment', content);
 
