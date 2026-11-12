@@ -1,0 +1,71 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  schedule:
+    - cron: '23 4 * * 1' # weekly CodeQL scan of master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and migrate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: yarn install --frozen-lockfile
+      - name: Syntax check
+        run: git ls-files '*.js' | xargs -n1 node --check
+      - name: Migrations apply to a fresh database
+        run: |
+          printf 'DB_DRIVER=sqlite3\nDB_DATABASE=./lib/data/ci.sqlite\nSITE_DOMAIN=localhost\n' > .env
+          ln -sfn ../lib node_modules/lib
+          node_modules/.bin/knex migrate:latest
+          node -e "require('./serverConfig.js')"
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:javascript-typescript
+
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+  # Single check to require in the ruleset. Skipped jobs (dependency review outside PRs) count as passing.
+  required:
+    name: Required checks
+    if: always()
+    needs: [build, codeql, dependency-review]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
