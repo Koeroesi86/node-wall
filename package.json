@@ -5,10 +5,13 @@
   "main": "serverConfig.js",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p public/static/tsconfig.json && tsc -p public/tsconfig.service-worker.json && node scripts/copy-assets.mts",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p public/static/tsconfig.json --noEmit && tsc -p public/tsconfig.service-worker.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p public/static/tsconfig.json --noEmit && tsc -p public/tsconfig.service-worker.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "clean": "node scripts/clean.mts",
     "knex": "knex",
-    "dev": "npm run build && nws-cli --config=./dist/dev.configuration.js"
+    "dev": "npm run build && nws-cli --config=./dist/dev.configuration.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -31,7 +34,9 @@
     "@types/node": "^24.19.2",
     "@types/nodemailer": "^8.0.2",
     "@types/uuid": "^8.3.4",
-    "typescript": "^7.0.2"
+    "@vitest/coverage-v8": "^5.1.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
   },
   "allowScripts": {
     "sqlite3": true

@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler"
+  },
+  "include": ["*.test.ts", "lib", "migrations", "types", "public/api", "public/index.ts", "public/**/*.test.ts", "vitest.config.mts"],
+  "exclude": []
+}
