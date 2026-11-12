@@ -15,6 +15,10 @@ npm run typecheck
 npm test        # runs the *.test.ts files with Vitest (npm run test:watch, npm run test:coverage)
 ```
 
+### Generated Zod schemas
+
+`npm run generate:schemas` reads the SQLite schema of `DB_DATABASE` and writes one Zod schema plus its inferred type per application table to `lib/data-schemas/` (kebab-case files, `index.ts` re-exports them; knex and `sqlite_*` tables are skipped). Columns without `NOT NULL` are `.nullable()`. The folder is gitignored, so run it after `npm run knex -- migrate:latest` (from `dist/` after a build) whenever a migration changes the schema.
+
 The app is written in TypeScript and runs from `dist/`, which `npm run build` produces (compiled code plus the CSS, translations and media it needs). Put your `.env` in the project root or in `dist/`. `npm run clean` removes `dist/`, including any local data under `dist/lib/data`.
 
 ## User roles

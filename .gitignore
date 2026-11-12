@@ -8,3 +8,4 @@ lib/data/*.sqlite-journal
 .log/*
 dist
 coverage
+lib/data-schemas
