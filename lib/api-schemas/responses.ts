@@ -29,7 +29,7 @@ export const UserTagListResponseSchema = UsersTagsSchema.pick({ tag_id: true, ty
 
 export const UserInfoResponseSchema = z.object({
   user: UserResponseSchema,
-  session: UsersSessionSchema.pick({ id: true, users_login_id: true, status: true, created_at: true, last_active: true }),
+  session: UsersSessionSchema.pick({ id: true, users_login_id: true, status: true, last_active: true }).extend({ created_at: TimestampSchema }),
   login: UsersLoginSchema.pick({ id: true, type: true, user_id: true, value: true }),
 });
 

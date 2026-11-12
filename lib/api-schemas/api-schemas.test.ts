@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
-  CreateCommentRequestSchema, CreatePostRequestSchema, CreateTagRequestSchema, LoginRequestSchema, NameSchema,
+  CreateCommentRequestSchema, CreatePostRequestSchema, CreateTagRequestSchema, LoginRequestSchema, UserInfoResponseSchema, NameSchema,
   SetUserNameRequestSchema, SetUserTagRequestSchema,
 } from '.';
 
@@ -67,5 +67,16 @@ describe('tags', () => {
     expect(SetUserTagRequestSchema.safeParse({ id: ID, type: 'liked' }).success).toBe(true);
     expect(SetUserTagRequestSchema.safeParse({ id: ID, type: 'loved' }).success).toBe(false);
     expect(SetUserTagRequestSchema.safeParse({ id: 'x', type: 'liked' }).success).toBe(false);
+  });
+});
+
+describe('UserInfoResponseSchema', () => {
+  test.each([[1700000000000], ['2026-11-12 21:20:41']])('accepts the session created_at %s', createdAt => {
+    const info = {
+      user: { id: 'u1', name: 'Ann', role: 'user', created_at: createdAt },
+      session: { id: 's1', users_login_id: 'l1', status: 'active', created_at: createdAt, last_active: null },
+      login: { id: 'l1', type: 'email', user_id: 'u1', value: 'a@b.c' },
+    };
+    expect(UserInfoResponseSchema.safeParse(info).success).toBe(true);
   });
 });
