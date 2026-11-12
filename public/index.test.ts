@@ -144,7 +144,7 @@ describe('/logout', () => {
 
     expect(response.statusCode).toBe(302);
     expect(response.headers).toMatchObject({ Location: '/login' });
-    expect(response.headers?.['Set-Cookie']).toMatch(/^sessionId=none; Expires=.* GMT; Path=\/$/);
+    expect(response.headers?.['Set-Cookie']).toMatch(/^sessionId=none; Expires=.* GMT; Path=\/; Secure; HttpOnly; SameSite=Lax$/);
     expect(fakeDb.calls).toEqual([
       ['knex', 'users_session'],
       ['where', { id: SESSION_ID }],
@@ -192,7 +192,7 @@ describe('/login', () => {
       const response = await verify({ code, session: SESSION_ID });
 
       expect(response).toMatchObject({ statusCode: 302, headers: { Location: '/' } });
-      expect(response.headers?.['Set-Cookie']).toMatch(new RegExp(`^sessionId=${SESSION_ID}; Expires=.* GMT; Path=/$`));
+      expect(response.headers?.['Set-Cookie']).toMatch(new RegExp(`^sessionId=${SESSION_ID}; Expires=.* GMT; Path=/; Secure; HttpOnly; SameSite=Lax$`));
       expect(fakeDb.calls).toContainEqual(['update', { status: 'active', secret: '' }]);
     });
 
