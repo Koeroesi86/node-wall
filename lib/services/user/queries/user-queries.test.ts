@@ -106,3 +106,13 @@ test('writes reject values that do not match the schema', async () => {
   await expect(setName('u1', 5)).rejects.toThrow();
   expect(fakeDb.calls.map(call => call[0]).filter(name => name === 'insert' || name === 'update')).toEqual([]);
 });
+
+test('addLogin stores email addresses normalised', async () => {
+  await addLogin('l1', 'u1', ' A@B.C ');
+  expect(fakeDb.calls[0]).toEqual(['insert', { id: 'l1', user_id: 'u1', type: 'email', value: 'a@b.c' }]);
+});
+
+test('getLogin matches mixed-case email addresses', async () => {
+  await getLogin('email', 'A@B.c');
+  expect(fakeDb.calls[1]).toEqual(['where', { type: 'email', value: 'a@b.c' }]);
+});
