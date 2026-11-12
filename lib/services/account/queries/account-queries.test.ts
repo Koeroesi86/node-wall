@@ -16,7 +16,7 @@ import bumpConfirmationAttempts from './bumpConfirmationAttempts';
 import deleteAccount from './deleteAccount';
 import exportData from './exportData';
 import getConfirmation from './getConfirmation';
-import logAudit from './logAudit';
+import logAudit from '../../audit/queries/log';
 import removeConfirmation from './removeConfirmation';
 import saveConfirmation from './saveConfirmation';
 
@@ -70,8 +70,8 @@ test('confirmations are saved, counted and removed', async () => {
 });
 
 test('logAudit appends an entry', async () => {
-  await logAudit('a1', 'u1', 'account.exported', 7);
-  expect(await knex('audit_log').where({ id: 'a1' }).first()).toEqual({ id: 'a1', user_id: 'u1', action: 'account.exported', created_at: 7 });
+  await logAudit('a1', 'u1', 'account.exported', undefined, undefined, 7);
+  expect(await knex('audit_log').where({ id: 'a1' }).first()).toEqual({ id: 'a1', user_id: 'u1', action: 'account.exported', target_id: null, request_id: null, created_at: 7 });
 });
 
 test('exportData returns the user data without secrets or other users', async () => {

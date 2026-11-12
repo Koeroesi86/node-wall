@@ -3,7 +3,7 @@ import bumpConfirmationAttempts from './queries/bumpConfirmationAttempts';
 import deleteAccount from './queries/deleteAccount';
 import exportData from './queries/exportData';
 import getConfirmation from './queries/getConfirmation';
-import logAudit from './queries/logAudit';
+import logAudit from '../audit/queries/log';
 import removeConfirmation from './queries/removeConfirmation';
 import saveConfirmation from './queries/saveConfirmation';
 import { hashLoginCode, LOGIN_CODE_MAX_ATTEMPTS } from '../../utils/loginCode';
@@ -14,7 +14,7 @@ vi.mock('./queries/bumpConfirmationAttempts');
 vi.mock('./queries/deleteAccount');
 vi.mock('./queries/exportData');
 vi.mock('./queries/getConfirmation');
-vi.mock('./queries/logAudit');
+vi.mock('../audit/queries/log');
 vi.mock('./queries/removeConfirmation');
 vi.mock('./queries/saveConfirmation');
 

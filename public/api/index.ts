@@ -11,6 +11,7 @@ import linkService from '../../lib/services/link';
 import tagService from '../../lib/services/tag';
 import userService from '../../lib/services/user';
 import accountService from '../../lib/services/account';
+import auditService from '../../lib/services/audit';
 import confirmDeletionTemplate from '../../lib/templates/email/confirmDeletion';
 import getUserInfoFromSession from '../../lib/utils/getUserInfoFromSession';
 import readJson from '../../lib/utils/readJson';
@@ -25,7 +26,7 @@ import detectLanguage from '../../lib/utils/detectLanguage';
 import isAdmin from '../../lib/utils/isAdmin';
 import type { ZodType } from 'zod';
 import {
-  AddPostTagRequestSchema, BoundsResponseSchema, CommentResponseSchema, CreateCommentRequestSchema, CreatePostRequestSchema,
+  AddPostTagRequestSchema, AuditListResponseSchema, BoundsResponseSchema, CommentResponseSchema, CreateCommentRequestSchema, CreatePostRequestSchema,
   CreateTagRequestSchema, DeleteAccountRequestSchema, EmptyResponseSchema, LinkResponseSchema, LoginRequestSchema, LoginResponseSchema, PostListResponseSchema, PostResponseSchema,
   RemoveUserTagRequestSchema, SessionListResponseSchema, SetPostStatusRequestSchema, SetUserNameRequestSchema,
   SetUserRoleRequestSchema, SetUserTagRequestSchema, TagListResponseSchema, TagResponseSchema, UserInfoResponseSchema,
@@ -87,6 +88,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       headers,
     } = event;
     const clientIp = getClientIp(event);
+    const requestId = crypto.randomUUID();
     const cookiesRaw = headers.Cookie || headers.cookie || '';
     const cookies = parseCookies(cookiesRaw);
     let userInfo = null;
@@ -210,6 +212,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           }
 
           await postService.setStatus(id, payload.status);
+          await auditService.record(userInfo.user.id, `post.status.${payload.status}`, id, requestId);
 
           return callback({
             statusCode: 201,
@@ -369,6 +372,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             }
 
             await postService.addTag(postId, tagId);
+            await auditService.record(userInfo.user.id, 'post.tag-added', postId, requestId);
 
             return callback({
               statusCode: 200,
@@ -399,6 +403,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
               if (!postTags.find(tag => tag.id === tagId)) throw new Error('tag not assigned to post');
 
               await postService.removeTag(postId, tagId);
+              await auditService.record(userInfo.user.id, 'post.tag-removed', postId, requestId);
 
               return callback({
                 statusCode: 200,
@@ -459,6 +464,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
           const payload = await readJson(event.bodyStream, CreateTagRequestSchema);
           const tag = await tagService.create(payload.name, payload.type);
+          await auditService.record(userInfo.user.id, 'tag.created', tag.id, requestId);
 
           return callback(jsonResponse(TagResponseSchema, tag));
         }
@@ -474,12 +480,18 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
         return callback(jsonResponse(UserListResponseSchema, await userService.getList()));
       }
 
+      /** @route /api/users/audit */
+      if (httpMethod === 'GET' && pathFragments.length === 3 && pathFragments[2] === 'audit') {
+        return callback(jsonResponse(AuditListResponseSchema, await auditService.getRecent()));
+      }
+
       if (httpMethod === 'PUT' && pathFragments.length === 3) {
         const { role } = await readJson(event.bodyStream, SetUserRoleRequestSchema);
         const [, , targetId = ''] = pathFragments;
         if (targetId === userInfo.user.id) throw new Error('cannot change own role');
 
         await userService.setRole(targetId, role);
+        await auditService.record(userInfo.user.id, `user.role.${role}`, targetId, requestId);
 
         return callback({
           statusCode: 200,
@@ -498,6 +510,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
           await rateLimitService.removeExpired();
           await sessionService.cleanup();
+          await auditService.cleanup();
 
           if (!await loginIpLimiter.consume(`ip:${clientIp}`)) {
             return callback(tooManyRequests());

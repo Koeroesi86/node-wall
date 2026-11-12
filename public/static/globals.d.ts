@@ -114,6 +114,7 @@ declare const ApiSchemas: {
   TagResponseSchema: ApiSchema<TagData>;
   UserInfoResponseSchema: ApiSchema<UserInfo>;
   UserListResponseSchema: ApiSchema<{ id: string; name?: string; role: string }[]>;
+  AuditListResponseSchema: ApiSchema<{ user_id: string | null; action: string; target_id: string | null; created_at: number }[]>;
   UserTagListResponseSchema: ApiSchema<{ tag_id: string; type: string }[]>;
 };
 

@@ -21,3 +21,4 @@ export const isSessionExpired = (
     || now - created > SESSION_MAX_AGE_MS
     || now - lastActive > SESSION_IDLE_TIMEOUT_MS;
 };
+export const AUDIT_RETENTION_MS = 365 * 24 * 60 * 60 * 1000;

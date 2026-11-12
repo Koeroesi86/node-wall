@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PostsCommentsSchema, TagsSchema, UsersLoginSchema, UsersSchema, UsersSessionSchema, UsersTagsSchema } from '../data-schemas';
+import { AuditLogSchema, PostsCommentsSchema, TagsSchema, UsersLoginSchema, UsersSchema, UsersSessionSchema, UsersTagsSchema } from '../data-schemas';
 import { TimestampSchema } from './common';
 
 export const TagResponseSchema = TagsSchema;
@@ -7,6 +7,9 @@ export const TagListResponseSchema = TagResponseSchema.array();
 
 export const UserResponseSchema = UsersSchema.pick({ id: true, name: true, role: true }).extend({ created_at: TimestampSchema });
 export const UserListResponseSchema = UserResponseSchema.array();
+
+export const AuditEntryResponseSchema = AuditLogSchema.omit({ id: true });
+export const AuditListResponseSchema = AuditEntryResponseSchema.array();
 
 /** What anybody may learn about a post owner. */
 export const PostOwnerSchema = UsersSchema.pick({ id: true, name: true });

@@ -10,6 +10,7 @@ import storageService from '../../lib/services/storage';
 import tagService from '../../lib/services/tag';
 import userService from '../../lib/services/user';
 import accountService from '../../lib/services/account';
+import auditService from '../../lib/services/audit';
 import getTranslation from '../../lib/translations/getTranslation';
 import generateCode from '../../lib/utils/generateCode';
 import getUserInfoFromSession from '../../lib/utils/getUserInfoFromSession';
@@ -17,6 +18,7 @@ import getUserSessions from '../../lib/utils/getUserSessions';
 
 const transporter = vi.hoisted(() => ({ sendMail: vi.fn() }));
 
+vi.mock('../../lib/services/audit');
 vi.mock('../../lib/services/comment');
 vi.mock('../../lib/services/link');
 vi.mock('../../lib/services/post');
@@ -991,6 +993,22 @@ describe('/api/user', () => {
       expect(userService.setRole).toHaveBeenCalledWith('u2', 'admin');
       await request({ method: 'PUT', path: 'api/users/u2', body: { role: 'user' } });
       expect(userService.setRole).toHaveBeenCalledWith('u2', 'user');
+    });
+
+    test('records role changes in the audit log', async () => {
+      loggedInAs('admin');
+      await request({ method: 'PUT', path: 'api/users/u2', body: { role: 'admin' } });
+      expect(auditService.record).toHaveBeenCalledWith('u1', 'user.role.admin', 'u2', expect.any(String));
+    });
+
+    test('lists the audit log for admins only', async () => {
+      const entry = { user_id: 'u1', action: 'tag.created', target_id: 't1', request_id: 'r1', created_at: 5 };
+      vi.mocked(auditService.getRecent).mockResolvedValue([{ id: 'a1', ...entry }]);
+      expect((await request({ path: 'api/users/audit' })).statusCode).toBe(400);
+      loggedInAs('user');
+      expect((await request({ path: 'api/users/audit' })).statusCode).toBe(400);
+      loggedInAs('admin');
+      expect(jsonBody(await request({ path: 'api/users/audit' }))).toEqual([entry]);
     });
 
     test('rejects invalid roles and changing own role', async () => {
