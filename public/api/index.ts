@@ -20,6 +20,20 @@ import createMailer from '../../lib/utils/createMailer';
 import getTranslation from '../../lib/translations/getTranslation';
 import detectLanguage from '../../lib/utils/detectLanguage';
 import isAdmin from '../../lib/utils/isAdmin';
+import isSingleEmail from '../../lib/utils/isSingleEmail';
+import createRateLimiter from '../../lib/utils/createRateLimiter';
+
+const hour = 60 * 60 * 1000;
+// Deliberately very low for now; raise once real usage is known.
+const loginIpLimiter = createRateLimiter({ limit: 3, windowMs: hour });
+const loginAddressLimiter = createRateLimiter({ limit: 2, windowMs: hour });
+const contentLimiter = createRateLimiter({ limit: 3, windowMs: hour });
+const tooManyRequests = () => ({
+  statusCode: 429,
+  headers: getResponseHeaders({ 'Retry-After': String(hour / 1000) }),
+  body: JSON.stringify({ message: 'Too many requests.' }),
+  isBase64Encoded: false,
+});
 
 const keepAliveTimeout = 30 * 1000;
 const keepAliveCallback = () => {
@@ -127,6 +141,10 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
         if (payload.body === undefined) {
           throw new Error('no body defined');
+        }
+
+        if (!contentLimiter.consume(owner ?? `ip:${event.remoteAddress}`)) {
+          return callback(tooManyRequests());
         }
 
         await postService.createComment(payload.postId, payload.parent, owner, payload.body);
@@ -342,6 +360,10 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const payload = await readJson<{ content: string }>(event.bodyStream);
           if (!payload.content) throw new Error('no content');
 
+          if (!contentLimiter.consume(userInfo?.user.id ?? `ip:${event.remoteAddress}`)) {
+            return callback(tooManyRequests());
+          }
+
           await postService.create(payload.content, userInfo ? userInfo.user.id : null)
 
           return callback({
@@ -536,6 +558,14 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const payload = await readJson<{ value: string; type: string; name: string }>(event.bodyStream);
           if (!payload.value) throw new Error('no value');
           if (!payload.type) throw new Error('no type');
+          if (payload.type === 'email' && !isSingleEmail(payload.value)) throw new Error('invalid email');
+
+          if (
+            !loginIpLimiter.consume(`ip:${event.remoteAddress}`)
+            || !loginAddressLimiter.consume(`${payload.type}:${payload.value.toLowerCase()}`)
+          ) {
+            return callback(tooManyRequests());
+          }
 
           let login;
 
