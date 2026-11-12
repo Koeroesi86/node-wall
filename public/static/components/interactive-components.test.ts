@@ -736,3 +736,49 @@ describe('profile-page', () => {
     expect(element.querySelector('.dislikedTags .list')?.textContent).toBe('No disliked tags');
   });
 });
+
+describe('user-roles', () => {
+  beforeEach(async () => {
+    page = await loadComponents(['translate-text', 'user-roles']);
+    stubTranslations();
+  });
+
+  const users = [
+    { id: 'u1', name: 'Ann', role: 'admin' },
+    { id: 'u2', name: undefined, role: 'user' },
+  ];
+
+  test('lists users with their roles', async () => {
+    const element = page.mount('<user-roles></user-roles>');
+    await flush();
+    expect(page.requests[0]).toMatchObject({ method: 'GET', url: '/api/users' });
+    await reply(200, users);
+
+    const rows = [...element.querySelectorAll('.user')];
+    expect(rows.map(row => row.querySelector('.name')?.textContent)).toEqual(['Ann', 'u2']);
+    expect(rows.map(row => row.querySelector('.role')?.textContent)).toEqual(['admin', 'user']);
+  });
+
+  test('promotes a user and reloads the list', async () => {
+    const element = page.mount('<user-roles></user-roles>');
+    await flush();
+    await reply(200, users);
+
+    (element.querySelector('[user-id="u2"] .toggle') as HTMLElement).click();
+    await flush();
+    expect(page.requests[0]).toMatchObject({ method: 'PUT', url: '/api/users/u2', body: JSON.stringify({ role: 'admin' }) });
+    await reply(200);
+    await flush();
+    expect(page.requests[0]).toMatchObject({ method: 'GET', url: '/api/users' });
+  });
+
+  test('demotes an admin', async () => {
+    const element = page.mount('<user-roles></user-roles>');
+    await flush();
+    await reply(200, users);
+
+    (element.querySelector('[user-id="u1"] .toggle') as HTMLElement).click();
+    await flush();
+    expect(page.requests[0]).toMatchObject({ method: 'PUT', url: '/api/users/u1', body: JSON.stringify({ role: 'user' }) });
+  });
+});

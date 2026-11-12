@@ -700,6 +700,37 @@ describe('/api/user', () => {
     });
   });
 
+  describe('/users', () => {
+    test('lists users for admins', async () => {
+      loggedInAs('admin');
+      vi.mocked(userService.getList).mockResolvedValue([{ id: 'u2', name: 'Bob', role: 'user', created_at: 1 }]);
+      expect(jsonBody(await request({ path: 'api/users' }))).toEqual([{ id: 'u2', name: 'Bob', role: 'user', created_at: 1 }]);
+    });
+
+    test('rejects non-admins and anonymous visitors', async () => {
+      expect((await request({ path: 'api/users' })).statusCode).toBe(400);
+      loggedInAs('user');
+      expect((await request({ path: 'api/users' })).statusCode).toBe(400);
+      expect((await request({ method: 'PUT', path: 'api/users/u2', body: { role: 'admin' } })).statusCode).toBe(400);
+      expect(userService.setRole).not.toHaveBeenCalled();
+    });
+
+    test('promotes and demotes other users', async () => {
+      loggedInAs('admin');
+      expect((await request({ method: 'PUT', path: 'api/users/u2', body: { role: 'admin' } })).statusCode).toBe(200);
+      expect(userService.setRole).toHaveBeenCalledWith('u2', 'admin');
+      await request({ method: 'PUT', path: 'api/users/u2', body: { role: 'user' } });
+      expect(userService.setRole).toHaveBeenCalledWith('u2', 'user');
+    });
+
+    test('rejects invalid roles and changing own role', async () => {
+      loggedInAs('admin');
+      expect((await request({ method: 'PUT', path: 'api/users/u2', body: { role: 'root' } })).statusCode).toBe(400);
+      expect((await request({ method: 'PUT', path: 'api/users/u1', body: { role: 'user' } })).statusCode).toBe(400);
+      expect(userService.setRole).not.toHaveBeenCalled();
+    });
+  });
+
   describe('/tags', () => {
     test('lists the tags of the user', async () => {
       loggedInAs('user');
