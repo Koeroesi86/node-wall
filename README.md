@@ -29,7 +29,7 @@ Pushes to `master` build the app in GitHub Actions and ship it with [deploy-acti
 /var/www/uzeno.koro.si/
   build -> build.<timestamp>   active release (managed by deploy-action)
   shared/.env                  production config, see .env.example
-  shared/data/                 wall.sqlite (content is in its contents table; legacy post/link/comment files are still written until they are removed)
+  shared/data/                 wall.sqlite (all content lives in it; the legacy post/link/comment/session files are no longer used)
   shared/log/
   .deploy-log
 ```
@@ -57,4 +57,4 @@ In the GitHub `production` environment set the variables `DEPLOY_HOST`, `DEPLOY_
 
 ### Content storage migration
 
-Post, comment and link content is stored in the `contents` table; session device details (user agent, remote address) are columns on `users_session`. While the migration is in progress content writes go to both sqlite and the legacy `lib/data` files (session details go to sqlite only), and reads fall back to the file when sqlite has no row. The backfill (`node lib/services/storage/backfill-cli.js`) ran from `deploy/pre-activate.sh` on the previous deploy; it can still be run by hand. Removing the file writes and the `lib/data` symlink is a later change, after the backfill is verified.
+Post, comment and link content is stored in the `contents` table; session device details (user agent, remote address) are columns on `users_session`. Content used to be one file per record under `lib/data`; the files are no longer read or written and `shared/data` only needs to hold `wall.sqlite`. `DB_DATABASE` in the production `.env` must be the absolute path, because `lib/data` is no longer symlinked into releases.
