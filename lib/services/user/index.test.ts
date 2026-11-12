@@ -7,6 +7,8 @@ import getLogin from './queries/getLogin';
 import getTags from './queries/getTags';
 import removeTag from './queries/removeTag';
 import setName from './queries/setName';
+import getList from './queries/getList';
+import setRole from './queries/setRole';
 import userService from './index';
 
 vi.mock('crypto', () => ({ randomUUID: () => 'new-id' }));
@@ -18,17 +20,19 @@ vi.mock('./queries/getLogin');
 vi.mock('./queries/getTags');
 vi.mock('./queries/removeTag');
 vi.mock('./queries/setName');
+vi.mock('./queries/getList');
+vi.mock('./queries/setRole');
 
 beforeEach(() => vi.resetAllMocks());
 
 test('create stores a named user', async () => {
-  expect(await userService.create('Ann')).toEqual({ id: 'new-id', name: 'Ann', role: 'admin' });
-  expect(create).toHaveBeenCalledWith('new-id', 'Ann', 'admin');
+  expect(await userService.create('Ann')).toEqual({ id: 'new-id', name: 'Ann', role: 'user' });
+  expect(create).toHaveBeenCalledWith('new-id', 'Ann', 'user');
 });
 
 test('create stores an anonymous user with a null name', async () => {
   await userService.create();
-  expect(create).toHaveBeenCalledWith('new-id', null, 'admin');
+  expect(create).toHaveBeenCalledWith('new-id', null, 'user');
 });
 
 test('addLogin defaults to an email login', async () => {
@@ -55,4 +59,14 @@ test('writes delegate to the queries', async () => {
   expect(setName).toHaveBeenCalledWith('u1', 'Ann');
   expect(addTag).toHaveBeenCalledWith('t1', 'u1', 'liked');
   expect(removeTag).toHaveBeenCalledWith('t1', 'u1');
+});
+
+test('getList returns all users', async () => {
+  vi.mocked(getList).mockResolvedValue([{ id: 'u1' }]);
+  expect(await userService.getList()).toEqual([{ id: 'u1' }]);
+});
+
+test('setRole updates the role', async () => {
+  await userService.setRole('u1', 'admin');
+  expect(setRole).toHaveBeenCalledWith('u1', 'admin');
 });

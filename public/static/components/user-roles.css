@@ -1,0 +1,21 @@
+user-roles {
+    display: block;
+    margin-top: 24px;
+}
+
+user-roles .heading {
+    margin-bottom: 12px;
+}
+
+user-roles .user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px;
+    margin-bottom: 6px;
+    background: rgba(var(--main-button-background-color-rgb), 0.05);
+}
+
+user-roles .user .name {
+    flex: 1;
+}

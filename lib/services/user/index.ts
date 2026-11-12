@@ -7,12 +7,16 @@ import setName from './queries/setName';
 import getTags from './queries/getTags';
 import addTag from './queries/addTag';
 import removeTag from './queries/removeTag';
+import getList from './queries/getList';
+import setRole from './queries/setRole';
 
 export default {
   get: async (id: string) => getById(id),
+  getList: async () => getList(),
+  setRole: async (id: string, role: 'admin' | 'user') => setRole(id, role),
   create: async (name?: string) => {
     const id: string = uuid();
-    const role = 'admin'; //should be 'user'
+    const role = 'user';
 
     await create(id, name || null, role);
 

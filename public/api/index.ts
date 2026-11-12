@@ -495,6 +495,40 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       }
     }
 
+    /** @route /api/users */
+    if (pathFragments[1] === 'users') {
+      if (!userInfo) throw new Error('Not logged in');
+      if (!['admin'].includes(userInfo.user.role)) throw new Error('Not authorized');
+
+      if (httpMethod === 'GET' && pathFragments.length === 2) {
+        const users = await userService.getList();
+
+        return callback({
+          statusCode: 200,
+          headers: getResponseHeaders(),
+          body: JSON.stringify(users, null, 2),
+          isBase64Encoded: false,
+        });
+      }
+
+      if (httpMethod === 'PUT' && pathFragments.length === 3) {
+        const payload = await readJson<{ role: string }>(event.bodyStream);
+        const role = payload.role === 'admin' ? 'admin' : payload.role === 'user' ? 'user' : undefined;
+        if (!role) throw new Error('invalid role');
+        const [, , targetId = ''] = pathFragments;
+        if (targetId === userInfo.user.id) throw new Error('cannot change own role');
+
+        await userService.setRole(targetId, role);
+
+        return callback({
+          statusCode: 200,
+          headers: getResponseHeaders(),
+          body: '',
+          isBase64Encoded: false,
+        });
+      }
+    }
+
     /** @route /api/user */
     if (pathFragments[1] === 'user') {
       if (pathFragments.length === 2) {

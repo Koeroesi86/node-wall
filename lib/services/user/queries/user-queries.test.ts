@@ -4,6 +4,8 @@ import addLogin from './addLogin';
 import addTag from './addTag';
 import create from './create';
 import getById from './getById';
+import getList from './getList';
+import setRole from './setRole';
 import getLogin from './getLogin';
 import getTags from './getTags';
 import removeTag from './removeTag';
@@ -77,4 +79,23 @@ describe('addTag', () => {
     expect(fakeDb.calls).toContainEqual(['update', { type: 'liked' }]);
     expect(fakeDb.calls).not.toContainEqual(['insert', expect.anything()]);
   });
+});
+
+test('getList selects users newest first', async () => {
+  fakeDb.resolves([{ id: 'u1' }]);
+  expect(await getList()).toEqual([{ id: 'u1' }]);
+  expect(fakeDb.calls).toEqual([
+    ['knex', 'users'],
+    ['select', 'id', 'name', 'role', 'created_at'],
+    ['orderBy', 'created_at', 'desc'],
+  ]);
+});
+
+test('setRole updates the role of a user', async () => {
+  await setRole('u1', 'admin');
+  expect(fakeDb.calls).toEqual([
+    ['knex', 'users'],
+    ['update', { role: 'admin' }],
+    ['where', { id: 'u1' }],
+  ]);
 });

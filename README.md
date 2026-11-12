@@ -17,6 +17,10 @@ npm test        # runs the *.test.ts files with Vitest (npm run test:watch, npm 
 
 The app is written in TypeScript and runs from `dist/`, which `npm run build` produces (compiled code plus the CSS, translations and media it needs). Put your `.env` in the project root or in `dist/`. `npm run clean` removes `dist/`, including any local data under `dist/lib/data`.
 
+## User roles
+
+New accounts get the `user` role. Admins promote and demote other users from the users list on the moderation page. The first admin has to be set directly in the database: `UPDATE users SET role = 'admin' WHERE id = '<user id>';`. Existing accounts keep their current role (there is no migration), so demote any that should not be admins from the moderation page.
+
 ## Deployment
 
 Pushes to `master` build the app in GitHub Actions and ship it with [deploy-action](https://github.com/Koeroesi86/deploy-action) to `/var/www/uzeno.koro.si` on the VPS. The shared `webserver` service (`/var/www/server/configuration.js`) serves it from `build/serverConfig.js` behind Apache, which proxies `uzeno.koro.si` to port 8000.
