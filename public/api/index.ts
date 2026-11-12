@@ -570,6 +570,12 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             verifyUrl.searchParams.set('session', session.id);
             if (process.env.LOG_LOGIN_CODE === 'true') {
               console.log('login url (dev only)', verifyUrl.toString());
+              return callback({
+                statusCode: 200,
+                headers: getResponseHeaders({}),
+                body: JSON.stringify({ sessionId: session.id }, null, 2),
+                isBase64Encoded: false,
+              });
             }
             const activateUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login`);
             activateUrl.searchParams.set('session', session.id);

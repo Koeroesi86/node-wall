@@ -599,15 +599,19 @@ describe('/api/user', () => {
       );
     });
 
-    test('logs the login url only when LOG_LOGIN_CODE is enabled', async () => {
+    test('logs the login url instead of mailing it when LOG_LOGIN_CODE is enabled', async () => {
       const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
       await login();
       expect(log).not.toHaveBeenCalledWith('login url (dev only)', expect.any(String));
+      expect(transporter.sendMail).toHaveBeenCalledTimes(1);
 
       vi.stubEnv('LOG_LOGIN_CODE', 'true');
-      await login();
+      const response = await login();
+      expect(response.statusCode).toBe(200);
+      expect(jsonBody(response)).toEqual({ sessionId: SESSION_ID });
       expect(log).toHaveBeenCalledWith('login url (dev only)', `https://example.com/login/email?code=SECRET&session=${SESSION_ID}`);
+      expect(transporter.sendMail).toHaveBeenCalledTimes(1);
 
       vi.unstubAllEnvs();
       log.mockRestore();
