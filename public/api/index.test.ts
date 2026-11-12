@@ -222,6 +222,14 @@ describe('/api/comment', () => {
     expect(postService.createComment).toHaveBeenCalledWith(ID, undefined, null, 'hi');
   });
 
+  test('rate limits anonymous comments per ip', async () => {
+    const send = () => request({ method: 'POST', path: 'api/comment', headers: anonymous, body: { postId: ID, body: 'hi' } });
+
+    expect([(await send()).statusCode, (await send()).statusCode, (await send()).statusCode]).toEqual([200, 200, 200]);
+    expect((await send()).statusCode).toBe(429);
+    expect(postService.createComment).toHaveBeenCalledTimes(3);
+  });
+
   test.each([
     ['postId', { body: 'hi' }],
     ['body', { postId: ID }],
@@ -415,6 +423,17 @@ describe('/api/posts', () => {
     test('creates anonymous posts', async () => {
       await request({ method: 'POST', path: 'api/posts', headers: anonymous, body: { content: 'hi' } });
       expect(postService.create).toHaveBeenCalledWith('hi', null);
+    });
+
+    test('rate limits anonymous posts per ip', async () => {
+      const send = () => request({ method: 'POST', path: 'api/posts', headers: anonymous, body: { content: 'hi' } });
+
+      await send();
+      await send();
+      await send();
+
+      expect((await send()).statusCode).toBe(429);
+      expect(postService.create).toHaveBeenCalledTimes(3);
     });
 
     test('rejects empty posts', async () => {
@@ -627,6 +646,30 @@ describe('/api/user', () => {
       expect(userService.create).toHaveBeenCalledWith('Ann');
       expect(userService.addLogin).toHaveBeenCalledWith('u2', 'a@b.c', 'email');
       expect(sessionService.create).toHaveBeenCalledWith(SESSION_ID, 'l2', expect.any(String), 'pending');
+    });
+
+    test.each(['a@x.com, b@y.com', 'a@x.com;b@y.com', 'not-an-email'])('rejects the invalid or multi-recipient email %j', async value => {
+      expect((await login({ value, type: 'email' })).statusCode).toBe(400);
+      expect(transporter.sendMail).not.toHaveBeenCalled();
+      expect(sessionService.create).not.toHaveBeenCalled();
+    });
+
+    test('rate limits per address, case insensitively', async () => {
+      expect((await login({ value: 'a@b.c', type: 'email' })).statusCode).toBe(200);
+      expect((await login({ value: 'A@b.c', type: 'email' })).statusCode).toBe(200);
+      const blocked = await login({ value: 'a@B.c', type: 'email' });
+
+      expect(blocked.statusCode).toBe(429);
+      expect(transporter.sendMail).toHaveBeenCalledTimes(2);
+    });
+
+    test('rate limits per ip across addresses', async () => {
+      await login({ value: 'a@b.c', type: 'email' });
+      await login({ value: 'b@b.c', type: 'email' });
+      await login({ value: 'c@b.c', type: 'email' });
+
+      expect((await login({ value: 'd@b.c', type: 'email' })).statusCode).toBe(429);
+      expect(transporter.sendMail).toHaveBeenCalledTimes(3);
     });
 
     test('answers 400 when the mail fails', async () => {
