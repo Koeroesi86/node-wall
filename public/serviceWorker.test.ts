@@ -78,8 +78,8 @@ describe('install', () => {
     listeners.install({ waitUntil });
     await Promise.all(waitUntil.mock.calls.map(([promise]) => promise));
 
-    expect(caches.delete).toHaveBeenCalledWith('node-wall-cache-v2');
-    expect(caches.open).toHaveBeenCalledWith('node-wall-cache-v2');
+    expect(caches.delete).toHaveBeenCalledWith('node-wall-cache-v3');
+    expect(caches.open).toHaveBeenCalledWith('node-wall-cache-v3');
     expect(cache.addAll).toHaveBeenCalledWith(expect.arrayContaining(['/', '/wall', '/static/components/_component.js', '/static/stores/redux.js']));
   });
 });
@@ -150,7 +150,7 @@ describe('fetch', () => {
     const { response } = fetchEvent('https://wall.example/api/translation/a');
     await response();
 
-    expect(caches.match).toHaveBeenCalledWith('https://wall.example/api/translation/a', { cacheName: 'node-wall-cache-v2' });
+    expect(caches.match).toHaveBeenCalledWith('https://wall.example/api/translation/a', { cacheName: 'node-wall-cache-v3' });
   });
 
   test('does not cache per-user responses for pages that reported no session', async () => {
@@ -213,7 +213,7 @@ describe('cleanup', () => {
   const other = 'aaaaaaaa-2222-3333-4444-555555555555';
 
   test('activation drops old versions and every unclaimed session cache', async () => {
-    caches.keys.mockResolvedValue(['node-wall-cache-v1', 'node-wall-cache-v2', `node-wall-session-${SESSION}`]);
+    caches.keys.mockResolvedValue(['node-wall-cache-v1', 'node-wall-cache-v2', 'node-wall-cache-v3', `node-wall-session-${SESSION}`]);
     const waitUntil = vi.fn();
 
     listeners.activate({ waitUntil });
@@ -223,7 +223,7 @@ describe('cleanup', () => {
   });
 
   test('a new session removes the caches of other sessions', async () => {
-    caches.keys.mockResolvedValue(['node-wall-cache-v2', `node-wall-session-${other}`, `node-wall-session-${SESSION}`]);
+    caches.keys.mockResolvedValue(['node-wall-cache-v3', `node-wall-session-${other}`, `node-wall-session-${SESSION}`]);
 
     await sessionMessage(SESSION);
 
@@ -232,7 +232,7 @@ describe('cleanup', () => {
 
   test('logging out removes the session cache', async () => {
     await sessionMessage(SESSION);
-    caches.keys.mockResolvedValue(['node-wall-cache-v2', `node-wall-session-${SESSION}`]);
+    caches.keys.mockResolvedValue(['node-wall-cache-v3', `node-wall-session-${SESSION}`]);
 
     await sessionMessage('');
 
@@ -242,7 +242,7 @@ describe('cleanup', () => {
   test('keeps caches of sessions other pages still use', async () => {
     await sessionMessage(SESSION, 'client-1');
     await sessionMessage(other, 'client-2');
-    caches.keys.mockResolvedValue(['node-wall-cache-v2', `node-wall-session-${SESSION}`, `node-wall-session-${other}`]);
+    caches.keys.mockResolvedValue(['node-wall-cache-v3', `node-wall-session-${SESSION}`, `node-wall-session-${other}`]);
     caches.delete.mockClear();
 
     await sessionMessage('', 'client-1');

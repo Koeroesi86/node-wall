@@ -1,4 +1,6 @@
-const CACHE_NAME = 'node-wall-cache-v2';
+// Bump when pages or scripts change in a way that breaks old cached pages: a changed worker file reinstalls and refills the cache.
+
+const CACHE_NAME = 'node-wall-cache-v3';
 const SESSION_CACHE_PREFIX = 'node-wall-session-';
 const SESSION_MESSAGE = 'SW_SESSION';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
