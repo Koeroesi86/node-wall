@@ -16,4 +16,7 @@ ln -s "$shared/log" .log
 ln -s "$shared/.env" .env
 
 node_modules/.bin/knex migrate:latest
+# Temporary (#42): copy legacy content files into sqlite. Idempotent and never overwrites existing data.
+# A failure must not block the deploy because reads still fall back to the files.
+node lib/services/storage/backfill-cli.js || echo "Warning: content backfill failed, see output above" >&2
 node -e "require('./serverConfig.js')"

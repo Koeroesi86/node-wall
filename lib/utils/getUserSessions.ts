@@ -10,7 +10,9 @@ export default async (userId: string) => {
       'users_session.status as sessionStatus',
       'users_session.created_at as sessionCreatedAt',
       'users_session.id as sessionId',
-      'users_session.last_active as lastActive'
+      'users_session.last_active as lastActive',
+      'users_session.user_agent as userAgent',
+      'users_session.remote_address as remoteAddress'
     ])
       .from('users')
       .where({

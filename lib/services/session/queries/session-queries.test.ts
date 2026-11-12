@@ -3,6 +3,7 @@ import { fakeDb } from '../../../test-utils/fakeDb';
 import create from './create';
 import remove from './remove';
 import setLastActive from './setLastActive';
+import setDetails from './setDetails';
 
 vi.mock('../../../utils/createDatabase', async () => ({
   default: async () => (await import('../../../test-utils/fakeDb')).fakeDb.knex,
@@ -24,6 +25,16 @@ test('remove marks the session deleted and clears the secret', async () => {
     ['knex', 'users_session'],
     ['where', { id: 's1' }],
     ['update', { status: 'deleted', secret: '' }],
+  ]);
+});
+
+test('setDetails only fills sessions without details', async () => {
+  await setDetails('s1', 'UA', '1.2.3.4');
+  expect(fakeDb.calls).toEqual([
+    ['knex', 'users_session'],
+    ['where', { id: 's1' }],
+    ['whereNull', 'user_agent'],
+    ['update', { user_agent: 'UA', remote_address: '1.2.3.4' }],
   ]);
 });
 

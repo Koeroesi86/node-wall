@@ -117,15 +117,10 @@ describe('session handling', () => {
 
   test('stores device details the first time a session is seen', async () => {
     loggedInAs('user');
-    vi.mocked(storageService.has).mockResolvedValue(false);
 
     await request({ path: 'api/unknown', headers: { cookie: `sessionId=${SESSION_ID}`, 'user-agent': 'UA' } });
 
-    expect(storageService.write).toHaveBeenCalledWith(
-      SESSION_ID,
-      'session',
-      JSON.stringify({ userAgent: 'UA', remoteAddress: '127.0.0.1' }, null, 2),
-    );
+    expect(sessionService.setDetails).toHaveBeenCalledWith(SESSION_ID, 'UA', '127.0.0.1');
   });
 
   test('does nothing without a session cookie', async () => {
@@ -723,24 +718,27 @@ describe('/api/user', () => {
 
   describe('/sessions', () => {
     const sessions = [
-      { sessionId: 's1', sessionStatus: 'active', sessionCreatedAt: '2024-01-01T00:00:00Z' },
+      { sessionId: 's1', sessionStatus: 'active', sessionCreatedAt: '2024-01-01T00:00:00Z', userAgent: 'UA', remoteAddress: '1.2.3.4' },
       { sessionId: 's2', sessionStatus: 'deleted', sessionCreatedAt: '2024-01-02T00:00:00Z' },
     ];
 
     test('lists live sessions with their stored details', async () => {
       loggedInAs('user');
       vi.mocked(getUserSessions).mockResolvedValue(sessions);
-      vi.mocked(storageService.read).mockResolvedValue('{"userAgent":"UA"}');
 
       const body = jsonBody(await request({ path: 'api/user/sessions' }));
 
-      expect(body).toEqual([{ ...sessions[0], sessionCreatedAt: Date.parse('2024-01-01T00:00:00Z'), details: { userAgent: 'UA' } }]);
+      expect(body).toEqual([{
+        sessionId: 's1',
+        sessionStatus: 'active',
+        sessionCreatedAt: Date.parse('2024-01-01T00:00:00Z'),
+        details: { userAgent: 'UA', remoteAddress: '1.2.3.4' },
+      }]);
     });
 
     test('uses null details when none are stored', async () => {
       loggedInAs('user');
-      vi.mocked(getUserSessions).mockResolvedValue([sessions[0]]);
-      vi.mocked(storageService.has).mockResolvedValue(false);
+      vi.mocked(getUserSessions).mockResolvedValue([{ sessionId: 's1', sessionStatus: 'active', sessionCreatedAt: '2024-01-01T00:00:00Z' }]);
 
       expect(jsonBody(await request({ path: 'api/user/sessions' }))[0].details).toBeNull();
     });
