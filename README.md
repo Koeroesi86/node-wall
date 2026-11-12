@@ -29,7 +29,7 @@ Pushes to `master` build the app in GitHub Actions and ship it with [deploy-acti
 /var/www/uzeno.koro.si/
   build -> build.<timestamp>   active release (managed by deploy-action)
   shared/.env                  production config, see .env.example
-  shared/data/                 wall.sqlite and the post/link/session/comment files
+  shared/data/                 wall.sqlite (content is in its contents table; legacy post/link/session/comment files are still written until they are removed)
   shared/log/
   .deploy-log
 ```
@@ -54,3 +54,7 @@ touch .deploy-log && chown deploy:www-data .deploy-log && chmod g+w .deploy-log
 Then add `/var/www/uzeno.koro.si/build/serverConfig.js` to `servers` in `/var/www/server/configuration.js` (after the first deploy), check with `nws-cli --config /var/www/server/configuration.js --check` and restart `webserver`. The old checkout files can stay beside the releases until the first deploy has been verified, then be removed.
 
 In the GitHub `production` environment set the variables `DEPLOY_HOST`, `DEPLOY_USER` and the secrets `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`.
+
+### Content storage migration
+
+Post, comment, link and session content is stored in the `contents` table. While the migration is in progress writes go to both sqlite and the legacy `lib/data` files, and reads fall back to the file when sqlite has no row. After deploying, backfill existing files once on the server (safe to re-run, never overwrites existing rows): `node dist/lib/services/storage/backfill-cli.js` from the release directory with the production `.env`. Removing the file writes and the `lib/data` symlink is a later change, after the backfill is verified.
