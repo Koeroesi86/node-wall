@@ -17,7 +17,8 @@ const getHeaders = (props: WrapperProps) => props.headers || '';
 const getSessionId = (props: WrapperProps) => isSessionId(props.sessionId) ? props.sessionId : '';
 const getContent = (props: WrapperProps) => props.content || '';
 const getLanguage = (props: WrapperProps) => escapeHtml(props.language || 'en-GB');
-const getInitialState = (props: WrapperProps) => props.initialState || {};
+// Escaping `<` keeps the JSON from closing the script element.
+const getInitialState = (props: WrapperProps) => JSON.stringify(props.initialState || {}).replace(/</g, '\\u003c');
 
 export default (props: WrapperProps = {}) => (`
 <!DOCTYPE html>
@@ -29,11 +30,9 @@ export default (props: WrapperProps = {}) => (`
     <meta name="x-session-id" content="${getSessionId(props)}" />
     <meta name="x-language" content="${getLanguage(props)}" />
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap&subset=latin-ext" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2.2.10/webcomponents-bundle.js"></script>
-    <script src="https://unpkg.com/redux@4.0.5/dist/redux.min.js"></script>
-    <script type="application/javascript">
-      window['__STATE__'] = ${JSON.stringify(getInitialState(props))};
-    </script>
+    <script src="/static/vendor/webcomponents-bundle.js"></script>
+    <script src="/static/vendor/redux.min.js"></script>
+    <script type="application/json" id="initial-state">${getInitialState(props)}</script>
     <script src="/static/utils/post.js"></script>
     <script src="/static/utils/comments.js"></script>
     <script src="/static/stores/serviceWorker.js"></script>

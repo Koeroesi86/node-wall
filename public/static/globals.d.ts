@@ -98,6 +98,5 @@ interface Window {
   createPost: typeof createPost;
   getComment: typeof getComment;
   createComment: typeof createComment;
-  __STATE__?: unknown;
   __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: (...enhancers: unknown[]) => unknown;
 }

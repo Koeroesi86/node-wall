@@ -2,6 +2,7 @@ import type { LambdaCallback, LambdaEvent } from '../lib/types';
 import moment from 'moment';
 import { parseCookies, buildSessionCookie } from '../lib/utils/sessionCookie';
 import { isLoginCodeExpired, isLoginCodeMatch, LOGIN_CODE_MAX_ATTEMPTS } from '../lib/utils/loginCode';
+import securityHeaders from '../lib/utils/securityHeaders';
 import detectLanguage from '../lib/utils/detectLanguage';
 import createDatabase from '../lib/utils/createDatabase';
 import getUserInfoFromSession from '../lib/utils/getUserInfoFromSession';
@@ -20,7 +21,11 @@ const keepAliveCallback = () => {
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 
-export = async (event: LambdaEvent, callback: LambdaCallback) => {
+export = async (event: LambdaEvent, respond: LambdaCallback) => {
+  const callback: LambdaCallback = (response) => respond({
+    ...response,
+    headers: { ...securityHeaders, ...response.headers },
+  });
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
   const {
