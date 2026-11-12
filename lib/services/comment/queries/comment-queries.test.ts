@@ -9,8 +9,8 @@ vi.mock('../../../utils/createDatabase', async () => ({
 beforeEach(() => fakeDb.reset());
 
 test('getComment only returns public comments', async () => {
-  fakeDb.resolves({ id: 'c1' });
-  expect(await getComment('c1')).toEqual({ id: 'c1' });
+  fakeDb.resolves({ id: 'c1', post: 'p1', parent: null, owner: null, status: 'public', created_at: 1 });
+  expect(await getComment('c1')).toEqual({ id: 'c1', post: 'p1', parent: null, owner: null, status: 'public', created_at: 1 });
   expect(fakeDb.calls).toEqual([
     ['knex', 'posts_comments'],
     ['where', { id: 'c1', status: 'public' }],

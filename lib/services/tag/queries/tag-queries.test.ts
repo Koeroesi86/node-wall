@@ -17,8 +17,8 @@ test('create inserts a tag', async () => {
 });
 
 test('getById selects one tag', async () => {
-  fakeDb.resolves({ id: 't1' });
-  expect(await getById('t1')).toEqual({ id: 't1' });
+  fakeDb.resolves({ id: 't1', name: 'tag', type: null });
+  expect(await getById('t1')).toEqual({ id: 't1', name: 'tag', type: null });
   expect(fakeDb.calls).toEqual([
     ['knex', 'tags'],
     ['select', 'id', 'name', 'type'],
@@ -34,17 +34,19 @@ test('getByName selects one tag', async () => {
 
 describe('getList', () => {
   test('lists everything without a search', async () => {
-    fakeDb.resolves([{ id: 't1' }]);
-    expect(await getList()).toEqual([{ id: 't1' }]);
+    fakeDb.resolves([{ id: 't1', name: 'tag', type: null }]);
+    expect(await getList()).toEqual([{ id: 't1', name: 'tag', type: null }]);
     expect(fakeDb.calls).toEqual([['knex', 'tags'], ['select', 'id', 'name', 'type']]);
   });
 
   test('matches partially by default', async () => {
+    fakeDb.resolves([]);
     await getList('ne');
     expect(fakeDb.calls).toContainEqual(['where', 'name', 'like', '%ne%']);
   });
 
   test('matches exactly when asked', async () => {
+    fakeDb.resolves([]);
     await getList('news', true);
     expect(fakeDb.calls).toContainEqual(['where', 'name', 'news']);
   });

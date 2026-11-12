@@ -1,10 +1,11 @@
-import type { Tags } from '../../../data-schemas';
+import { TagsSchema } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
+import { parseRows } from '../../../utils/validateRows';
 
 async function getList(search = '', exact = false) {
   const knex = await createDatabase();
 
-  const tagsPromise = knex('tags').select<Pick<Tags, 'id' | 'name' | 'type'>[]>('id', 'name', 'type');
+  const tagsPromise = knex('tags').select('id', 'name', 'type');
 
   if (!!search) {
     if (!exact) {
@@ -14,7 +15,7 @@ async function getList(search = '', exact = false) {
     }
   }
 
-  return tagsPromise;
+  return parseRows(TagsSchema, await tagsPromise);
 }
 
 export default getList;

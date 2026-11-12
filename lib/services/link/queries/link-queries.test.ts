@@ -15,8 +15,8 @@ test('create stores the url under the id', async () => {
 });
 
 test('getByUrl finds a link by url', async () => {
-  fakeDb.resolves({ id: 'l1' });
-  expect(await getByUrl('https://example.com')).toEqual({ id: 'l1' });
+  fakeDb.resolves({ id: 'l1', created_at: 1 });
+  expect(await getByUrl('https://example.com')).toEqual({ id: 'l1', created_at: 1 });
   expect(fakeDb.calls).toEqual([
     ['knex', 'links'],
     ['select', 'id', 'created_at'],

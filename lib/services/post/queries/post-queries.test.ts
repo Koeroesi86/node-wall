@@ -57,8 +57,8 @@ test('getBounds returns the oldest and newest public post', async () => {
 });
 
 test('getComments filters by post and status', async () => {
-  fakeDb.resolves([{ id: 'c1' }]);
-  expect(await getComments('p1')).toEqual([{ id: 'c1' }]);
+  fakeDb.resolves([{ id: 'c1', parent: null, owner: null, created_at: 1 }]);
+  expect(await getComments('p1')).toEqual([{ id: 'c1', parent: null, owner: null, created_at: 1 }]);
   expect(fakeDb.calls).toEqual([
     ['knex', 'posts_comments'],
     ['where', { post: 'p1', status: 'public' }],
@@ -66,9 +66,14 @@ test('getComments filters by post and status', async () => {
   ]);
 });
 
+test('getPost rejects a row that does not match the schema', async () => {
+  fakeDb.resolves({ id: 1, owner: null, status: 'public', type: 'post', created_at: 1 });
+  await expect(getPost('p1')).rejects.toThrow();
+});
+
 test('getPost selects one post by id', async () => {
-  fakeDb.resolves({ id: 'p1' });
-  expect(await getPost('p1')).toEqual({ id: 'p1' });
+  fakeDb.resolves({ id: 'p1', owner: null, status: 'public', type: 'post', created_at: 1 });
+  expect(await getPost('p1')).toEqual({ id: 'p1', owner: null, status: 'public', type: 'post', created_at: 1 });
   expect(fakeDb.calls).toEqual([
     ['knex', 'posts'],
     ['select', 'id', 'owner', 'created_at', 'status', 'type'],
@@ -78,8 +83,8 @@ test('getPost selects one post by id', async () => {
 });
 
 test('getTags joins the tag details', async () => {
-  fakeDb.resolves([{ id: 't1' }]);
-  expect(await getTags('p1')).toEqual([{ id: 't1' }]);
+  fakeDb.resolves([{ id: 't1', name: 'tag', type: null }]);
+  expect(await getTags('p1')).toEqual([{ id: 't1', name: 'tag', type: null }]);
   expect(fakeDb.calls).toEqual([
     ['knex', 'posts_tags'],
     ['leftJoin', 'tags', 'tags.id', 'posts_tags.tag_id'],
@@ -100,8 +105,8 @@ test('setStatus updates the post status', async () => {
 
 describe('getList', () => {
   test('filters by status only without options', async () => {
-    fakeDb.resolves([{ id: 'p1' }]);
-    expect(await getList('public', undefined, undefined, [], [])).toEqual([{ id: 'p1' }]);
+    fakeDb.resolves([{ id: 'p1', owner: null, type: 'post', created_at: 1 }]);
+    expect(await getList('public', undefined, undefined, [], [])).toEqual([{ id: 'p1', owner: null, type: 'post', created_at: 1 }]);
     expect(fakeDb.calls).toEqual([
       ['knex', 'posts'],
       ['select', 'id', 'owner', 'type', 'created_at'],
@@ -112,12 +117,14 @@ describe('getList', () => {
   });
 
   test('applies before and since bounds', async () => {
+    fakeDb.resolves([]);
     await getList('public', '20', '10', [], []);
     expect(fakeDb.calls).toContainEqual(['where', 'created_at', '<', '20']);
     expect(fakeDb.calls).toContainEqual(['where', 'created_at', '>=', '10']);
   });
 
   test('requires liked tags and excludes disliked ones', async () => {
+    fakeDb.resolves([]);
     await getList('public', undefined, undefined, ['a'], ['b']);
     expect(fakeDb.calls.map(call => call[0])).toEqual(expect.arrayContaining(['havingExists', 'havingNotExists']));
     expect(fakeDb.runCallback('havingExists')).toEqual([

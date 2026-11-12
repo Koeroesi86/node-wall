@@ -1,12 +1,15 @@
 import type { Knex } from 'knex';
-import type { Posts } from '../../../data-schemas';
+import { PostsSchema } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
+import { parseRows, TimestampSchema } from '../../../utils/validateRows';
+
+const schema = PostsSchema.pick({ id: true, owner: true, type: true }).extend({ created_at: TimestampSchema });
 
 async function getList(status: string, before: string | undefined, since: string | undefined, likedTags: string[], dislikedTags: string[]) {
   const knex = await createDatabase();
 
   const postsPromise = knex('posts')
-    .select<Pick<Posts, 'id' | 'owner' | 'type' | 'created_at'>[]>('id', 'owner', 'type', 'created_at')
+    .select('id', 'owner', 'type', 'created_at')
     .orderBy('created_at', 'desc')
     .groupBy('posts.id')
     .where('status', status);
@@ -35,7 +38,7 @@ async function getList(status: string, before: string | undefined, since: string
       });
     }
 
-  return postsPromise;
+  return parseRows(schema, await postsPromise);
 }
 
 export default getList;
