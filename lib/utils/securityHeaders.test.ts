@@ -6,7 +6,7 @@ const policy = securityHeaders['Content-Security-Policy'];
 describe('securityHeaders', () => {
   test('only allows scripts and styles from trusted origins', () => {
     expect(policy).toContain("script-src 'self';");
-    expect(policy).toContain("style-src 'self' https://fonts.googleapis.com;");
+    expect(policy).toContain("style-src 'self' https://fonts.googleapis.com 'sha256-rJJyMDPmHMZS0mPmL877gjjApxGMVa4522UDb4ctw7I=';");
     expect(policy).not.toContain('unsafe-inline');
   });
 
