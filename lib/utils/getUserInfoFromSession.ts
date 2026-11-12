@@ -1,14 +1,18 @@
 import createDatabase from './createDatabase';
+import { isSessionExpired } from './sessionLifetime';
 
 export default async (sessionId: string) => {
   try {
     const knex = await createDatabase();
-    const session = await knex.select('id', 'users_login_id', 'status', 'created_at').where({
+    const session = await knex.select('id', 'users_login_id', 'status', 'created_at', 'last_active').where({
       id: sessionId,
       status: 'active',
     }).from('users_session').first();
     if (!session) {
       throw new Error('no session');
+    }
+    if (isSessionExpired(session)) {
+      throw new Error('session expired');
     }
 
     const login = await knex.select('id', 'type', 'user_id', 'value').where({

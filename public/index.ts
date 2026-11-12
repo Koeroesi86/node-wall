@@ -2,6 +2,9 @@ import type { LambdaCallback, LambdaEvent } from '../lib/types';
 import moment from 'moment';
 import { parseCookies, buildSessionCookie } from '../lib/utils/sessionCookie';
 import { isLoginCodeExpired, isLoginCodeMatch, LOGIN_CODE_MAX_ATTEMPTS } from '../lib/utils/loginCode';
+import crypto from 'crypto';
+import sessionService from '../lib/services/session';
+import { SESSION_MAX_AGE_MS } from '../lib/utils/sessionLifetime';
 import securityHeaders from '../lib/utils/securityHeaders';
 import detectLanguage from '../lib/utils/detectLanguage';
 import createDatabase from '../lib/utils/createDatabase';
@@ -261,22 +264,19 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
 
             const verified = isUsable && isLoginCodeMatch(code, currentSession.secret);
 
-            if (verified) {
-              await knex('users_session')
-                .where({ id: session, status: 'pending' })
-                .update({ status: 'active', secret: '' });
-            }
+            const activeSessionId = crypto.randomUUID();
+            const activated = verified && await sessionService.activate(session, activeSessionId) > 0;
 
-            const expires = moment().add(1, 'year');
+            const expires = moment().add(SESSION_MAX_AGE_MS, 'ms');
             return callback({
               statusCode: 302,
               headers: {
                 'Content-Type': 'text/html',
                 'Cache-Control': 'public, max-age=0',
-                ...(verified && {
-                  'Set-Cookie': buildSessionCookie(session, expires.format('ddd, DD MMM YYYY HH:mm:ss')),
+                ...(activated && {
+                  'Set-Cookie': buildSessionCookie(activeSessionId, expires.format('ddd, DD MMM YYYY HH:mm:ss')),
                 }),
-                'Location': verified ? `/` : `/login?session=${encodeURIComponent(session)}`,
+                'Location': activated ? `/` : `/login?session=${encodeURIComponent(session)}`,
               },
               body: '',
               isBase64Encoded: false,

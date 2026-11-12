@@ -101,10 +101,17 @@ afterEach(() => {
 });
 
 describe('session handling', () => {
-  test('records the last activity of a session cookie', async () => {
+  test('records the last activity of a valid session cookie', async () => {
+    vi.mocked(getUserInfoFromSession).mockResolvedValue({ session: {}, login: {}, user: { id: ID, role: 'user' } } as never);
     await request({ path: 'api/unknown' });
     expect(getUserInfoFromSession).toHaveBeenCalledWith(SESSION_ID);
     expect(sessionService.setLastActive).toHaveBeenCalledWith(SESSION_ID, expect.any(Number));
+  });
+
+  test('does not refresh the activity of an invalid or expired session', async () => {
+    vi.mocked(getUserInfoFromSession).mockResolvedValue(null);
+    await request({ path: 'api/unknown' });
+    expect(sessionService.setLastActive).not.toHaveBeenCalled();
   });
 
   test('stores device details the first time a session is seen', async () => {
