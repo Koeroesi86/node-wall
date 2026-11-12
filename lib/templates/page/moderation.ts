@@ -11,7 +11,8 @@ export default (props: PageProps = {}) => wrapper({
     <script src="/static/components/post-preview.js"></script>
     <script src="/static/components/post-tags-input.js"></script>
     <script src="/static/components/user-roles.js"></script>
+    <script src="/static/components/audit-log.js"></script>
     <script src="/static/components/moderation-page.js"></script>
   `,
-  content: `<moderation-page></moderation-page><user-roles></user-roles>`,
+  content: `<moderation-page></moderation-page><user-roles></user-roles><audit-log></audit-log>`,
 });

@@ -829,3 +829,22 @@ describe('user-roles', () => {
     expect(page.requests[0]).toMatchObject({ method: 'PUT', url: '/api/users/u1', body: JSON.stringify({ role: 'user' }) });
   });
 });
+
+describe('audit-log', () => {
+  beforeEach(async () => {
+    page = await loadComponents(['translate-text', 'audit-log']);
+    stubTranslations();
+  });
+
+  test('lists recent entries', async () => {
+    const element = page.mount('<audit-log></audit-log>');
+    await flush();
+    expect(page.requests[0]).toMatchObject({ method: 'GET', url: '/api/users/audit' });
+    await reply(200, [{ user_id: 'u1', user_name: 'Ann', action: 'tag.created', target_id: 't1', request_id: 'r1', created_at: 1 }]);
+
+    const row = element.querySelector('.entry');
+    expect(row?.querySelector('translate-text')?.getAttribute('alias')).toBe('audit-log.action.tag.created');
+    expect(row?.querySelector('.actor')?.textContent).toBe('Ann');
+    expect(row?.querySelector('.actor')?.getAttribute('title')).toBe('t1');
+  });
+});

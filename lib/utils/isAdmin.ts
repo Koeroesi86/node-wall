@@ -2,4 +2,4 @@ interface MaybeUserInfo {
   user: { role: string };
 }
 
-export default (userInfo?: MaybeUserInfo | null): boolean => userInfo?.user.role === 'admin';
+export default <UserInfo extends MaybeUserInfo>(userInfo?: UserInfo | null): userInfo is UserInfo => userInfo?.user.role === 'admin';

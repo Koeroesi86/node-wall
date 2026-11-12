@@ -44,6 +44,8 @@ Rate limits (login, posts, comments) are stored in sqlite and keyed on the clien
 
 Account deletion and data export (GDPR) are on the profile page. Deleting needs a code emailed to the login address (10 minutes, 5 attempts) and removes the user, logins, sessions and tag preferences; posts and comments they wrote are kept with the owner cleared. The export is JSON (profile, logins, sessions without ids or secrets, tag preferences, posts and comments). Both are recorded in the `audit_log` table (action and user id only).
 
+Admin actions (role changes, post status changes, tag creation, tags added to or removed from posts) are recorded in `audit_log` with the actor, action, target id and a per-request id. The newest 50 admin entries (not the users' own `account.*` events) are listed with the actor's name on the moderation page (`GET /api/users/audit`, admins only). Entries older than a year are deleted on the next login request.
+
 Production `.env` needs `SERVER_PROTOCOL=http`, `SITE_PROTOCOL=https`, `SITE_DOMAIN=uzeno.koro.si`, an absolute `DB_DATABASE=/var/www/uzeno.koro.si/shared/data/wall.sqlite` and `APP_ROOT=/var/www/uzeno.koro.si/build`.
 
 One-time server migration (as root), from the old flat checkout:

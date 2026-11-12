@@ -1,0 +1,22 @@
+audit-log {
+    display: block;
+    margin-top: 24px;
+}
+
+audit-log .heading {
+    margin-bottom: 12px;
+}
+
+audit-log .entry {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 6px;
+    margin-bottom: 6px;
+    background: rgba(var(--main-button-background-color-rgb), 0.05);
+    font-size: 0.85em;
+}
+
+audit-log .entry .action {
+    flex: 1;
+}
