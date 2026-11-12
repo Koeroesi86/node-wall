@@ -15,7 +15,7 @@ function addLikedTag(id: string, type: string) {
     };
     request.open("PUT", '/api/user/tags', true);
     request.setRequestHeader('Content-Type', 'application/json');
-    request.send(JSON.stringify({ id, type }));
+    request.send(JSON.stringify(ApiSchemas.SetUserTagRequestSchema.parse({ id, type })));
   });
 }
 
@@ -35,7 +35,7 @@ function removeLikedTag(id: string) {
     };
     request.open("DELETE", '/api/user/tags', true);
     request.setRequestHeader('Content-Type', 'application/json');
-    request.send(JSON.stringify({ id }));
+    request.send(JSON.stringify(ApiSchemas.RemoveUserTagRequestSchema.parse({ id })));
   });
 }
 

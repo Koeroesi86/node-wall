@@ -28,7 +28,7 @@ const tagsMiddleware: ReduxMiddleware = store => next => action => {
       request.onreadystatechange = e => {
         if (request.readyState === 4) {
           if (request.status === 200) {
-            const tag = JSON.parse(request.responseText);
+            const tag = ApiSchemas.TagResponseSchema.parse(JSON.parse(request.responseText));
             if (tag) store.dispatch({
               type: TAGS_ACTIONS.RECEIVE,
               payload: { id, tag },

@@ -31,7 +31,7 @@ const boundsMiddleware = store => {
       request.onreadystatechange = e => {
         if (request.readyState === 4) {
           if (request.status === 200) {
-            const bounds = JSON.parse(request.responseText);
+            const bounds = ApiSchemas.BoundsResponseSchema.parse(JSON.parse(request.responseText));
             store.dispatch({
               type: BOUNDS_ACTIONS.SET,
               payload: { oldest: bounds.oldest, newest: bounds.newest }

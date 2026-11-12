@@ -29,7 +29,8 @@ class UserRoles extends Component {
   }
 
   load() {
-    return this.send<{ id: string; name?: string; role: string }[]>('GET', '/api/users')
+    return this.send('GET', '/api/users')
+      .then(users => ApiSchemas.UserListResponseSchema.parse(users))
       .then(users => {
         this.list.innerHTML = '';
         users.forEach(user => this.list.appendChild(this.renderUser(user)));
@@ -53,7 +54,7 @@ class UserRoles extends Component {
     row.querySelector('.role').textContent = user.role;
     row.querySelector('.toggle').addEventListener('click', e => {
       e.preventDefault();
-      this.send('PUT', `/api/users/${encodeURIComponent(user.id)}`, { role: isAdmin ? 'user' : 'admin' })
+      this.send('PUT', `/api/users/${encodeURIComponent(user.id)}`, ApiSchemas.SetUserRoleRequestSchema.parse({ role: isAdmin ? 'user' : 'admin' }))
         .then(() => this.load())
         .catch(err => console.error(err));
     });

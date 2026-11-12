@@ -1,4 +1,5 @@
-import { cpSync, mkdirSync, statSync } from 'node:fs';
+import { cpSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
+import { bundleApiSchemas } from './bundle-api-schemas.mts';
 
 const isAsset = (source: string) => statSync(source).isDirectory() || !source.endsWith('.ts');
 
@@ -11,6 +12,9 @@ mkdirSync('dist/public/static/vendor', { recursive: true });
   'node_modules/redux/dist/redux.min.js',
   'node_modules/tributejs/dist/tribute.min.js',
 ].forEach((source) => cpSync(source, `dist/public/static/vendor/${source.split('/').pop()}`));
+
+// The request/response schemas are shared with the API, so the pages validate with the same code.
+writeFileSync('dist/public/static/vendor/api-schemas.js', await bundleApiSchemas());
 
 cpSync('node_modules/@fortawesome/fontawesome-free/webfonts', 'dist/public/static/vendor/fontawesome/webfonts', { recursive: true });
 ['all.min.css', 'v4-shims.min.css'].forEach((file) => {

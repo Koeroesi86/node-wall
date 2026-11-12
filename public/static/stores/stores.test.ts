@@ -59,9 +59,9 @@ describe('tags', () => {
 
     expect(browser.requests).toHaveLength(1);
     expect(browser.requests[0]).toMatchObject({ method: 'GET', url: '/api/tags/t1' });
-    browser.requests[0].respond(200, { id: 't1', name: 'news' });
+    browser.requests[0].respond(200, { id: 't1', name: 'news', type: 'text' });
 
-    expect(store.dispatch).toHaveBeenCalledWith({ type: 'TAG_RECEIVE', payload: { id: 't1', tag: { id: 't1', name: 'news' } } });
+    expect(store.dispatch).toHaveBeenCalledWith({ type: 'TAG_RECEIVE', payload: { id: 't1', tag: { id: 't1', name: 'news', type: 'text' } } });
     expect(store.next).toHaveBeenCalledOnce();
   });
 
@@ -85,6 +85,7 @@ describe('tags', () => {
 });
 
 describe('links', () => {
+  const preview = { 'content-type': 'text/html', title: 't', description: '', image: '', url: 'https://example.com/page', embedCode: '' };
   beforeEach(() => load('links'));
 
   const state = (links = {}) => ({ posts: { p1: { content: 'see example.com/page' } }, links });
@@ -109,8 +110,8 @@ describe('links', () => {
       url: '/api/link?post=p1&uri=https%3A%2F%2Fexample.com%2Fpage',
       headers: { 'Content-Type': 'application/json' },
     });
-    browser.requests[0].respond(200, { url: 'https://example.com/page' });
-    expect(store.dispatch).toHaveBeenCalledWith({ type: 'LINKS_RECEIVE', payload: { url: 'https://example.com/page' } });
+    browser.requests[0].respond(200, preview);
+    expect(store.dispatch).toHaveBeenCalledWith({ type: 'LINKS_RECEIVE', payload: preview });
   });
 
   test.each([
@@ -344,6 +345,11 @@ describe('service worker', () => {
 
 describe('user', () => {
   const page = (sessionId: string) => `<html><head><meta name="x-session-id" content="${sessionId}"></head><body></body></html>`;
+  const userInfo = {
+    user: { id: 'u1', name: 'Ann', role: 'user', created_at: 1 },
+    session: { id: 's1', users_login_id: 'l1', status: 'active', created_at: 1, last_active: null },
+    login: { id: 'l1', type: 'email', user_id: 'u1', value: 'a@b.c' },
+  };
   const guest = { type: 'USER_RECEIVE', payload: { user: { role: 'guest', name: '' }, session: false } };
 
   test('action creators and reducer', async () => {
@@ -370,9 +376,9 @@ describe('user', () => {
     const store = run('userMiddleware', {}, { type: 'USER_REQUEST' });
 
     expect(browser.requests[0]).toMatchObject({ method: 'GET', url: '/api/user' });
-    browser.requests[0].respond(200, { user: { name: 'Ann', role: 'user' }, session: {} });
+    browser.requests[0].respond(200, userInfo);
 
-    expect(store.dispatch).toHaveBeenCalledWith({ type: 'USER_RECEIVE', payload: { user: { name: 'Ann', role: 'user' }, session: {} } });
+    expect(store.dispatch).toHaveBeenCalledWith({ type: 'USER_RECEIVE', payload: userInfo });
   });
 
   test('is a guest when the session is rejected, and ignores other failures', async () => {
@@ -398,8 +404,8 @@ describe('user', () => {
     const store = run('userMiddleware', {}, { type: 'USER_REQUEST_TAGS' });
 
     expect(browser.requests[0]).toMatchObject({ method: 'GET', url: '/api/user/tags' });
-    browser.requests[0].respond(200, [{ tag_id: 't1' }]);
-    expect(store.dispatch).toHaveBeenLastCalledWith({ type: 'USER_RECEIVE_TAGS', payload: { tags: [{ tag_id: 't1' }] } });
+    browser.requests[0].respond(200, [{ tag_id: 't1', type: 'liked' }]);
+    expect(store.dispatch).toHaveBeenLastCalledWith({ type: 'USER_RECEIVE_TAGS', payload: { tags: [{ tag_id: 't1', type: 'liked' }] } });
 
     const failing = run('userMiddleware', {}, { type: 'USER_REQUEST_TAGS' });
     browser.requests[1].respond(401);
@@ -570,7 +576,7 @@ describe('postsList', () => {
       const url = new URL(browser.requests[0].url);
       expect(Object.fromEntries(url.searchParams)).toEqual({ since: '100', before: '200' });
 
-      browser.requests[0].respond(200, [{ id: 'p9', created_at: 190 }, { id: 'p8', created_at: 150 }]);
+      browser.requests[0].respond(200, [{ id: 'p9', type: 'post', created_at: 190 }, { id: 'p8', type: 'post', created_at: 150 }]);
       await flush();
 
       expect(store.dispatch).toHaveBeenCalledWith({ type: 'POSTS_LIST_SET_BEFORE', payload: { before: 190, instance: 'i1' } });

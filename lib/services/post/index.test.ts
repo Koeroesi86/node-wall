@@ -37,6 +37,13 @@ describe('create', () => {
     expect(create).toHaveBeenCalledWith('new-id', 'u1');
   });
 
+  test('stores nothing when no content is left once markup is stripped', async () => {
+    await expect(postService.create('<b></b> &nbsp;', 'u1')).rejects.toThrow('empty content');
+
+    expect(storage.write).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+  });
+
   test('stores the content before the record, under the given type', async () => {
     const order: string[] = [];
     vi.mocked(storage.write).mockImplementation(async () => void order.push('storage'));
@@ -50,6 +57,13 @@ describe('create', () => {
 });
 
 describe('createComment', () => {
+  test('stores nothing when no content is left once markup is stripped', async () => {
+    await expect(postService.createComment('p1', undefined, null, '<i></i>')).rejects.toThrow('empty content');
+
+    expect(storage.write).not.toHaveBeenCalled();
+    expect(createComment).not.toHaveBeenCalled();
+  });
+
   test('stores sanitised content and the comment record', async () => {
     await postService.createComment('p1', 'c0', 'u1', ' <i>nice</i>\n\n\n\nthing ');
 

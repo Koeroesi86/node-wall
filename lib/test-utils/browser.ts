@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { runInContext } from 'node:vm';
 import { JSDOM } from 'jsdom';
+import { bundleApiSchemas } from '../../scripts/bundle-api-schemas.mts';
 
 const projectRoot = resolve(__dirname, '../..');
 
@@ -22,6 +23,7 @@ interface Timer {
 }
 
 const compiled = new Map<string, Promise<string>>();
+let apiSchemas: Promise<string> | undefined;
 
 const compile = (file: string) => {
   if (!compiled.has(file)) {
@@ -119,6 +121,9 @@ export async function loadBrowser(
   });
 
   const evaluate = <T = never>(code: string, filename = 'test.js'): T => runInContext(code, context, { filename });
+
+  apiSchemas ??= bundleApiSchemas();
+  evaluate(await apiSchemas, 'api-schemas.js');
 
   if (prelude) evaluate(prelude, 'prelude.js');
 

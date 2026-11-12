@@ -109,7 +109,7 @@ class LoginPage extends Component {
           const request = new XMLHttpRequest();
           request.onreadystatechange  = e => {
             if (request.readyState === 4 && request.status === 200) {
-              const loginData = JSON.parse(request.responseText);
+              const loginData = ApiSchemas.LoginResponseSchema.parse(JSON.parse(request.responseText));
               location.href = `/login?session=${loginData.sessionId}`;
             }
           };
@@ -117,10 +117,10 @@ class LoginPage extends Component {
           };
           request.open("POST", "/api/user", true);
           request.setRequestHeader('Content-Type', 'application/json');
-          request.send(JSON.stringify({
+          request.send(JSON.stringify(ApiSchemas.LoginRequestSchema.parse({
             type: 'email',
             value: emailValue
-          }));
+          })));
         }
       });
     }

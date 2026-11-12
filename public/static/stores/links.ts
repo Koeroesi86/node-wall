@@ -27,7 +27,7 @@ const linksMiddleware: ReduxMiddleware = store => next => action => {
       const request = new XMLHttpRequest();
       request.onreadystatechange = e => {
         if (request.readyState === 4 && request.status === 200) {
-          const linkPreview = JSON.parse(request.responseText);
+          const linkPreview = ApiSchemas.LinkResponseSchema.parse(JSON.parse(request.responseText));
           store.dispatch({ type: LINKS_ACTIONS.RECEIVE, payload: linkPreview });
         }
       };
