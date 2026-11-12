@@ -4,7 +4,12 @@ on:
   push:
     branches: [master]
 
-concurrency: deploy-uzeno
+concurrency:
+  group: deploy-uzeno
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build:
