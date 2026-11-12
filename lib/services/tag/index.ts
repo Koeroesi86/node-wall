@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import create from './queries/create';
 import getById from './queries/getById';
 import getByName from './queries/getByName';
@@ -6,7 +6,7 @@ import getList from './queries/getList';
 
 export default {
   create: async (name: string, type: string) => {
-    const id = uuid();
+    const id: string = uuid();
 
     await create(id, name, type);
 

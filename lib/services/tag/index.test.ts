@@ -5,7 +5,7 @@ import getByName from './queries/getByName';
 import getList from './queries/getList';
 import tagService from './index';
 
-vi.mock('uuid', () => ({ v4: () => 'new-id' }));
+vi.mock('crypto', () => ({ randomUUID: () => 'new-id' }));
 vi.mock('./queries/create');
 vi.mock('./queries/getById');
 vi.mock('./queries/getByName');

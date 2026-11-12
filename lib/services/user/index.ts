@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import create from './queries/create';
 import getById from './queries/getById';
 import addLogin from './queries/addLogin';
@@ -11,7 +11,7 @@ import removeTag from './queries/removeTag';
 export default {
   get: async (id: string) => getById(id),
   create: async (name?: string) => {
-    const id = uuid();
+    const id: string = uuid();
     const role = 'admin'; //should be 'user'
 
     await create(id, name || null, role);
@@ -19,7 +19,7 @@ export default {
     return { id, name, role };
   },
   addLogin: async (userId: string, value: string, type = 'email') => {
-    const id = uuid();
+    const id: string = uuid();
 
     await addLogin(id, userId, value, type);
 

@@ -13,7 +13,7 @@ import removeTag from './queries/removeTag';
 import setStatus from './queries/setStatus';
 import postService from './index';
 
-vi.mock('uuid', () => ({ v4: () => 'new-id' }));
+vi.mock('crypto', () => ({ randomUUID: () => 'new-id' }));
 vi.mock('../storage');
 vi.mock('./queries/addTag');
 vi.mock('./queries/create');

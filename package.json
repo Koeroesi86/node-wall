@@ -24,8 +24,7 @@
     "match-all": "^1.2.6",
     "moment": "^2.29.1",
     "nodemailer": "^10.5.0",
-    "sqlite3": "^6.0.1",
-    "uuid": "^8.3.2"
+    "sqlite3": "^6.0.1"
   },
   "devDependencies": {
     "@koeroesi86/node-webserver-cli": "^26.11.42482079849-master",
@@ -33,7 +32,6 @@
     "@types/jsdom": "^16.2.15",
     "@types/node": "^24.19.2",
     "@types/nodemailer": "^8.0.2",
-    "@types/uuid": "^8.3.4",
     "@vitest/coverage-v8": "^5.1.0",
     "typescript": "^7.0.2",
     "vitest": "^5.1.0"

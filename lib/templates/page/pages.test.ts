@@ -8,7 +8,7 @@ import wall from './wall';
 import welcome from './welcome';
 import wrapper from './wrapper';
 
-vi.mock('uuid', () => ({ v4: () => 'generated-instance' }));
+vi.mock('crypto', () => ({ randomUUID: () => 'generated-instance' }));
 
 describe('wrapper', () => {
   test('renders defaults', () => {

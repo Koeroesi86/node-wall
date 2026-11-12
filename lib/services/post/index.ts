@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import storage from '../storage';
 import getPost from './queries/getPost';
 import getPostTags from './queries/getTags';
@@ -15,7 +15,7 @@ import removeTag from './queries/removeTag';
 
 export default {
   create: async (body: string, owner: string | null, type = 'post') => {
-    const id = uuid();
+    const id: string = uuid();
 
     let content = body;
     content = content.trim();
@@ -36,7 +36,7 @@ export default {
     return getPostComments(postId, status = 'public');
   },
   createComment: async (postId: string, parent: string | undefined, owner: string | null, body: string) => {
-    const id = uuid();
+    const id: string = uuid();
     let content = body;
 
     content = content.trim();
