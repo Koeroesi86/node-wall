@@ -9,8 +9,6 @@ const MIGRATIONS_DIR = resolve('migrations');
 // Migrates an in-memory sqlite database from the TypeScript migrations, so no .env, build or existing database is needed.
 const knex = Knex({
   client: 'sqlite3', connection: { filename: ':memory:' }, useNullAsDefault: true, pool: { min: 1, max: 1 },
-  // The old migrations use createTableIfNotExists, which knex warns about once per call.
-  log: { warn: () => undefined },
 });
 
 const migrationSource = {
