@@ -31,3 +31,6 @@ export const SetUserNameRequestSchema = z.object({ name: NameSchema });
 export const SetUserTagRequestSchema = z.object({ id: IdSchema, type: z.enum(UserTagTypes) });
 
 export const RemoveUserTagRequestSchema = z.object({ id: IdSchema });
+
+/** The code emailed by the deletion request. */
+export const DeleteAccountRequestSchema = z.object({ code: z.string().trim().regex(/^[A-Z0-9]{6}$/i) });
