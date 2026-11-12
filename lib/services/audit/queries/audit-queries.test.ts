@@ -19,12 +19,16 @@ test('log inserts an entry with empty target and request by default', async () =
 });
 
 test('getRecent selects the newest entries', async () => {
-  fakeDb.resolves([{ id: 'a1', user_id: 'u1', action: 'x', target_id: null, request_id: null, created_at: 1 }]);
+  fakeDb.resolves([{ id: 'a1', user_id: 'u1', user_name: 'Ann', action: 'x', target_id: null, request_id: null, created_at: 1 }]);
   expect(await getRecent(10)).toHaveLength(1);
   expect(fakeDb.calls).toEqual([
     ['knex', 'audit_log'],
-    ['select', 'id', 'user_id', 'action', 'target_id', 'request_id', 'created_at'],
-    ['orderBy', 'created_at', 'desc'],
+    ['leftJoin', 'users', 'users.id', 'audit_log.user_id'],
+    ['select',
+      'audit_log.id', 'audit_log.user_id', 'audit_log.action', 'audit_log.target_id', 'audit_log.request_id', 'audit_log.created_at',
+      'users.name as user_name'],
+    ['whereNot', 'audit_log.action', 'like', 'account.%'],
+    ['orderBy', 'audit_log.created_at', 'desc'],
     ['limit', 10],
   ]);
 });

@@ -1002,7 +1002,7 @@ describe('/api/user', () => {
     });
 
     test('lists the audit log for admins only', async () => {
-      const entry = { user_id: 'u1', action: 'tag.created', target_id: 't1', request_id: 'r1', created_at: 5 };
+      const entry = { user_id: 'u1', user_name: 'Ann', action: 'tag.created', target_id: 't1', request_id: 'r1', created_at: 5 };
       vi.mocked(auditService.getRecent).mockResolvedValue([{ id: 'a1', ...entry }]);
       expect((await request({ path: 'api/users/audit' })).statusCode).toBe(400);
       loggedInAs('user');

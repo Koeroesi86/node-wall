@@ -8,7 +8,7 @@ export const TagListResponseSchema = TagResponseSchema.array();
 export const UserResponseSchema = UsersSchema.pick({ id: true, name: true, role: true }).extend({ created_at: TimestampSchema });
 export const UserListResponseSchema = UserResponseSchema.array();
 
-export const AuditEntryResponseSchema = AuditLogSchema.omit({ id: true });
+export const AuditEntryResponseSchema = AuditLogSchema.omit({ id: true }).extend({ user_name: UsersSchema.shape.name });
 export const AuditListResponseSchema = AuditEntryResponseSchema.array();
 
 /** What anybody may learn about a post owner. */

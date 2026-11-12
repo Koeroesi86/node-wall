@@ -840,11 +840,11 @@ describe('audit-log', () => {
     const element = page.mount('<audit-log></audit-log>');
     await flush();
     expect(page.requests[0]).toMatchObject({ method: 'GET', url: '/api/users/audit' });
-    await reply(200, [{ user_id: 'u1', action: 'tag.created', target_id: 't1', request_id: 'r1', created_at: 1 }]);
+    await reply(200, [{ user_id: 'u1', user_name: 'Ann', action: 'tag.created', target_id: 't1', request_id: 'r1', created_at: 1 }]);
 
     const row = element.querySelector('.entry');
-    expect(row?.querySelector('.action')?.textContent).toBe('tag.created');
-    expect(row?.querySelector('.actor')?.textContent).toBe('u1');
-    expect(row?.querySelector('.target')?.textContent).toBe('t1');
+    expect(row?.querySelector('translate-text')?.getAttribute('alias')).toBe('audit-log.action.tag.created');
+    expect(row?.querySelector('.actor')?.textContent).toBe('Ann');
+    expect(row?.querySelector('.actor')?.getAttribute('title')).toBe('t1');
   });
 });
