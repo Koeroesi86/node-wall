@@ -50,8 +50,7 @@ const commentsMiddleware: ReduxMiddleware = store => next => action => {
 
     tmpNode.innerHTML = tmpNode.innerHTML.replace(/\r/gi, '\n')
 
-    createComment(id, tmpNode.innerHTML, parent).then(res => {
-      console.log('createComment', res)
+    createComment(id, tmpNode.innerHTML, parent).then(() => {
       location.reload(); // TODO: dynamic comment loading
     });
   }

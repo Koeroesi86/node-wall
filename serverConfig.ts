@@ -2,8 +2,10 @@ import fs from 'fs';
 import { resolve } from 'path';
 import dotenv from 'dotenv';
 import getEnvPath from './lib/utils/getEnvPath';
+import assertSafeLoginLogging from './lib/utils/assertSafeLoginLogging';
 
 const env = dotenv.parse(fs.readFileSync(getEnvPath()));
+assertSafeLoginLogging({ LOG_LOGIN_CODE: process.env.LOG_LOGIN_CODE ?? env.LOG_LOGIN_CODE, SITE_PROTOCOL: env.SITE_PROTOCOL });
 // On the server APP_ROOT is the stable `build` symlink of the deploy, so new releases are picked up without a reload.
 const appRoot = env.APP_ROOT || __dirname;
 

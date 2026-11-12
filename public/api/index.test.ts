@@ -85,6 +85,7 @@ beforeEach(async () => {
   rateLimitCounts.clear();
   vi.useFakeTimers();
   vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  vi.spyOn(console, 'error').mockImplementation(() => undefined);
   vi.spyOn(crypto, 'randomUUID').mockReturnValue(SESSION_ID);
   vi.stubEnv('SITE_PROTOCOL', 'https');
   vi.stubEnv('SITE_DOMAIN', 'example.com');
@@ -150,7 +151,7 @@ describe('routing', () => {
 
     expect(response.statusCode).toBe(400);
     expect(jsonBody(response)).toEqual({ message: `Something isn't quite right.` });
-    expect(console.log).toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalled();
   });
 
   test('shuts down after 30 seconds of inactivity and resets the timer on requests', async () => {

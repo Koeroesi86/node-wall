@@ -24,6 +24,10 @@ import isSingleEmail from '../../lib/utils/isSingleEmail';
 import rateLimitService from '../../lib/services/rate-limit';
 import createRateLimiter from '../../lib/utils/createRateLimiter';
 import getClientIp from '../../lib/utils/getClientIp';
+import formatError from '../../lib/utils/formatError';
+import assertSafeLoginLogging from '../../lib/utils/assertSafeLoginLogging';
+
+assertSafeLoginLogging(process.env);
 
 const hour = 60 * 60 * 1000;
 // Deliberately very low for now; raise once real usage is known.
@@ -239,8 +243,6 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const post = await postService.get(postId);
 
           if (!post) {
-            console.log('postId', postId)
-            console.log('post', post)
             return callback({
               statusCode: 404,
               headers: getResponseHeaders(),
@@ -610,7 +612,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             verifyUrl.searchParams.set('code', session.secret);
             verifyUrl.searchParams.set('session', session.id);
             if (process.env.LOG_LOGIN_CODE === 'true') {
-              console.log('login url (dev only)', verifyUrl.toString());
+              console.log('login url (dev only)', verifyUrl.toString()); // assertSafeLoginLogging forbids this on https
               return callback({
                 statusCode: 200,
                 headers: getResponseHeaders({}),
@@ -633,9 +635,9 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
                 activateUrl: activateUrl.toString(),
                 verifyUrl: verifyUrl.toString(),
               }),
-            }, (err, info) => {
+            }, (err) => {
               if (err) {
-                console.log('mail error', err);
+                console.error('mail error', formatError(err));
                 return callback({
                   statusCode: 400,
                   headers: getResponseHeaders({}),
@@ -644,10 +646,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
                 });
               }
 
-              if (info.envelope) console.log('envelope', info.envelope);
-              if (info.messageId) console.log('messageId', info.messageId);
-              if (info.message) console.log('message', JSON.parse(info.message));
-              console.log('mail sent to', payload.value);
+              console.log('login mail sent for session', session.id);
               return callback({
                 statusCode: 200,
                 headers: getResponseHeaders({}),
@@ -820,7 +819,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       isBase64Encoded: false,
     });
   } catch (e) {
-    console.log(e);
+    console.error(formatError(e));
     callback({
       statusCode: 400,
       headers: getResponseHeaders(),
