@@ -709,6 +709,13 @@ describe('/api/user', () => {
       expect(userService.setName).toHaveBeenCalledWith('u1', 'Bob');
     });
 
+    test('rejects names with markup or that are too long', async () => {
+      loggedInAs('user');
+      expect((await request({ method: 'PUT', path: 'api/user/name', body: { name: '<img src=x onerror=alert(1)>' } })).statusCode).toBe(400);
+      expect((await request({ method: 'PUT', path: 'api/user/name', body: { name: 'a'.repeat(51) } })).statusCode).toBe(400);
+      expect(userService.setName).not.toHaveBeenCalled();
+    });
+
     test('requires a login and a name', async () => {
       expect((await request({ path: 'api/user/name' })).statusCode).toBe(400);
       expect((await request({ method: 'PUT', path: 'api/user/name', body: { name: 'Bob' } })).statusCode).toBe(400);

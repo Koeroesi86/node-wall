@@ -54,14 +54,14 @@ class LinkPreview extends HTMLAnchorElement {
       this.preview.innerHTML = this._link.embedCode;
     } else {
       this.preview.innerHTML = `
-        ${this._link.image ? `<img src="${this._link.image}" class="image" alt="${this._link.title}" />`: ''}
+        ${this._link.image ? `<img src="${escapeHtml(this._link.image)}" class="image" alt="${escapeHtml(this._link.title)}" />`: ''}
         <div class="meta">
-          <div class="title" title="${this._link.title}">${this._link.title}</div>
+          <div class="title" title="${escapeHtml(this._link.title)}">${escapeHtml(this._link.title)}</div>
           <div class="description">
-            ${this._link.description.substring(0, 150)}
+            ${escapeHtml(this._link.description.substring(0, 150))}
             ${this._link.description.length > 150 ? '&hellip;' : ''}
           </div>
-          <div class="url">${this._link.url}</div>
+          <div class="url">${escapeHtml(this._link.url)}</div>
         </div>
       `;
 

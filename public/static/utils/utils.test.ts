@@ -36,8 +36,13 @@ describe('parsePostContent', () => {
     expect(parsePostContent(`about #!${id}`)).toBe(`<div class="contentLine">about <tag-inline tag-id="${id}"></tag-inline></div>`);
   });
 
-  test('strips markup from the content', () => {
-    expect(parsePostContent('<b>bold</b><script>alert(1)</script>')).toBe('<div class="contentLine">boldalert(1)</div>');
+  test('escapes markup in the content', () => {
+    expect(parsePostContent('<b>bold</b><script>alert(1)</script>')).toBe('<div class="contentLine">&lt;b&gt;bold&lt;/b&gt;&lt;script&gt;alert(1)&lt;/script&gt;</div>');
+  });
+
+  test('does not turn entity-encoded markup into elements', () => {
+    expect(parsePostContent('&lt;img src=x onerror=alert(1)&gt;')).toBe('<div class="contentLine">&lt;img src=x onerror=alert(1)&amp;gt;</div>');
+    expect(parsePostContent('&amp;lt;b&amp;gt;')).not.toMatch(/<b>/);
   });
 
   test('handles content that is not a string', () => {
@@ -52,6 +57,10 @@ describe('parseCommentContent', () => {
 
   test('keeps blank lines visible and collapses long runs', () => {
     expect(parseCommentContent('one\n\n\n\n\ntwo')).toBe('<div class="line">one</div>\n<div class="line">&nbsp;</div>\n<div class="line">two</div>');
+  });
+
+  test('escapes markup', () => {
+    expect(parseCommentContent('<img src=x onerror=alert(1)>')).toBe('<div class="line">&lt;img src=x onerror=alert(1)&gt;</div>');
   });
 
   test('trims the content', () => {

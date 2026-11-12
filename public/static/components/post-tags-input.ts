@@ -109,7 +109,7 @@ class PostTagsInput extends Component {
         this._adding = false;
         const tagElement = document.createElement('div');
         tagElement.innerHTML = `
-          <div class="label">${tag.name}</div>
+          <div class="label">${escapeHtml(tag.name)}</div>
           <div class="remove">
             <svg
               class="icon"

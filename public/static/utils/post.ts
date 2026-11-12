@@ -1,4 +1,14 @@
 (function (g: Window) {
+  function escapeHtml(value: unknown = ''): string {
+    return (value + '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  g.escapeHtml = escapeHtml;
+
   function parseLinks(content = '', postId) {
     let result = content;
 
@@ -16,9 +26,8 @@
   }
 
   function stripLine(line = '') {
-    const tmp = document.createElement('span');
-    tmp.innerHTML = line;
-    return tmp.innerText.replace(/&amp;nbsp;/gi, '&nbsp;');
+    // the server stores `<` as `&lt;`; restore it, then escape everything so nothing can become markup
+    return escapeHtml(line.replace(/&lt;/gi, '<'));
   }
 
   function parsePostLine(line, postId) {

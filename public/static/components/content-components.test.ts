@@ -63,7 +63,7 @@ describe('post-preview', () => {
   });
 
   // Known bug: the owner name is inserted as HTML, so a name like this runs script in other users' pages.
-  test.fails('does not render the owner name as HTML', () => {
+  test('does not render the owner name as HTML', () => {
     const element = mount();
 
     page.redux.setState({ posts: { p1: post({ owner: { id: 'u1', name: '<img src=x onerror=alert(1)>' } }) } });

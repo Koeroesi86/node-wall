@@ -1,5 +1,6 @@
 import type { PageProps } from '../../types';
 import wrapper from './wrapper';
+import escapeHtml from '../../utils/escapeHtml';
 
 interface TagPageProps extends PageProps {
   tag?: { id: string; name: string; type: string };
@@ -21,5 +22,5 @@ export default (props: TagPageProps = {}) => wrapper({
     <script src="/static/components/post-list.js"></script>
     <script src="/static/components/tag-page.js"></script>
   `,
-  content: `<tag-page tag-id="${getTagId(props)}" tag-name="${getTagName(props)}" tag-type="${getTagType(props)}"></tag-page>`,
+  content: `<tag-page tag-id="${escapeHtml(getTagId(props))}" tag-name="${escapeHtml(getTagName(props))}" tag-type="${escapeHtml(getTagType(props))}"></tag-page>`,
 });
