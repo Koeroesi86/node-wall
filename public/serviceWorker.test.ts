@@ -219,7 +219,7 @@ describe('cleanup', () => {
     listeners.activate({ waitUntil });
     await Promise.all(waitUntil.mock.calls.map(([promise]) => promise));
 
-    expect(caches.delete.mock.calls.map(([name]) => name).sort()).toEqual(['node-wall-cache-v1', `node-wall-session-${SESSION}`]);
+    expect(caches.delete.mock.calls.map(([name]) => name).sort()).toEqual(['node-wall-cache-v1', 'node-wall-cache-v2', `node-wall-session-${SESSION}`]);
   });
 
   test('a new session removes the caches of other sessions', async () => {
