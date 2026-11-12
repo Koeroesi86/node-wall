@@ -35,10 +35,6 @@ jobs:
           printf 'DB_DRIVER=sqlite3\nDB_DATABASE=./lib/data/ci.sqlite\nSITE_DOMAIN=localhost\n' > .env
           ../node_modules/.bin/knex migrate:latest
           node -e "require('./serverConfig.js')"
-      - name: Generated schemas type check
-        run: |
-          DB_DRIVER=sqlite3 DB_DATABASE=dist/lib/data/ci.sqlite npm run generate:schemas
-          npm run typecheck
 
   test:
     name: Test

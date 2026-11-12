@@ -1,17 +1,24 @@
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import Knex from 'knex';
 import { isApplicationTable, renderIndex, renderSchema, schemaFileName, type ColumnInfo } from '../lib/utils/generateSchemas.ts';
 
 const OUTPUT_DIR = 'lib/data-schemas';
+const MIGRATIONS_DIR = resolve('migrations');
 
-// Run `npm run knex -- migrate:latest` first so the database is up to date.
-if (existsSync('.env')) process.loadEnvFile('.env');
+// Migrates a throwaway sqlite database from the TypeScript migrations, so no .env, build or existing database is needed.
+const tempDir = mkdtempSync(join(tmpdir(), 'wall-schemas-'));
+const knex = Knex({ client: 'sqlite3', connection: { filename: join(tempDir, 'schema.sqlite') }, useNullAsDefault: true });
 
-const { DB_DRIVER, DB_DATABASE } = process.env;
-const knex = Knex({ client: DB_DRIVER, connection: { filename: DB_DATABASE ?? '' }, useNullAsDefault: true });
+const migrationSource = {
+  getMigrations: async () => readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.ts') && !file.endsWith('.test.ts')).sort(),
+  getMigrationName: (migration: string) => migration,
+  getMigration: (migration: string) => import(join(MIGRATIONS_DIR, migration)),
+};
 
 try {
+  await knex.migrate.latest({ migrationSource });
   const rows: { name: string }[] = await knex('sqlite_master').where({ type: 'table' }).orderBy('name').select('name');
   const tables = rows.map(row => row.name).filter(isApplicationTable);
 
@@ -26,4 +33,5 @@ try {
   console.log(`Generated ${tables.length} schemas in ${OUTPUT_DIR}`);
 } finally {
   await knex.destroy();
+  rmSync(tempDir, { recursive: true, force: true });
 }

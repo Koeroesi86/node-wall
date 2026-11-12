@@ -4,7 +4,9 @@
   "description": "",
   "main": "serverConfig.js",
   "scripts": {
+    "prebuild": "npm run generate:schemas",
     "build": "tsc -p tsconfig.json && tsc -p public/static/tsconfig.json && tsc -p public/tsconfig.service-worker.json && node scripts/copy-assets.mts",
+    "pretypecheck": "npm run generate:schemas",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p public/static/tsconfig.json --noEmit && tsc -p public/tsconfig.service-worker.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "clean": "node scripts/clean.mts",
     "knex": "knex",
