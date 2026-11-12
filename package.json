@@ -25,7 +25,7 @@
     "moment": "^2.29.1",
     "nodemailer": "^10.5.0",
     "sqlite3": "^6.0.1",
-    "uuid": "^8.3.2"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@koeroesi86/node-webserver-cli": "^26.11.42482079849-master",
