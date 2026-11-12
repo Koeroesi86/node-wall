@@ -14,7 +14,6 @@ rm -rf lib/data .log
 ln -s "$shared/data" lib/data
 ln -s "$shared/log" .log
 ln -s "$shared/.env" .env
-ln -sfn ../lib node_modules/lib
 
 node_modules/.bin/knex migrate:latest
 node -e "require('./serverConfig.js')"

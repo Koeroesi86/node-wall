@@ -14,3 +14,4 @@ lib/data/comment/*
 .env
 !.log/.gitkeep
 .log/*
+dist
