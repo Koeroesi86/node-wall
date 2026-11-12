@@ -139,6 +139,10 @@ describe('routing', () => {
     expect((await request({ path: 'api/unknown' })).statusCode).toBe(404);
   });
 
+  test('marks API responses as private and not storable', async () => {
+    expect((await request({ path: 'api/unknown' })).headers?.['Cache-Control']).toBe('private, no-store');
+  });
+
   test('answers 400 and logs when a handler throws', async () => {
     vi.mocked(tagService.getList).mockRejectedValue(new Error('boom'));
 
