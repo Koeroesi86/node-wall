@@ -57,4 +57,4 @@ In the GitHub `production` environment set the variables `DEPLOY_HOST`, `DEPLOY_
 
 ### Content storage migration
 
-Post, comment and link content is stored in the `contents` table; session device details (user agent, remote address) are columns on `users_session`. Content used to be one file per record under `lib/data`; the files are no longer read or written, so `lib/data` (symlinked to `shared/data`) only needs to hold `wall.sqlite`.
+Post, comment and link content is stored in the `contents` table; session device details (user agent, remote address) are columns on `users_session`. Content used to be one file per record under `lib/data`; the files are no longer read or written, so `shared/data` only needs to hold `wall.sqlite`. Releases no longer link `lib/data`; production reaches the database through the absolute `DB_DATABASE` in `shared/.env`.
