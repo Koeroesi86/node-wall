@@ -42,6 +42,8 @@ The deploy workflow builds `dist/`, installs production dependencies into it wit
 
 Rate limits (login, posts, comments) are stored in sqlite and keyed on the client address. Apache must send `X-Forwarded-For` (`mod_proxy` does by default); it is trusted only when the direct peer is in `TRUSTED_PROXIES` (default loopback, see `.env.example`).
 
+Account deletion and data export (GDPR) are on the profile page. Deleting needs a code emailed to the login address (10 minutes, 5 attempts) and removes the user, logins, sessions and tag preferences; posts and comments they wrote are kept with the owner cleared. The export is JSON (profile, logins, sessions without ids or secrets, tag preferences, posts and comments). Both are recorded in the `audit_log` table (action and user id only).
+
 Production `.env` needs `SERVER_PROTOCOL=http`, `SITE_PROTOCOL=https`, `SITE_DOMAIN=uzeno.koro.si`, an absolute `DB_DATABASE=/var/www/uzeno.koro.si/shared/data/wall.sqlite` and `APP_ROOT=/var/www/uzeno.koro.si/build`.
 
 One-time server migration (as root), from the old flat checkout:

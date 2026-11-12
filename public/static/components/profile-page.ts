@@ -39,6 +39,14 @@ class ProfilePage extends Component {
         <h3><translate-text alias="profile-page.session-list.header"></translate-text></h3>
         <div class="sessionList"></div>
       </div>
+      <div class="accountActionsWrapper">
+        <a class="button exportData" href="/api/user/export" download="my-data.json">
+          <translate-text alias="profile-page.export.button"></translate-text>
+        </a>
+        <button type="button" class="button deleteAccount">
+          <translate-text alias="profile-page.delete.button"></translate-text>
+        </button>
+      </div>
     `;
 
     const renameUserWrapper = this.querySelector('.renameUserWrapper');
@@ -61,6 +69,13 @@ class ProfilePage extends Component {
       e.preventDefault();
 
       this.renameUser(this.renameInput.value);
+    });
+
+    this.querySelector('.deleteAccount').addEventListener('click', e => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      this.deleteAccount().catch(error => console.error(error));
     });
 
     Promise.resolve()
@@ -221,6 +236,42 @@ class ProfilePage extends Component {
       request.open("GET", "/api/user/sessions", true);
       request.send();
     })
+  }
+
+  sendJson(method: string, url: string, body?: unknown) {
+    return new Promise<void>((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = () => {
+        if (request.readyState === 4) {
+          if (request.status === 200) {
+            resolve();
+          } else {
+            reject(new Error(`${method} ${url} failed`));
+          }
+        }
+      };
+      request.open(method, url, true);
+      request.setRequestHeader('Content-Type', 'application/json');
+      request.send(body === undefined ? undefined : JSON.stringify(body));
+    });
+  }
+
+  /** Emails a code first, so a stolen session alone cannot delete the account. */
+  async deleteAccount() {
+    await this.sendJson('POST', '/api/user/deletion');
+    const prompt = await TranslateText.getTranslation('profile-page.delete.code-sent');
+    const code = window.prompt(prompt.value);
+
+    if (!code) return;
+
+    try {
+      await this.sendJson('DELETE', '/api/user', ApiSchemas.DeleteAccountRequestSchema.parse({ code }));
+      location.href = '/';
+    } catch (error) {
+      const failed = await TranslateText.getTranslation('profile-page.delete.failed');
+      alert(failed.value);
+      throw error;
+    }
   }
 
   renameUser(name) {

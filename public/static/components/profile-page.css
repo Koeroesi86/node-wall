@@ -132,3 +132,10 @@ profile-page .sessionList .session button:hover {
     background: rgba(var(--main-button-background-color-rgb), 0.4);
     border-color: rgba(var(--main-button-background-color-rgb), 0.8);
 }
+
+profile-page .accountActionsWrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    padding: 12px 20px 20px;
+}

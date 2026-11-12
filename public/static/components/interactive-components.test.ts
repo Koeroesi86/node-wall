@@ -723,6 +723,48 @@ describe('profile-page', () => {
     expect(page.requests).toHaveLength(0);
   });
 
+  test('offers the data export as a download', async () => {
+    const element = await mount();
+
+    expect(element.querySelector('.exportData')?.getAttribute('href')).toBe('/api/user/export');
+  });
+
+  test('requests a code, then deletes the account with it', async () => {
+    const element = await mount();
+    page.window.prompt = vi.fn(() => 'abc123');
+
+    (element.querySelector('.deleteAccount') as HTMLElement).click();
+    await flush();
+    expect((await reply(200, {})).method).toBe('POST');
+    await flush();
+
+    expect(page.window.prompt).toHaveBeenCalledWith('t:profile-page.delete.code-sent');
+    expect(page.requests[0]).toMatchObject({ method: 'DELETE', url: '/api/user', body: JSON.stringify({ code: 'abc123' }) });
+  });
+
+  test('does not delete without a code', async () => {
+    const element = await mount();
+    page.window.prompt = vi.fn(() => null);
+
+    (element.querySelector('.deleteAccount') as HTMLElement).click();
+    await reply(200, {});
+    await flush();
+
+    expect(page.requests).toHaveLength(0);
+  });
+
+  test('says when the deletion failed', async () => {
+    const element = await mount();
+    page.window.prompt = vi.fn(() => 'ABC123');
+
+    (element.querySelector('.deleteAccount') as HTMLElement).click();
+    await reply(200, {});
+    await reply(400);
+    await flush();
+
+    expect(page.window.alert).toHaveBeenCalledWith('t:profile-page.delete.failed');
+  });
+
   test('lists liked and disliked tags once known', async () => {
     const element = await mount();
 

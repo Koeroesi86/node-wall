@@ -10,6 +10,8 @@ import sessionService from '../../lib/services/session';
 import linkService from '../../lib/services/link';
 import tagService from '../../lib/services/tag';
 import userService from '../../lib/services/user';
+import accountService from '../../lib/services/account';
+import confirmDeletionTemplate from '../../lib/templates/email/confirmDeletion';
 import getUserInfoFromSession from '../../lib/utils/getUserInfoFromSession';
 import readJson from '../../lib/utils/readJson';
 import getUserSessions from '../../lib/utils/getUserSessions';
@@ -24,7 +26,7 @@ import isAdmin from '../../lib/utils/isAdmin';
 import type { ZodType } from 'zod';
 import {
   AddPostTagRequestSchema, BoundsResponseSchema, CommentResponseSchema, CreateCommentRequestSchema, CreatePostRequestSchema,
-  CreateTagRequestSchema, EmptyResponseSchema, LinkResponseSchema, LoginRequestSchema, LoginResponseSchema, PostListResponseSchema, PostResponseSchema,
+  CreateTagRequestSchema, DeleteAccountRequestSchema, EmptyResponseSchema, LinkResponseSchema, LoginRequestSchema, LoginResponseSchema, PostListResponseSchema, PostResponseSchema,
   RemoveUserTagRequestSchema, SessionListResponseSchema, SetPostStatusRequestSchema, SetUserNameRequestSchema,
   SetUserRoleRequestSchema, SetUserTagRequestSchema, TagListResponseSchema, TagResponseSchema, UserInfoResponseSchema,
   UserListResponseSchema, UserTagListResponseSchema,
@@ -42,6 +44,7 @@ const hour = 60 * 60 * 1000;
 const loginIpLimiter = createRateLimiter({ name: 'login-ip', limit: 3, windowMs: hour });
 const loginAddressLimiter = createRateLimiter({ name: 'login-address', limit: 2, windowMs: hour });
 const contentLimiter = createRateLimiter({ name: 'content', limit: 3, windowMs: hour });
+const deletionLimiter = createRateLimiter({ name: 'account-deletion', limit: 3, windowMs: hour });
 const tooManyRequests = () => ({
   statusCode: 429,
   headers: getResponseHeaders({ 'Retry-After': String(hour / 1000) }),
@@ -570,6 +573,18 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           }
         }
 
+        if (httpMethod === 'DELETE') {
+          if (!userInfo) throw new Error('not logged in');
+          const { code } = await readJson(event.bodyStream, DeleteAccountRequestSchema);
+
+          if (!await accountService.confirmDeletion(userInfo.user.id, code)) throw new Error('invalid confirmation code');
+
+          const expires = moment().subtract(1, 'year');
+          return callback(jsonResponse(EmptyResponseSchema, {}, {
+            'Set-Cookie': buildSessionCookie('none', expires.format('ddd, DD MMM YYYY HH:mm:ss')),
+          }));
+        }
+
         if (httpMethod === 'GET') {
           /** @route /api/user */
           if (pathFragments.length === 2) {
@@ -590,6 +605,43 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             return callback(jsonResponse(UserInfoResponseSchema, userInfo));
           }
         }
+      }
+
+      /** @route /api/user/deletion Emails a code that confirms the account deletion. */
+      if (pathFragments[2] === 'deletion' && pathFragments.length === 3 && httpMethod === 'POST') {
+        if (!userInfo) throw new Error('not logged in');
+        if (!await deletionLimiter.consume(userInfo.user.id)) return callback(tooManyRequests());
+
+        const code = await accountService.requestDeletion(userInfo.user.id);
+
+        if (process.env.LOG_LOGIN_CODE === 'true') {
+          console.log('account deletion code (dev only)', code); // assertSafeLoginLogging forbids this on https
+          return callback(jsonResponse(EmptyResponseSchema, {}));
+        }
+
+        const language = await detectLanguage(headers);
+        const { value: title } = await getTranslation('email.delete.title', language);
+        await transporter.sendMail({
+          from: process.env.NODEMAILER_USER || 'sender@example.com',
+          to: normalizeLogin(userInfo.login.type, userInfo.login.value),
+          subject: title,
+          encoding: 'utf-8',
+          html: await confirmDeletionTemplate({ language, title, code }),
+        });
+
+        return callback(jsonResponse(EmptyResponseSchema, {}));
+      }
+
+      /** @route /api/user/export */
+      if (pathFragments[2] === 'export' && pathFragments.length === 3 && httpMethod === 'GET') {
+        if (!userInfo) throw new Error('not logged in');
+
+        return callback({
+          statusCode: 200,
+          headers: getResponseHeaders({ 'Content-Disposition': 'attachment; filename="my-data.json"' }),
+          body: JSON.stringify(await accountService.export(userInfo.user.id), null, 2),
+          isBase64Encoded: false,
+        });
       }
 
       /** @route /api/user/sessions */

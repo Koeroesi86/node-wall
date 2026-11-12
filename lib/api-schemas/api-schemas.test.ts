@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
-  CreateCommentRequestSchema, CreatePostRequestSchema, CreateTagRequestSchema, LoginRequestSchema, UserInfoResponseSchema, NameSchema,
+  CreateCommentRequestSchema, CreatePostRequestSchema, CreateTagRequestSchema, DeleteAccountRequestSchema, LoginRequestSchema, UserInfoResponseSchema, NameSchema,
   SetUserNameRequestSchema, SetUserTagRequestSchema,
 } from '.';
 
@@ -88,4 +88,14 @@ describe('browser bundle', () => {
 
     expect(code).toMatch(/^[\x00-\x7f]*$/);
   }, 30000);
+});
+
+describe('DeleteAccountRequestSchema', () => {
+  test('accepts the emailed code', () => {
+    expect(DeleteAccountRequestSchema.parse({ code: ' abc123 ' })).toEqual({ code: 'abc123' });
+  });
+
+  test.each([{ code: '' }, { code: 'ABC12' }, { code: 'ABC1234' }, { code: 'ABC-12' }, {}])('rejects %j', body => {
+    expect(DeleteAccountRequestSchema.safeParse(body).success).toBe(false);
+  });
 });

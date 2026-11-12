@@ -97,6 +97,7 @@ declare const ApiSchemas: {
   CreateCommentRequestSchema: ApiSchema<{ postId: string; parent?: string; body: string }>;
   CreatePostRequestSchema: ApiSchema<{ content: string }>;
   CreateTagRequestSchema: ApiSchema<{ name: string; type: string }>;
+  DeleteAccountRequestSchema: ApiSchema<{ code: string }>;
   EmptyResponseSchema: ApiSchema<Record<string, never>>;
   LinkResponseSchema: ApiSchema<Record<string, string>>;
   LoginRequestSchema: ApiSchema<{ type: string; value: string; name?: string }>;

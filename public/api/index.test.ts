@@ -9,6 +9,7 @@ import sessionService from '../../lib/services/session';
 import storageService from '../../lib/services/storage';
 import tagService from '../../lib/services/tag';
 import userService from '../../lib/services/user';
+import accountService from '../../lib/services/account';
 import getTranslation from '../../lib/translations/getTranslation';
 import generateCode from '../../lib/utils/generateCode';
 import getUserInfoFromSession from '../../lib/utils/getUserInfoFromSession';
@@ -30,11 +31,13 @@ vi.mock('../../lib/services/session');
 vi.mock('../../lib/services/storage');
 vi.mock('../../lib/services/tag');
 vi.mock('../../lib/services/user');
+vi.mock('../../lib/services/account');
 vi.mock('../../lib/translations/getTranslation');
 vi.mock('../../lib/utils/generateCode');
 vi.mock('../../lib/utils/getUserInfoFromSession');
 vi.mock('../../lib/utils/getUserSessions');
 vi.mock('../../lib/utils/createMailer', () => ({ default: () => transporter }));
+vi.mock('../../lib/templates/email/confirmDeletion', () => ({ default: async () => '<html>delete</html>' }));
 vi.mock('../../lib/templates/email/verifyLogin', () => ({ default: async () => '<html>mail</html>' }));
 
 const ID = '11111111-2222-3333-4444-555555555555';
@@ -893,6 +896,77 @@ describe('/api/user', () => {
       loggedInAs('user');
       expect((await request({ method: 'PUT', path: 'api/user/name', body: {} })).statusCode).toBe(400);
       expect(userService.setName).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('account deletion and export', () => {
+    test('emails a confirmation code to the login address', async () => {
+      loggedInAs('user');
+      vi.mocked(accountService.requestDeletion).mockResolvedValue('ABC123');
+      vi.mocked(getTranslation).mockResolvedValue({ value: 'Confirm' });
+
+      const response = await request({ method: 'POST', path: 'api/user/deletion' });
+
+      expect(response.statusCode).toBe(200);
+      expect(accountService.requestDeletion).toHaveBeenCalledWith('u1');
+      expect(transporter.sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: 'a@b.c', subject: 'Confirm', html: '<html>delete</html>' }));
+    });
+
+    test('limits the deletion requests per user', async () => {
+      loggedInAs('user');
+      vi.mocked(getTranslation).mockResolvedValue({ value: 'Confirm' });
+
+      const statuses = [];
+      for (let i = 0; i < 4; i++) statuses.push((await request({ method: 'POST', path: 'api/user/deletion' })).statusCode);
+
+      expect(statuses).toEqual([200, 200, 200, 429]);
+    });
+
+    test('requires a login to request the deletion', async () => {
+      expect((await request({ method: 'POST', path: 'api/user/deletion' })).statusCode).toBe(400);
+      expect(accountService.requestDeletion).not.toHaveBeenCalled();
+    });
+
+    test('deletes the account with a valid code and ends the session cookie', async () => {
+      loggedInAs('user');
+      vi.mocked(accountService.confirmDeletion).mockResolvedValue(true);
+
+      const response = await request({ method: 'DELETE', path: 'api/user', body: { code: 'ABC123' } });
+
+      expect(response.statusCode).toBe(200);
+      expect(accountService.confirmDeletion).toHaveBeenCalledWith('u1', 'ABC123');
+      expect(response.headers?.['Set-Cookie']).toContain('sessionId=none');
+    });
+
+    test('keeps the account when the code is wrong or missing', async () => {
+      loggedInAs('user');
+      vi.mocked(accountService.confirmDeletion).mockResolvedValue(false);
+
+      expect((await request({ method: 'DELETE', path: 'api/user', body: { code: 'ABC123' } })).statusCode).toBe(400);
+      expect((await request({ method: 'DELETE', path: 'api/user', body: {} })).statusCode).toBe(400);
+      expect(accountService.confirmDeletion).toHaveBeenCalledTimes(1);
+    });
+
+    test('requires a login to delete', async () => {
+      expect((await request({ method: 'DELETE', path: 'api/user', body: { code: 'ABC123' } })).statusCode).toBe(400);
+      expect(accountService.confirmDeletion).not.toHaveBeenCalled();
+    });
+
+    test('exports the data as a download', async () => {
+      loggedInAs('user');
+      vi.mocked(accountService.export).mockResolvedValue({ profile: undefined, logins: [], sessions: [], tags: [], posts: [], comments: [] });
+
+      const response = await request({ path: 'api/user/export' });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.headers?.['Content-Disposition']).toContain('attachment');
+      expect(jsonBody(response)).toMatchObject({ logins: [], posts: [] });
+      expect(accountService.export).toHaveBeenCalledWith('u1');
+    });
+
+    test('requires a login to export', async () => {
+      expect((await request({ path: 'api/user/export' })).statusCode).toBe(400);
+      expect(accountService.export).not.toHaveBeenCalled();
     });
   });
 
