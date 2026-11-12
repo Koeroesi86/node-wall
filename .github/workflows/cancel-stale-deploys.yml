@@ -1,0 +1,22 @@
+name: Cancel stale deploys
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel deploys waiting for approval for more than 24 hours
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh run list --workflow deploy.yml --status waiting --json databaseId,createdAt \
+            --jq '.[] | select(.createdAt < (now - 86400 | todate)) | .databaseId' \
+            | xargs -r -n1 gh run cancel
