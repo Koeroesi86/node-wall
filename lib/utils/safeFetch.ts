@@ -1,5 +1,7 @@
-import { lookup } from 'dns/promises';
-import { isIP } from 'net';
+import { lookup } from 'dns';
+import { request } from 'https';
+import { isIP, LookupFunction } from 'net';
+import { Readable } from 'stream';
 
 const MAX_REDIRECTS = 3;
 const TIMEOUT_MS = 10_000;
@@ -31,14 +33,43 @@ export const isPrivateAddress = (address: string): boolean => {
     || ip.startsWith('::ffff:');
 };
 
-const assertPublicUrl = async (url: URL) => {
+/**
+ * Resolves and validates in one step, so the address that is checked is the address that is
+ * connected to (no second resolution an attacker could answer differently).
+ */
+export const validatingLookup: LookupFunction = (hostname, options, callback) => {
+  lookup(hostname, { all: true }, (error, addresses) => {
+    if (error) return callback(error, []);
+    if (addresses.length === 0 || addresses.some(({ address }) => isPrivateAddress(address))) {
+      return callback(new Error('Link points to a disallowed address'), []);
+    }
+    if (options.all) return callback(null, addresses);
+    return callback(null, addresses[0].address, addresses[0].family);
+  });
+};
+
+const assertPublicUrl = (url: URL) => {
   if (url.protocol !== 'https:') throw new Error('Only https links are allowed');
   const hostname = url.hostname.replace(/^\[|\]$/g, '');
-  const addresses = await lookup(hostname, { all: true });
-  if (addresses.length === 0 || addresses.some(({ address }) => isPrivateAddress(address))) {
-    throw new Error('Link points to a disallowed address');
-  }
+  // Node does not call the lookup hook for literal IPs
+  if (isIP(hostname) !== 0 && isPrivateAddress(hostname)) throw new Error('Link points to a disallowed address');
 };
+
+const httpsGet = (url: URL, headers: Record<string, string>, signal: AbortSignal): Promise<Response> =>
+  new Promise((resolve, reject) => {
+    const req = request(url, { method: 'GET', headers, signal, lookup: validatingLookup }, (res) => {
+      const responseHeaders = Object.entries(res.headers).flatMap(([name, value]) =>
+        (Array.isArray(value) ? value : [value ?? '']).map((v): [string, string] => [name, v]));
+      const status = res.statusCode ?? 502;
+      const body = [204, 205, 304].includes(status) || (status >= 300 && status < 400)
+        ? undefined
+        : Readable.toWeb(res);
+      if (!body) res.resume();
+      resolve(new Response(body as ReadableStream | undefined, { status, headers: responseHeaders }));
+    });
+    req.on('error', reject);
+    req.end();
+  });
 
 const readLimited = async (response: Response): Promise<string> => {
   const declared = Number(response.headers.get('content-length') ?? 0);
@@ -61,7 +92,7 @@ const readLimited = async (response: Response): Promise<string> => {
 };
 
 /**
- * Fetches a public https URL as text. Validates the resolved address of every hop,
+ * Fetches a public https URL as text. Validates the address actually connected to (via a lookup hook) on every hop,
  * follows a limited number of redirects manually, and enforces timeout and size caps.
  */
 export default async function safeFetch(
@@ -72,8 +103,8 @@ export default async function safeFetch(
   let current = new URL(url);
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
-    await assertPublicUrl(current);
-    const response = await fetch(current, { headers, redirect: 'manual', signal });
+    assertPublicUrl(current);
+    const response = await httpsGet(current, headers, signal);
     const location = response.headers.get('location');
 
     if (response.status >= 300 && response.status < 400 && location) {
