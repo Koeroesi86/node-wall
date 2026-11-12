@@ -3,9 +3,15 @@
  * then escapes any remaining `<` so it cannot open an element when the text is rendered as HTML.
  */
 function stripHtml(value: string): string {
-  const stripped = value.replace(/<[^>]*>/g, '');
+  let result = value;
+  let previous: string;
 
-  return stripped === value ? value.replace(/</g, '&lt;') : stripHtml(stripped);
+  do {
+    previous = result;
+    result = result.replace(/<[^>]*>/g, '');
+  } while (result !== previous);
+
+  return result.replace(/</g, '&lt;');
 }
 
 export default stripHtml;
