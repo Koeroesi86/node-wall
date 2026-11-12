@@ -1,7 +1,7 @@
 import type { LambdaCallback, LambdaEvent, RequestHeaders } from '../lib/types';
 import moment from 'moment';
 import cookie from 'cookie';
-import crypto from 'crypto';
+import { isLoginCodeExpired, isLoginCodeMatch, LOGIN_CODE_MAX_ATTEMPTS } from '../lib/utils/loginCode';
 import createDatabase from '../lib/utils/createDatabase';
 import getUserInfoFromSession from '../lib/utils/getUserInfoFromSession';
 import welcomeTemplate from '../lib/templates/page/welcome';
@@ -244,17 +244,27 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const { code, session } = queryStringParameters;
 
           if (code && session) {
-            const hash = crypto
-              .createHash("sha256")
-              .update(code)
-              .digest("hex");
             const currentSession = await knex('users_session').where('id', session).first();
+            const isPending = currentSession?.status === 'pending';
+            const isUsable = isPending
+              && !isLoginCodeExpired(currentSession.created_at)
+              && (currentSession.attempts ?? 0) < LOGIN_CODE_MAX_ATTEMPTS;
 
-            const verified = currentSession?.status === 'pending' && currentSession.secret === hash;
+            if (isPending && !isUsable) {
+              await knex('users_session')
+                .where({ id: session })
+                .update({ status: 'deleted', secret: '' });
+            }
+
+            if (isUsable) {
+              await knex('users_session').where({ id: session }).increment('attempts', 1);
+            }
+
+            const verified = isUsable && isLoginCodeMatch(code, currentSession.secret);
 
             if (verified) {
               await knex('users_session')
-                .where({ id: session })
+                .where({ id: session, status: 'pending' })
                 .update({ status: 'active', secret: '' });
             }
 

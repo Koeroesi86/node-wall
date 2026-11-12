@@ -14,6 +14,7 @@ import getUserInfoFromSession from '../../lib/utils/getUserInfoFromSession';
 import readJson from '../../lib/utils/readJson';
 import getUserSessions from '../../lib/utils/getUserSessions';
 import generateCode from '../../lib/utils/generateCode';
+import { hashLoginCode } from '../../lib/utils/loginCode';
 import verifyLoginTemplate from '../../lib/templates/email/verifyLogin';
 import createMailer from '../../lib/utils/createMailer';
 import getTranslation from '../../lib/translations/getTranslation';
@@ -557,11 +558,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             status: 'pending',
             secret: generateCode(),
           };
-          const hash = crypto
-            .createHash("sha256")
-            .update(session.secret)
-            .digest("hex");
-          await sessionService.create(session.id, login.id, hash, 'pending');
+          await sessionService.create(session.id, login.id, hashLoginCode(session.secret), 'pending');
 
           if (payload.type === 'email') {
             const verifyUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login/email`);

@@ -183,9 +183,11 @@ describe('/login', () => {
     const verify = (query?: Request['query']) => request({ path: 'login/email', query, headers: anonymous });
     const code = 'SECRET';
     const hash = createHash('sha256').update(code).digest('hex');
+    const freshlyCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const staleCreated = new Date(Date.now() - 11 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
 
     test('activates the session when the code matches', async () => {
-      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash });
+      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash, created_at: freshlyCreated, attempts: 0 });
 
       const response = await verify({ code, session: SESSION_ID });
 
@@ -195,13 +197,33 @@ describe('/login', () => {
     });
 
     test('leaves the session pending and sets no cookie when the code is wrong', async () => {
-      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash });
+      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash, created_at: freshlyCreated, attempts: 0 });
 
       const response = await verify({ code: 'WRONG', session: SESSION_ID });
 
       expect(response.statusCode).toBe(302);
       expect(response.headers?.['Set-Cookie']).toBeUndefined();
       expect(fakeDb.calls.map(call => call[0])).not.toContain('update');
+    });
+
+    test('counts a wrong attempt', async () => {
+      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash, created_at: freshlyCreated, attempts: 1 });
+      await verify({ code: 'WRONG', session: SESSION_ID });
+      expect(fakeDb.calls).toContainEqual(['increment', 'attempts', 1]);
+    });
+
+    test('rejects and invalidates an expired code', async () => {
+      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash, created_at: staleCreated, attempts: 0 });
+      const response = await verify({ code, session: SESSION_ID });
+      expect(response.headers?.['Set-Cookie']).toBeUndefined();
+      expect(fakeDb.calls).toContainEqual(['update', { status: 'deleted', secret: '' }]);
+    });
+
+    test('rejects and invalidates after too many attempts, even with the right code', async () => {
+      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash, created_at: freshlyCreated, attempts: 5 });
+      const response = await verify({ code, session: SESSION_ID });
+      expect(response.headers?.['Set-Cookie']).toBeUndefined();
+      expect(fakeDb.calls).toContainEqual(['update', { status: 'deleted', secret: '' }]);
     });
 
     test('does not reactivate a deleted session', async () => {
