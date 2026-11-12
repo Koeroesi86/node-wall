@@ -436,6 +436,31 @@ describe('post-tags-input', () => {
     expect(results[1].querySelector('translate-text')?.getAttribute('alias')).toBe('post-tags-input.create-tag');
   });
 
+  test('shows a tag name with markup as plain text', async () => {
+    const element = mount();
+    type(element, 'x');
+    page.flushTimers();
+
+    await reply(200, [{ id: 't1', name: '<img src=x onerror=alert(1)>' }]);
+
+    const result = element.querySelector('.results .tagResult');
+    expect(result?.textContent).toBe('<img src=x onerror=alert(1)>');
+    expect(result?.querySelector('img')).toBeNull();
+  });
+
+  test('shows a search term with markup as plain text in the create option', async () => {
+    const element = mount();
+    type(element, '<b id="injected">x</b>');
+    page.flushTimers();
+
+    await reply(200, []);
+
+    const create = element.querySelector('.results .tagResult');
+    expect(create?.querySelector('#injected')).toBeNull();
+    expect(create?.textContent).toContain('"<b id="injected">x</b>"');
+    expect(create?.querySelector('translate-text')?.getAttribute('alias')).toBe('post-tags-input.create-tag');
+  });
+
   test('does not offer to create a tag that exists', async () => {
     const element = mount();
     type(element, 'news');
