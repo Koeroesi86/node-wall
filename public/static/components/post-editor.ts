@@ -59,7 +59,7 @@ class PostEditor extends Component {
             const request = new XMLHttpRequest();
             request.onreadystatechange = e => {
               if (request.readyState === 4 && request.status === 200) {
-                const tags = JSON.parse(request.responseText);
+                const tags = ApiSchemas.TagListResponseSchema.parse(JSON.parse(request.responseText));
                 cb(tags);
               }
             };

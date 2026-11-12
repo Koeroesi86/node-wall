@@ -34,6 +34,7 @@ export default (props: WrapperProps = {}) => (`
     <link href="/static/vendor/fontawesome/css/v4-shims.min.css" rel="stylesheet">
     <script src="/static/vendor/webcomponents-bundle.js"></script>
     <script src="/static/vendor/redux.min.js"></script>
+    <script src="/static/vendor/api-schemas.js"></script>
     <script type="application/json" id="initial-state">${getInitialState(props)}</script>
     <script src="/static/utils/post.js"></script>
     <script src="/static/utils/comments.js"></script>

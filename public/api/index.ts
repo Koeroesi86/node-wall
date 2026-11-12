@@ -20,7 +20,14 @@ import createMailer from '../../lib/utils/createMailer';
 import getTranslation from '../../lib/translations/getTranslation';
 import detectLanguage from '../../lib/utils/detectLanguage';
 import isAdmin from '../../lib/utils/isAdmin';
-import isSingleEmail from '../../lib/utils/isSingleEmail';
+import type { ZodType } from 'zod';
+import {
+  AddPostTagRequestSchema, BoundsResponseSchema, CommentResponseSchema, CreateCommentRequestSchema, CreatePostRequestSchema,
+  CreateTagRequestSchema, EmptyResponseSchema, LinkResponseSchema, LoginRequestSchema, LoginResponseSchema, PostListResponseSchema, PostResponseSchema,
+  RemoveUserTagRequestSchema, SessionListResponseSchema, SetPostStatusRequestSchema, SetUserNameRequestSchema,
+  SetUserRoleRequestSchema, SetUserTagRequestSchema, TagListResponseSchema, TagResponseSchema, UserInfoResponseSchema,
+  UserListResponseSchema, UserTagListResponseSchema,
+} from '../../lib/api-schemas';
 import rateLimitService from '../../lib/services/rate-limit';
 import createRateLimiter from '../../lib/utils/createRateLimiter';
 import getClientIp from '../../lib/utils/getClientIp';
@@ -55,6 +62,14 @@ const getResponseHeaders = (headers = {}) => ({
   ...headers,
 });
 const transporter = createMailer();
+
+/** Serializes a 200 response, throwing (so the client gets a 400) instead of sending data that does not match its schema. */
+const jsonResponse = <Schema extends ZodType>(schema: Schema, data: unknown, headers = {}) => ({
+  statusCode: 200,
+  headers: getResponseHeaders(headers),
+  body: JSON.stringify(schema.parse(data), null, 2),
+  isBase64Encoded: false,
+});
 
 export = async (event: LambdaEvent, callback: LambdaCallback) => {
   clearTimeout(keepAliveTimer);
@@ -103,25 +118,13 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const linkData = await linkService.getData(existingLink.id);
 
           if (linkData) {
-            return callback({
-              statusCode: 200,
-              headers: getResponseHeaders(),
-              body: linkData,
-              isBase64Encoded: false,
-            });
+            return callback(jsonResponse(LinkResponseSchema, JSON.parse(linkData)));
           }
         }
 
         const postRecord = await postService.get(post);
         if (postRecord && postRecord.status === 'public') {
-          const data = await linkService.create(url);
-
-          return callback({
-            statusCode: 200,
-            headers: getResponseHeaders(),
-            body: JSON.stringify(data, null, 2),
-            isBase64Encoded: false,
-          });
+          return callback(jsonResponse(LinkResponseSchema, await linkService.create(url)));
         }
 
         return callback({
@@ -136,15 +139,15 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
     /** @route /api/comment */
     if (pathFragments[1] === 'comment') {
       if (httpMethod === 'POST' && pathFragments.length === 2) {
-        const payload = await readJson<{ postId: string; parent: string; body: string }>(event.bodyStream);
+        const payload = await readJson(event.bodyStream, CreateCommentRequestSchema);
         const owner = userInfo ? userInfo.user.id : null;
 
-        if (!payload.postId) {
-          throw new Error('no postId defined');
-        }
+        const post = await postService.get(payload.postId);
+        if (post?.status !== 'public') throw new Error('post not found');
 
-        if (payload.body === undefined) {
-          throw new Error('no body defined');
+        if (payload.parent) {
+          const parent = await commentService.get(payload.parent);
+          if (parent.post !== payload.postId) throw new Error('parent comment belongs to another post');
         }
 
         if (!await contentLimiter.consume(owner ?? `ip:${clientIp}`)) {
@@ -153,24 +156,14 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
         await postService.createComment(payload.postId, payload.parent, owner, payload.body);
 
-        return callback({
-          statusCode: 200,
-          headers: getResponseHeaders(),
-          body: JSON.stringify({}, null, 2),
-          isBase64Encoded: false,
-        });
+        return callback(jsonResponse(EmptyResponseSchema, {}));
       }
 
       if (httpMethod === 'GET' && pathFragments[2] && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
         const id = pathFragments[2];
         const comment = await commentService.get(id);
 
-        return callback({
-          statusCode: 200,
-          headers: getResponseHeaders(),
-          body: JSON.stringify(comment, null, 2),
-          isBase64Encoded: false,
-        });
+        return callback(jsonResponse(CommentResponseSchema, comment));
       }
     }
 
@@ -188,10 +181,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       if (httpMethod === 'PUT' && pathFragments[2] && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
         const id = pathFragments[2];
         if (isAdmin(userInfo)) {
-          const payload = await readJson<{ status: string }>(event.bodyStream);
-
-          if (!payload.status) throw new Error('no status');
-          if (!['public', 'pending', 'moderated', 'deleted'].includes(payload.status)) throw new Error('invalid status');
+          const payload = await readJson(event.bodyStream, SetPostStatusRequestSchema);
 
           if (payload.status === 'public') {
             let content = await storageService.read(id, 'post');
@@ -259,43 +249,26 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const postTags = await postService.getTags(postId);
 
           if (pathFragments.length === 3) {
-            return callback({
-              statusCode: 200,
-              headers: getResponseHeaders(),
-              body: JSON.stringify({
-                id: post.id,
-                type: post.type,
-                content: await postService.getContent(post.id, post.type ?? undefined),
-                created_at: post.created_at,
-                comments: (await postService.getComments(postId)).map(c => c.id),
-                owner: post.owner ? await userService.get(post.owner) : null,
-                tags: postTags
-              }, null, 2),
-              isBase64Encoded: false,
-            });
+            return callback(jsonResponse(PostResponseSchema, {
+              id: post.id,
+              type: post.type,
+              content: await postService.getContent(post.id, post.type ?? undefined),
+              created_at: post.created_at,
+              comments: (await postService.getComments(postId)).map(c => c.id),
+              owner: (post.owner && await userService.get(post.owner)) || null,
+              tags: postTags
+            }));
           }
 
           if (pathFragments.length === 4) {
             if (pathFragments[3] === 'tags') {
-              return callback({
-                statusCode: 200,
-                headers: getResponseHeaders(),
-                body: JSON.stringify(postTags, null, 2),
-                isBase64Encoded: false,
-              });
+              return callback(jsonResponse(TagListResponseSchema, postTags));
             }
           }
         }
 
         if (pathFragments[2] === 'bounds') {
-          const bounds = await postService.getBounds();
-
-          return callback({
-            statusCode: 200,
-            headers: getResponseHeaders(),
-            body: JSON.stringify(bounds, null, 2),
-            isBase64Encoded: false,
-          });
+          return callback(jsonResponse(BoundsResponseSchema, await postService.getBounds()));
         }
 
         if (pathFragments.length === 2) {
@@ -340,27 +313,15 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
           const posts = await postService.getList(status, before, since, likedTags, dislikedTags);
 
-          const postsToRender = await Promise.all(posts.map(async post => ({
-            id: post.id,
-            type: post.type,
-            created_at: post.created_at,
-          })));
-
-          return callback({
-            statusCode: 200,
-            headers: getResponseHeaders({
-              ...(nextPageBefore && { 'x-next-page-before': nextPageBefore })
-            }),
-            body: JSON.stringify(postsToRender, null, 2),
-            isBase64Encoded: false,
-          });
+          return callback(jsonResponse(PostListResponseSchema, posts, {
+            ...(nextPageBefore && { 'x-next-page-before': nextPageBefore })
+          }));
         }
       }
 
       if (httpMethod === 'POST') {
         if (pathFragments.length === 2) {
-          const payload = await readJson<{ content: string }>(event.bodyStream);
-          if (!payload.content) throw new Error('no content');
+          const payload = await readJson(event.bodyStream, CreatePostRequestSchema);
 
           if (!await contentLimiter.consume(userInfo?.user.id ?? `ip:${clientIp}`)) {
             return callback(tooManyRequests());
@@ -389,10 +350,11 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const postTags = await postService.getTags(postId);
 
           if (pathFragments[3] === 'tags') {
-            const payload = await readJson<{ id: string }>(event.bodyStream);
-            if (!payload.id) throw new Error('no tag id specified');
+            const payload = await readJson(event.bodyStream, AddPostTagRequestSchema);
 
             const tagId = payload.id;
+            if (!await postService.get(postId)) throw new Error('post not found');
+            if (!await tagService.get(tagId)) throw new Error('tag not found');
             if (postTags.find(tag => tag.id === tagId)) {
               return callback({
                 statusCode: 400,
@@ -470,12 +432,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             });
           }
 
-          return callback({
-            statusCode: 200,
-            headers: getResponseHeaders(),
-            body: JSON.stringify(tag, null, 2),
-            isBase64Encoded: false,
-          });
+          return callback(jsonResponse(TagResponseSchema, tag));
         }
 
         if (pathFragments.length === 2) {
@@ -487,34 +444,19 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             exact = !!queryStringParameters.exact;
           }
 
-          const tags = await tagService.getList(search, exact);
-
-          return callback({
-            statusCode: 200,
-            headers: getResponseHeaders(),
-            body: JSON.stringify(tags, null, 2),
-            isBase64Encoded: false,
-          });
+          return callback(jsonResponse(TagListResponseSchema, await tagService.getList(search, exact)));
         }
       }
 
       if (httpMethod === 'POST') {
         if (pathFragments.length === 2) {
-          const payload = await readJson<{ name: string; type: string }>(event.bodyStream);
-
-          if (!payload.name) throw new Error('no name');
-          if (!payload.type) throw new Error('no type');
           if (!userInfo) throw new Error('Not logged in');
           if (!isAdmin(userInfo)) throw new Error('Not authorized');
 
+          const payload = await readJson(event.bodyStream, CreateTagRequestSchema);
           const tag = await tagService.create(payload.name, payload.type);
 
-          return callback({
-            statusCode: 200,
-            headers: getResponseHeaders(),
-            body: JSON.stringify(tag, null, 2),
-            isBase64Encoded: false,
-          });
+          return callback(jsonResponse(TagResponseSchema, tag));
         }
       }
     }
@@ -525,20 +467,11 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       if (!isAdmin(userInfo)) throw new Error('Not authorized');
 
       if (httpMethod === 'GET' && pathFragments.length === 2) {
-        const users = await userService.getList();
-
-        return callback({
-          statusCode: 200,
-          headers: getResponseHeaders(),
-          body: JSON.stringify(users, null, 2),
-          isBase64Encoded: false,
-        });
+        return callback(jsonResponse(UserListResponseSchema, await userService.getList()));
       }
 
       if (httpMethod === 'PUT' && pathFragments.length === 3) {
-        const payload = await readJson<{ role: string }>(event.bodyStream);
-        const role = payload.role === 'admin' ? 'admin' : payload.role === 'user' ? 'user' : undefined;
-        if (!role) throw new Error('invalid role');
+        const { role } = await readJson(event.bodyStream, SetUserRoleRequestSchema);
         const [, , targetId = ''] = pathFragments;
         if (targetId === userInfo.user.id) throw new Error('cannot change own role');
 
@@ -557,10 +490,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
     if (pathFragments[1] === 'user') {
       if (pathFragments.length === 2) {
         if (httpMethod === 'POST') {
-          const payload = await readJson<{ value: string; type: string; name: string }>(event.bodyStream);
-          if (!payload.value) throw new Error('no value');
-          if (!payload.type) throw new Error('no type');
-          if (payload.type === 'email' && !isSingleEmail(payload.value)) throw new Error('invalid email');
+          const payload = await readJson(event.bodyStream, LoginRequestSchema);
 
           await rateLimitService.removeExpired();
           await sessionService.cleanup();
@@ -572,12 +502,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           // Cap the emails sent per address without refusing the login, so nobody can lock a victim out.
           // The response looks the same either way.
           if (!await loginAddressLimiter.consume(`${payload.type}:${payload.value.toLowerCase()}`)) {
-            return callback({
-              statusCode: 200,
-              headers: getResponseHeaders({}),
-              body: JSON.stringify({ sessionId: crypto.randomUUID() }, null, 2),
-              isBase64Encoded: false,
-            });
+            return callback(jsonResponse(LoginResponseSchema, { sessionId: crypto.randomUUID() }));
           }
 
           let login;
@@ -609,12 +534,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             verifyUrl.searchParams.set('session', session.id);
             if (process.env.LOG_LOGIN_CODE === 'true') {
               console.log('login url (dev only)', verifyUrl.toString()); // assertSafeLoginLogging forbids this on https
-              return callback({
-                statusCode: 200,
-                headers: getResponseHeaders({}),
-                body: JSON.stringify({ sessionId: session.id }, null, 2),
-                isBase64Encoded: false,
-              });
+              return callback(jsonResponse(LoginResponseSchema, { sessionId: session.id }));
             }
             const activateUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login`);
             activateUrl.searchParams.set('session', session.id);
@@ -643,12 +563,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
               }
 
               console.log('login mail sent for session', session.id);
-              return callback({
-                statusCode: 200,
-                headers: getResponseHeaders({}),
-                body: JSON.stringify({ sessionId: session.id }, null, 2),
-                isBase64Encoded: false,
-              });
+              return callback(jsonResponse(LoginResponseSchema, { sessionId: session.id }));
             });
             return;
           }
@@ -671,12 +586,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
               });
             }
 
-            return callback({
-              statusCode: 200,
-              headers: getResponseHeaders(),
-              body: JSON.stringify(userInfo, null, 2),
-              isBase64Encoded: false,
-            });
+            return callback(jsonResponse(UserInfoResponseSchema, userInfo));
           }
         }
       }
@@ -694,12 +604,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
               sessionCreatedAt: new Date(session.sessionCreatedAt).valueOf(),
               details: userAgent || remoteAddress ? { userAgent, remoteAddress } : null,
             }));
-          return callback({
-            statusCode: 200,
-            headers: getResponseHeaders(),
-            body: JSON.stringify(sessions, null, 2),
-            isBase64Encoded: false,
-          });
+          return callback(jsonResponse(SessionListResponseSchema, sessions));
         }
 
         if (/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[3]) && httpMethod === 'DELETE') {
@@ -733,12 +638,10 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
         }
 
         if (httpMethod === 'PUT') {
-          const payload = await readJson<{ name: string }>(event.bodyStream);
-          if (!payload.name) throw new Error('no name');
           if (!userInfo) throw new Error('not logged in');
-          if (typeof payload.name !== 'string' || !/^[\p{L}\p{N} .'_-]{1,50}$/u.test(payload.name.trim())) throw new Error('invalid name');
+          const payload = await readJson(event.bodyStream, SetUserNameRequestSchema);
 
-          await userService.setName(userInfo.user.id, payload.name.trim());
+          await userService.setName(userInfo.user.id, payload.name);
 
           return callback({
             statusCode: 200,
@@ -761,21 +664,13 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             });
           }
 
-          const tags = await userService.getTags(userInfo.user.id);
-
-          return callback({
-            statusCode: 200,
-            headers: getResponseHeaders(),
-            body: JSON.stringify(tags, null, 2),
-            isBase64Encoded: false,
-          });
+          return callback(jsonResponse(UserTagListResponseSchema, await userService.getTags(userInfo.user.id)));
         }
 
         if (httpMethod === 'PUT') {
-          const payload = await readJson<{ id: string; type: string }>(event.bodyStream);
           if (!userInfo) throw new Error('not logged in');
-          if (!payload.id) throw new Error('no id');
-          if (!payload.type) throw new Error('no type');
+          const payload = await readJson(event.bodyStream, SetUserTagRequestSchema);
+          if (!await tagService.get(payload.id)) throw new Error('tag not found');
 
           await userService.addTag(payload.id, userInfo.user.id, payload.type);
 
@@ -788,9 +683,8 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
         }
 
         if (httpMethod === 'DELETE') {
-          const payload = await readJson<{ id: string }>(event.bodyStream);
           if (!userInfo) throw new Error('not logged in');
-          if (!payload.id) throw new Error('no id');
+          const payload = await readJson(event.bodyStream, RemoveUserTagRequestSchema);
 
           await userService.removeTag(payload.id, userInfo.user.id);
 

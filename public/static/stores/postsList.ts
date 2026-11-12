@@ -168,7 +168,7 @@ function getPosts(since: number, before: number, likedTags: string[] = [], disli
     request.onreadystatechange = e => {
       if (request.readyState === 4) {
         if (request.status === 200) {
-          const posts = JSON.parse(request.responseText);
+          const posts = ApiSchemas.PostListResponseSchema.parse(JSON.parse(request.responseText));
           const nextPageBefore = request.getResponseHeader('x-next-page-before');
 
           resolve({ posts, nextPageBefore });

@@ -44,7 +44,7 @@ const userMiddleware: ReduxMiddleware = store => next => action => {
           if (request.status === 200) {
             store.dispatch({
               type: USER_ACTIONS.RECEIVE,
-              payload: JSON.parse(request.responseText)
+              payload: ApiSchemas.UserInfoResponseSchema.parse(JSON.parse(request.responseText))
             });
           } else if (request.status === 401) {
             store.dispatch({
@@ -76,7 +76,7 @@ const userMiddleware: ReduxMiddleware = store => next => action => {
       request.onreadystatechange = () => {
         if (request.readyState === 4) {
           if (request.status === 200) {
-            const tags = JSON.parse(request.responseText);
+            const tags = ApiSchemas.UserTagListResponseSchema.parse(JSON.parse(request.responseText));
             store.dispatch({ type: USER_ACTIONS.RECEIVE_TAGS, payload: { tags } });
           } else {
             store.dispatch({ type: USER_ACTIONS.RECEIVE_TAGS, payload: { tags: [] } });

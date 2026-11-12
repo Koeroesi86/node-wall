@@ -40,6 +40,8 @@ vi.mock('../../lib/templates/email/verifyLogin', () => ({ default: async () => '
 const ID = '11111111-2222-3333-4444-555555555555';
 const TAG_ID = '66666666-7777-8888-9999-000000000000';
 const SESSION_ID = 'aaaaaaaa-0000-0000-0000-000000000000';
+const PARENT_ID = 'bbbbbbbb-0000-0000-0000-000000000000';
+const linkData = { 'content-type': 'text/html', title: 't', description: '', image: '', url: 'https://example.com/page', embedCode: '' };
 
 interface Request {
   method?: string;
@@ -52,7 +54,7 @@ interface Request {
 const jsonBody = (response: LambdaResponse) => JSON.parse(response.body ?? '');
 
 const userInfo = (role: string) => ({
-  session: { id: 's1', users_login_id: 'l1', status: 'active', created_at: 1 },
+  session: { id: 's1', users_login_id: 'l1', status: 'active', created_at: 1, last_active: null },
   login: { id: 'l1', type: 'email', user_id: 'u1', value: 'a@b.c' },
   user: { id: 'u1', name: 'Ann', role, created_at: 1 },
 });
@@ -183,18 +185,19 @@ describe('/api/link', () => {
 
   test('returns stored link data', async () => {
     vi.mocked(linkService.getByUrl, { partial: true }).mockResolvedValue({ id: 'l1' });
-    vi.mocked(linkService.getData).mockResolvedValue('{"title":"t"}');
+    vi.mocked(linkService.getData).mockResolvedValue(JSON.stringify(linkData));
 
     const response = await request({ path: 'api/link', query });
 
-    expect(response).toMatchObject({ statusCode: 200, body: '{"title":"t"}' });
+    expect(response.statusCode).toBe(200);
+    expect(jsonBody(response)).toEqual(linkData);
     expect(linkService.create).not.toHaveBeenCalled();
   });
 
   test('upgrades http links to https before lookup', async () => {
     vi.mocked(linkService.getByUrl).mockResolvedValue(undefined);
     vi.mocked(postService.get, { partial: true }).mockResolvedValue({ status: 'public' });
-    vi.mocked(linkService.create).mockResolvedValue({ title: 't' } as never);
+    vi.mocked(linkService.create).mockResolvedValue(linkData);
 
     await request({ path: 'api/link', query: { uri: 'http://example.com/page', post } });
 
@@ -205,12 +208,12 @@ describe('/api/link', () => {
   test('creates a link for a public post', async () => {
     vi.mocked(linkService.getByUrl).mockResolvedValue(undefined);
     vi.mocked(postService.get, { partial: true }).mockResolvedValue({ status: 'public' });
-    vi.mocked(linkService.create).mockResolvedValue({ title: 't' } as never);
+    vi.mocked(linkService.create).mockResolvedValue(linkData);
 
     const response = await request({ path: 'api/link', query });
 
     expect(response.statusCode).toBe(200);
-    expect(jsonBody(response)).toEqual({ title: 't' });
+    expect(jsonBody(response)).toEqual(linkData);
   });
 
   test('refuses to fetch links for non-public posts', async () => {
@@ -223,13 +226,20 @@ describe('/api/link', () => {
 });
 
 describe('/api/comment', () => {
+  const commentRow = { id: ID, post: ID, parent: null, owner: null, status: 'public', created_at: 1 };
+
+  beforeEach(() => {
+    vi.mocked(postService.get, { partial: true }).mockResolvedValue({ id: ID, status: 'public' });
+    vi.mocked(commentService.get, { partial: true }).mockResolvedValue({ ...commentRow, id: PARENT_ID, body: 'parent' });
+  });
+
   test('creates a comment as the logged in user', async () => {
     loggedInAs('user');
 
-    const response = await request({ method: 'POST', path: 'api/comment', body: { postId: ID, parent: 'c0', body: 'hi' } });
+    const response = await request({ method: 'POST', path: 'api/comment', body: { postId: ID, parent: PARENT_ID, body: 'hi' } });
 
     expect(response.statusCode).toBe(200);
-    expect(postService.createComment).toHaveBeenCalledWith(ID, 'c0', 'u1', 'hi');
+    expect(postService.createComment).toHaveBeenCalledWith(ID, PARENT_ID, 'u1', 'hi');
   });
 
   test('creates anonymous comments', async () => {
@@ -248,17 +258,46 @@ describe('/api/comment', () => {
   test.each([
     ['postId', { body: 'hi' }],
     ['body', { postId: ID }],
-  ])('rejects a comment without %s', async (_name, body) => {
+    ['a body that is only whitespace', { postId: ID, body: '  ' }],
+    ['a body that is too long', { postId: ID, body: 'a'.repeat(2001) }],
+    ['a body that is not a string', { postId: ID, body: 5 }],
+    ['a postId that is not an id', { postId: 'nope', body: 'hi' }],
+    ['a parent that is not an id', { postId: ID, parent: 'c0', body: 'hi' }],
+  ])('rejects a comment with %s', async (_name, body) => {
     expect((await request({ method: 'POST', path: 'api/comment', body })).statusCode).toBe(400);
     expect(postService.createComment).not.toHaveBeenCalled();
   });
 
+  test.each([
+    ['unknown', undefined],
+    ['not public', { id: ID, status: 'pending' }],
+  ])('rejects a comment on a post that is %s', async (_name, post) => {
+    vi.mocked(postService.get, { partial: true }).mockResolvedValue(post);
+
+    expect((await request({ method: 'POST', path: 'api/comment', body: { postId: ID, body: 'hi' } })).statusCode).toBe(400);
+    expect(postService.createComment).not.toHaveBeenCalled();
+  });
+
+  test('rejects a reply to a comment of another post', async () => {
+    vi.mocked(commentService.get, { partial: true }).mockResolvedValue({ ...commentRow, id: PARENT_ID, post: TAG_ID });
+
+    expect((await request({ method: 'POST', path: 'api/comment', body: { postId: ID, parent: PARENT_ID, body: 'hi' } })).statusCode).toBe(400);
+    expect(postService.createComment).not.toHaveBeenCalled();
+  });
+
+  test('rejects a reply to a comment that does not exist', async () => {
+    vi.mocked(commentService.get).mockRejectedValue(new Error('no comment'));
+
+    expect((await request({ method: 'POST', path: 'api/comment', body: { postId: ID, parent: PARENT_ID, body: 'hi' } })).statusCode).toBe(400);
+    expect(postService.createComment).not.toHaveBeenCalled();
+  });
+
   test('returns a comment by id', async () => {
-    vi.mocked(commentService.get, { partial: true }).mockResolvedValue({ id: ID, body: 'hi' });
+    vi.mocked(commentService.get, { partial: true }).mockResolvedValue({ ...commentRow, body: 'hi' });
 
     const response = await request({ path: `api/comment/${ID}` });
 
-    expect(jsonBody(response)).toEqual({ id: ID, body: 'hi' });
+    expect(jsonBody(response)).toEqual({ ...commentRow, body: 'hi' });
   });
 
   test('ignores comment ids that are not uuids', async () => {
@@ -335,6 +374,7 @@ describe('/api/posts', () => {
       vi.mocked(postService.get).mockResolvedValue({ ...post, status: 'pending' });
       vi.mocked(postService.getTags).mockResolvedValue([]);
       vi.mocked(postService.getComments).mockResolvedValue([]);
+      vi.mocked(postService.getContent).mockResolvedValue('hello');
       expect((await request({ path: `api/posts/${ID}` })).statusCode).toBe(200);
     });
 
@@ -364,6 +404,7 @@ describe('/api/posts', () => {
       vi.mocked(postService.get).mockResolvedValue({ ...post, owner: null });
       vi.mocked(postService.getTags).mockResolvedValue([]);
       vi.mocked(postService.getComments).mockResolvedValue([]);
+      vi.mocked(postService.getContent).mockResolvedValue('hello');
 
       expect(jsonBody(await request({ path: `api/posts/${ID}` })).owner).toBeNull();
       expect(userService.get).not.toHaveBeenCalled();
@@ -451,6 +492,15 @@ describe('/api/posts', () => {
       expect(postService.create).toHaveBeenCalledTimes(3);
     });
 
+    test.each([
+      ['content that is only whitespace', { content: '   ' }],
+      ['content that is too long', { content: 'a'.repeat(5001) }],
+      ['content that is not a string', { content: 5 }],
+    ])('rejects %s', async (_name, body) => {
+      expect((await request({ method: 'POST', path: 'api/posts', body })).statusCode).toBe(400);
+      expect(postService.create).not.toHaveBeenCalled();
+    });
+
     test('rejects empty posts', async () => {
       expect((await request({ method: 'POST', path: 'api/posts', body: {} })).statusCode).toBe(400);
       expect(postService.create).not.toHaveBeenCalled();
@@ -474,6 +524,8 @@ describe('/api/posts', () => {
       test('adds a tag', async () => {
         loggedInAs('admin');
         vi.mocked(postService.getTags).mockResolvedValue([]);
+        vi.mocked(postService.get, { partial: true }).mockResolvedValue({ id: ID });
+        vi.mocked(tagService.get, { partial: true }).mockResolvedValue({ id: TAG_ID });
         expect((await addTagRequest()).statusCode).toBe(200);
         expect(postService.addTag).toHaveBeenCalledWith(ID, TAG_ID);
       });
@@ -481,6 +533,23 @@ describe('/api/posts', () => {
       test('rejects a tag that is already assigned', async () => {
         loggedInAs('admin');
         vi.mocked(postService.getTags, { partial: true }).mockResolvedValue([{ id: TAG_ID, name: 'tag', type: null }]);
+        expect((await addTagRequest()).statusCode).toBe(400);
+        expect(postService.addTag).not.toHaveBeenCalled();
+      });
+
+      test('rejects a tag that does not exist', async () => {
+        loggedInAs('admin');
+        vi.mocked(postService.getTags).mockResolvedValue([]);
+        vi.mocked(postService.get, { partial: true }).mockResolvedValue({ id: ID });
+        vi.mocked(tagService.get).mockResolvedValue(undefined);
+        expect((await addTagRequest()).statusCode).toBe(400);
+        expect(postService.addTag).not.toHaveBeenCalled();
+      });
+
+      test('rejects a post that does not exist', async () => {
+        loggedInAs('admin');
+        vi.mocked(postService.getTags).mockResolvedValue([]);
+        vi.mocked(postService.get).mockResolvedValue(undefined);
         expect((await addTagRequest()).statusCode).toBe(400);
         expect(postService.addTag).not.toHaveBeenCalled();
       });
@@ -651,6 +720,26 @@ describe('/api/user', () => {
       log.mockRestore();
     });
 
+    test.each([
+      ['markup', '<img src=x onerror=alert(1)>'],
+      ['more than 50 characters', 'a'.repeat(51)],
+      ['a non-string', 5],
+    ])('rejects a name with %s at signup', async (_name, name) => {
+      vi.mocked(userService.getLogin).mockResolvedValue(undefined);
+
+      expect((await login({ value: 'a@b.c', type: 'email', name })).statusCode).toBe(400);
+      expect(userService.create).not.toHaveBeenCalled();
+    });
+
+    test.each([
+      ['a number', { type: 'email', value: 5 }],
+      ['an object', { type: 'email', value: { toLowerCase: 'x' } }],
+      ['an address list', { type: 'email', value: 'a@b.c, d@e.f' }],
+    ])('rejects a value that is %s', async (_name, body) => {
+      expect((await login(body)).statusCode).toBe(400);
+      expect(transporter.sendMail).not.toHaveBeenCalled();
+    });
+
     test('creates a user and login when none exist', async () => {
       vi.mocked(userService.getLogin).mockResolvedValue(undefined);
       vi.mocked(userService.create).mockResolvedValue({ id: 'u2', name: 'Ann', role: 'admin' });
@@ -710,16 +799,16 @@ describe('/api/user', () => {
       expect((await login()).statusCode).toBe(400);
     });
 
-    test('answers 404 for login types other than email', async () => {
-      expect((await login({ value: '123', type: 'phone' })).statusCode).toBe(404);
+    test('rejects login types other than email', async () => {
+      expect((await login({ value: '123', type: 'phone' })).statusCode).toBe(400);
       expect(transporter.sendMail).not.toHaveBeenCalled();
     });
   });
 
   describe('/sessions', () => {
     const sessions = [
-      { sessionId: 's1', sessionStatus: 'active', sessionCreatedAt: '2024-01-01T00:00:00Z', userAgent: 'UA', remoteAddress: '1.2.3.4' },
-      { sessionId: 's2', sessionStatus: 'deleted', sessionCreatedAt: '2024-01-02T00:00:00Z' },
+      { userId: 'u1', loginType: 'email', lastActive: null, sessionId: 's1', sessionStatus: 'active', sessionCreatedAt: '2024-01-01T00:00:00Z', userAgent: 'UA', remoteAddress: '1.2.3.4' },
+      { userId: 'u1', loginType: 'email', lastActive: null, sessionId: 's2', sessionStatus: 'deleted', sessionCreatedAt: '2024-01-02T00:00:00Z', userAgent: null, remoteAddress: null },
     ];
 
     test('lists live sessions with their stored details', async () => {
@@ -729,6 +818,9 @@ describe('/api/user', () => {
       const body = jsonBody(await request({ path: 'api/user/sessions' }));
 
       expect(body).toEqual([{
+        userId: 'u1',
+        loginType: 'email',
+        lastActive: null,
         sessionId: 's1',
         sessionStatus: 'active',
         sessionCreatedAt: Date.parse('2024-01-01T00:00:00Z'),
@@ -738,7 +830,7 @@ describe('/api/user', () => {
 
     test('uses null details when none are stored', async () => {
       loggedInAs('user');
-      vi.mocked(getUserSessions).mockResolvedValue([{ sessionId: 's1', sessionStatus: 'active', sessionCreatedAt: '2024-01-01T00:00:00Z' }]);
+      vi.mocked(getUserSessions).mockResolvedValue([{ userId: 'u1', loginType: 'email', lastActive: null, sessionId: 's1', sessionStatus: 'active', sessionCreatedAt: '2024-01-01T00:00:00Z', userAgent: null, remoteAddress: null }]);
 
       expect(jsonBody(await request({ path: 'api/user/sessions' }))[0].details).toBeNull();
     });
@@ -850,16 +942,30 @@ describe('/api/user', () => {
 
     test('saves a tag preference', async () => {
       loggedInAs('user');
-      const response = await request({ method: 'PUT', path: 'api/user/tags', body: { id: 't1', type: 'liked' } });
+      vi.mocked(tagService.get, { partial: true }).mockResolvedValue({ id: TAG_ID });
+      const response = await request({ method: 'PUT', path: 'api/user/tags', body: { id: TAG_ID, type: 'liked' } });
       expect(response.statusCode).toBe(200);
-      expect(userService.addTag).toHaveBeenCalledWith('t1', 'u1', 'liked');
+      expect(userService.addTag).toHaveBeenCalledWith(TAG_ID, 'u1', 'liked');
+    });
+
+    test('rejects a preference for a tag that does not exist', async () => {
+      loggedInAs('user');
+      vi.mocked(tagService.get).mockResolvedValue(undefined);
+      expect((await request({ method: 'PUT', path: 'api/user/tags', body: { id: TAG_ID, type: 'liked' } })).statusCode).toBe(400);
+      expect(userService.addTag).not.toHaveBeenCalled();
+    });
+
+    test('rejects a preference type other than liked or disliked', async () => {
+      loggedInAs('user');
+      expect((await request({ method: 'PUT', path: 'api/user/tags', body: { id: TAG_ID, type: 'loved' } })).statusCode).toBe(400);
+      expect(userService.addTag).not.toHaveBeenCalled();
     });
 
     test('removes a tag preference', async () => {
       loggedInAs('user');
-      const response = await request({ method: 'DELETE', path: 'api/user/tags', body: { id: 't1' } });
+      const response = await request({ method: 'DELETE', path: 'api/user/tags', body: { id: TAG_ID } });
       expect(response.statusCode).toBe(200);
-      expect(userService.removeTag).toHaveBeenCalledWith('t1', 'u1');
+      expect(userService.removeTag).toHaveBeenCalledWith(TAG_ID, 'u1');
     });
 
     test.each([

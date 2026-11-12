@@ -78,11 +78,22 @@ describe('requests', () => {
   const api = () => browser.window as unknown as Api;
   const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
+  const postId = '11111111-2222-3333-4444-555555555555';
+  const parentId = '66666666-7777-8888-9999-000000000000';
+  const postData = { id: 'p1', type: 'post', content: 'hello', created_at: 1, comments: [], owner: null, tags: [] };
+  const commentData = { id: 'c1', post: 'p1', parent: null, owner: null, status: 'public', created_at: 1, body: 'hi' };
+
   test('getPost fetches a post', async () => {
     const result = api().getPost('p1');
     expect(browser.requests[0]).toMatchObject({ method: 'GET', url: '/api/posts/p1' });
-    browser.requests[0].respond(200, { id: 'p1' });
-    expect(await result).toEqual({ id: 'p1' });
+    browser.requests[0].respond(200, postData);
+    expect(await result).toEqual(postData);
+  });
+
+  test('getPost rejects a response that does not match the schema', async () => {
+    const result = api().getPost('p1');
+    expect(() => browser.requests[0].respond(200, { id: 'p1' })).toThrow();
+    result.catch(() => undefined);
   });
 
   test('getPost rejects with the request on failure', async () => {
@@ -103,9 +114,13 @@ describe('requests', () => {
     await expect(result).resolves.toMatchObject({ readyState: 4, status: 200 });
   });
 
-  test('createPost defaults to empty content and rejects on failure', async () => {
-    const result = api().createPost();
-    expect(browser.requests[0].body).toBe(JSON.stringify({ content: '' }));
+  test('createPost refuses empty content without sending it', async () => {
+    await expect(api().createPost()).rejects.toThrow();
+    expect(browser.requests).toHaveLength(0);
+  });
+
+  test('createPost rejects on failure', async () => {
+    const result = api().createPost('hello');
     browser.requests[0].respond(401);
     await expect(result).rejects.toMatchObject({ readyState: 4, status: 401 });
   });
@@ -113,8 +128,8 @@ describe('requests', () => {
   test('getComment fetches a comment', async () => {
     const result = api().getComment('c1');
     expect(browser.requests[0]).toMatchObject({ method: 'GET', url: '/api/comment/c1' });
-    browser.requests[0].respond(200, { id: 'c1' });
-    expect(await result).toEqual({ id: 'c1' });
+    browser.requests[0].respond(200, commentData);
+    expect(await result).toEqual(commentData);
   });
 
   test('getComment rejects on failure', async () => {
@@ -124,19 +139,24 @@ describe('requests', () => {
   });
 
   test('createComment sends body, parent and post', async () => {
-    const result = api().createComment('p1', 'hi', 'c0');
+    const result = api().createComment(postId, 'hi', parentId);
     expect(browser.requests[0]).toMatchObject({
       method: 'POST',
       url: '/api/comment',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body: 'hi', parent: 'c0', postId: 'p1' }),
+      body: JSON.stringify({ postId, parent: parentId, body: 'hi' }),
     });
-    browser.requests[0].respond(200, { id: 'c9' });
-    expect(await result).toEqual({ id: 'c9' });
+    browser.requests[0].respond(200, {});
+    await expect(result).resolves.toBeUndefined();
+  });
+
+  test('createComment refuses a body that is only whitespace without sending it', async () => {
+    await expect(api().createComment(postId, '  ')).rejects.toThrow();
+    expect(browser.requests).toHaveLength(0);
   });
 
   test('createComment rejects on failure', async () => {
-    const result = api().createComment('p1', 'hi');
+    const result = api().createComment(postId, 'hi');
     browser.requests[0].respond(400);
     await expect(result).rejects.toMatchObject({ readyState: 4, status: 400 });
     await flush();

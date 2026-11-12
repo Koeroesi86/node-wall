@@ -61,7 +61,7 @@
       request.onreadystatechange = e => {
         if (request.readyState === 4) {
           if (request.status === 200) {
-            const post = JSON.parse(request.responseText);
+            const post = ApiSchemas.PostResponseSchema.parse(JSON.parse(request.responseText));
             if (post) resolve(post);
           } else {
             reject(request);
@@ -90,7 +90,7 @@
       };
       request.open("POST", "/api/posts", true);
       request.setRequestHeader('Content-Type', 'application/json');
-      request.send(JSON.stringify({ content }));
+      request.send(JSON.stringify(ApiSchemas.CreatePostRequestSchema.parse({ content })));
     });
   }
   g.createPost = createPost;

@@ -83,7 +83,38 @@ declare function parseCommentContent(content: string, postId?: string): string;
 declare function getPost(id: string): Promise<PostData>;
 declare function createPost(content?: string): Promise<XMLHttpRequest>;
 declare function getComment(id: string): Promise<CommentData>;
-declare function createComment(postId: string, body: string, parent?: string): Promise<CommentData>;
+declare function createComment(postId: string, body: string, parent?: string): Promise<void>;
+
+/** The request and response schemas of `lib/api-schemas`, bundled into `/static/vendor/api-schemas.js`. */
+interface ApiSchema<T> {
+  parse(data: unknown): T;
+}
+
+declare const ApiSchemas: {
+  AddPostTagRequestSchema: ApiSchema<{ id: string }>;
+  BoundsResponseSchema: ApiSchema<{ oldest: number | string | null; newest: number | string | null }>;
+  CommentResponseSchema: ApiSchema<CommentData>;
+  CreateCommentRequestSchema: ApiSchema<{ postId: string; parent?: string; body: string }>;
+  CreatePostRequestSchema: ApiSchema<{ content: string }>;
+  CreateTagRequestSchema: ApiSchema<{ name: string; type: string }>;
+  EmptyResponseSchema: ApiSchema<Record<string, never>>;
+  LinkResponseSchema: ApiSchema<Record<string, string>>;
+  LoginRequestSchema: ApiSchema<{ type: string; value: string; name?: string }>;
+  LoginResponseSchema: ApiSchema<{ sessionId: string }>;
+  PostListResponseSchema: ApiSchema<PostData[]>;
+  PostResponseSchema: ApiSchema<PostData>;
+  RemoveUserTagRequestSchema: ApiSchema<{ id: string }>;
+  SessionListResponseSchema: ApiSchema<SessionData[]>;
+  SetPostStatusRequestSchema: ApiSchema<{ status: string }>;
+  SetUserNameRequestSchema: ApiSchema<{ name: string }>;
+  SetUserRoleRequestSchema: ApiSchema<{ role: string }>;
+  SetUserTagRequestSchema: ApiSchema<{ id: string; type: string }>;
+  TagListResponseSchema: ApiSchema<TagData[]>;
+  TagResponseSchema: ApiSchema<TagData>;
+  UserInfoResponseSchema: ApiSchema<UserInfo>;
+  UserListResponseSchema: ApiSchema<{ id: string; name?: string; role: string }[]>;
+  UserTagListResponseSchema: ApiSchema<{ tag_id: string; type: string }[]>;
+};
 
 interface Window {
   connectRedux: typeof connectRedux;

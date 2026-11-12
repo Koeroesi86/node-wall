@@ -3,6 +3,8 @@ import { loadComponents, type ComponentsBrowser } from '../../../lib/test-utils/
 
 let page: ComponentsBrowser;
 
+const TAG_ID = '11111111-2222-3333-4444-555555555555';
+
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 /** Answers the oldest request that has not been answered yet, then lets the code that waited on it run. */
@@ -105,8 +107,8 @@ describe('post-editor', () => {
 
     values('ne', callback);
     expect(page.requests[0]).toMatchObject({ method: 'GET', url: '/api/tags?s=ne' });
-    page.requests[0].respond(200, [{ id: 't1', name: 'news' }]);
-    expect(callback).toHaveBeenCalledWith([{ id: 't1', name: 'news' }]);
+    page.requests[0].respond(200, [{ id: 't1', name: 'news', type: 'text' }]);
+    expect(callback).toHaveBeenCalledWith([{ id: 't1', name: 'news', type: 'text' }]);
 
     expect(selectTemplate({ original: { id: 't1', name: 'news' } })).toBe('<span tag-id="t1" contenteditable="false">#news</span>');
   });
@@ -291,14 +293,14 @@ describe('tag-inline', () => {
     page = await loadComponents(['tag-inline']);
   });
 
-  const mount = () => page.mount('<tag-inline tag-id="t1"></tag-inline>');
-  const tag = { id: 't1', name: 'news', type: 'text' };
+  const mount = () => page.mount(`<tag-inline tag-id="${TAG_ID}"></tag-inline>`);
+  const tag = { id: TAG_ID, name: 'news', type: 'text' };
   const withUser = (role: string, tags: unknown[] = []) => ({ user: { role, tags, received: true, session: null } });
 
   test('requests its tag and the tags of the user', () => {
     mount();
     expect(page.redux.dispatched()).toEqual([
-      { type: 'TAG_REQUEST', payload: { id: 't1' } },
+      { type: 'TAG_REQUEST', payload: { id: TAG_ID } },
       { type: 'USER_REQUEST_TAGS', payload: {} },
     ]);
   });
@@ -313,70 +315,70 @@ describe('tag-inline', () => {
   test('renders a text tag with a hash and a link to its page', () => {
     const element = mount();
 
-    page.redux.setState({ tags: { t1: tag }, ...withUser('guest') });
+    page.redux.setState({ tags: { [TAG_ID]: tag }, ...withUser('guest') });
 
     expect(element.querySelector('.label')?.textContent).toBe('#news');
-    expect(element.querySelector('.tooltip a')?.getAttribute('href')).toBe('/tag/t1');
+    expect(element.querySelector('.tooltip a')?.getAttribute('href')).toBe(`/tag/${TAG_ID}`);
   });
 
   // Known bug: the label is appended to on every render, so it doubles for tags that are not text tags.
   test.fails('renders other tag types without a hash', () => {
     const element = mount();
-    page.redux.setState({ tags: { t1: { ...tag, type: 'location' } }, ...withUser('guest') });
+    page.redux.setState({ tags: { [TAG_ID]: { ...tag, type: 'location' } }, ...withUser('guest') });
     expect(element.querySelector('.label')?.textContent).toBe('news');
   });
 
   test('tells guests to log in instead of offering actions', () => {
     const element = mount();
-    page.redux.setState({ tags: { t1: tag }, ...withUser('guest') });
+    page.redux.setState({ tags: { [TAG_ID]: tag }, ...withUser('guest') });
     expect(element.querySelector('.actions translate-text')?.getAttribute('alias')).toBe('tag-inline.tooltip.not-logged-in');
     expect(element.querySelector('.likeTag')).toBeNull();
   });
 
   test('highlights the current preference of logged in users', () => {
     const element = mount();
-    page.redux.setState({ tags: { t1: tag }, ...withUser('user', [{ tag_id: 't1', type: 'liked' }]) });
+    page.redux.setState({ tags: { [TAG_ID]: tag }, ...withUser('user', [{ tag_id: TAG_ID, type: 'liked' }]) });
     expect(element.querySelector('.likeTag')?.classList.contains('active')).toBe(true);
     expect(element.querySelector('.dislikeTag')?.classList.contains('active')).toBe(false);
   });
 
   test('clicking an active preference removes it and reloads the preferences', async () => {
     const element = mount();
-    page.redux.setState({ tags: { t1: tag }, ...withUser('user', [{ tag_id: 't1', type: 'liked' }]) });
+    page.redux.setState({ tags: { [TAG_ID]: tag }, ...withUser('user', [{ tag_id: TAG_ID, type: 'liked' }]) });
     page.redux.clearDispatched();
 
     (element.querySelector('.likeTag') as HTMLElement).click();
     await flush();
 
-    expect(page.requests[0]).toMatchObject({ method: 'DELETE', url: '/api/user/tags', body: JSON.stringify({ id: 't1' }) });
+    expect(page.requests[0]).toMatchObject({ method: 'DELETE', url: '/api/user/tags', body: JSON.stringify({ id: TAG_ID }) });
     await reply(200);
     expect(page.redux.dispatched()).toEqual([{ type: 'USER_REQUEST_TAGS', payload: {} }]);
   });
 
   test('clicking the other preference switches to it', async () => {
     const element = mount();
-    page.redux.setState({ tags: { t1: tag }, ...withUser('user', [{ tag_id: 't1', type: 'liked' }]) });
+    page.redux.setState({ tags: { [TAG_ID]: tag }, ...withUser('user', [{ tag_id: TAG_ID, type: 'liked' }]) });
 
     (element.querySelector('.dislikeTag') as HTMLElement).click();
     await flush();
 
-    expect(page.requests[0]).toMatchObject({ method: 'PUT', url: '/api/user/tags', body: JSON.stringify({ id: 't1', type: 'disliked' }) });
+    expect(page.requests[0]).toMatchObject({ method: 'PUT', url: '/api/user/tags', body: JSON.stringify({ id: TAG_ID, type: 'disliked' }) });
   });
 
   // Known bug: for a tag the user has no preference for yet, `currentUserTag` is undefined and the click throws.
   test.fails('clicking like on a tag without a preference saves it', async () => {
     const element = mount();
-    page.redux.setState({ tags: { t1: tag }, ...withUser('user', []) });
+    page.redux.setState({ tags: { [TAG_ID]: tag }, ...withUser('user', []) });
 
     (element.querySelector('.likeTag') as HTMLElement).click();
     await flush();
 
-    expect(page.requests[0]).toMatchObject({ method: 'PUT', url: '/api/user/tags', body: JSON.stringify({ id: 't1', type: 'liked' }) });
+    expect(page.requests[0]).toMatchObject({ method: 'PUT', url: '/api/user/tags', body: JSON.stringify({ id: TAG_ID, type: 'liked' }) });
   });
 
   test('shows and hides the tooltip on hover', () => {
     const element = mount();
-    page.redux.setState({ tags: { t1: tag }, ...withUser('guest') });
+    page.redux.setState({ tags: { [TAG_ID]: tag }, ...withUser('guest') });
     const tooltip = element.querySelector('.tooltip') as HTMLElement;
 
     element.dispatchEvent(new page.window.MouseEvent('mouseover', { bubbles: true }));
@@ -429,7 +431,7 @@ describe('post-tags-input', () => {
     page.flushTimers();
 
     expect(page.requests[0]).toMatchObject({ method: 'GET', url: '/api/tags?s=new' });
-    await reply(200, [{ id: 't1', name: 'news' }]);
+    await reply(200, [{ id: TAG_ID, name: 'news', type: 'text' }]);
 
     const results = [...element.querySelectorAll('.results .tagResult')];
     expect(results[0].textContent).toBe('news');
@@ -441,7 +443,7 @@ describe('post-tags-input', () => {
     type(element, 'x');
     page.flushTimers();
 
-    await reply(200, [{ id: 't1', name: '<img src=x onerror=alert(1)>' }]);
+    await reply(200, [{ id: TAG_ID, name: '<img src=x onerror=alert(1)>', type: 'text' }]);
 
     const result = element.querySelector('.results .tagResult');
     expect(result?.textContent).toBe('<img src=x onerror=alert(1)>');
@@ -466,7 +468,7 @@ describe('post-tags-input', () => {
     type(element, 'news');
     page.flushTimers();
 
-    await reply(200, [{ id: 't1', name: 'news' }]);
+    await reply(200, [{ id: TAG_ID, name: 'news', type: 'text' }]);
 
     expect(element.querySelectorAll('.results .tagResult')).toHaveLength(1);
   });
@@ -485,15 +487,15 @@ describe('post-tags-input', () => {
   test('assigns a tag to the post and lists it', async () => {
     const element = mount();
 
-    const added = element.add('t1');
+    const added = element.add(TAG_ID);
     await flush();
-    expect(page.requests[0]).toMatchObject({ method: 'POST', url: '/api/posts/p1/tags', body: JSON.stringify({ id: 't1' }) });
+    expect(page.requests[0]).toMatchObject({ method: 'POST', url: '/api/posts/p1/tags', body: JSON.stringify({ id: TAG_ID }) });
     await reply(200);
-    expect(page.requests[0]).toMatchObject({ method: 'GET', url: '/api/tags/t1' });
-    await reply(200, { id: 't1', name: 'news' });
+    expect(page.requests[0]).toMatchObject({ method: 'GET', url: `/api/tags/${TAG_ID}` });
+    await reply(200, { id: TAG_ID, name: 'news', type: 'text' });
     await added;
 
-    expect(element.tagIds).toEqual(['t1']);
+    expect(element.tagIds).toEqual([TAG_ID]);
     expect(element.querySelector('.tagElement .label')?.textContent).toBe('news');
     expect(element.querySelector('.tagElement .remove')?.getAttribute('title')).toBe('t:post-tags-input.remove-tag.title');
   });
@@ -501,34 +503,34 @@ describe('post-tags-input', () => {
   test('lists a tag without assigning it when asked', async () => {
     const element = mount();
 
-    const added = element.add('t1', false);
-    await reply(200, { id: 't1', name: 'news' });
+    const added = element.add(TAG_ID, false);
+    await reply(200, { id: TAG_ID, name: 'news', type: 'text' });
     await added;
 
     expect(page.requests.some(request => request.method === 'POST')).toBe(false);
-    expect(element.tagIds).toEqual(['t1']);
+    expect(element.tagIds).toEqual([TAG_ID]);
   });
 
   test('does not list a tag twice', async () => {
     const element = mount();
-    const added = element.add('t1', false);
-    await reply(200, { id: 't1', name: 'news' });
+    const added = element.add(TAG_ID, false);
+    await reply(200, { id: TAG_ID, name: 'news', type: 'text' });
     await added;
 
-    await element.add('t1', false);
+    await element.add(TAG_ID, false);
 
-    expect(element.tagIds).toEqual(['t1']);
+    expect(element.tagIds).toEqual([TAG_ID]);
   });
 
   test('removes a tag from the post and from the list', async () => {
     const element = mount();
-    const added = element.add('t1', false);
-    await reply(200, { id: 't1', name: 'news' });
+    const added = element.add(TAG_ID, false);
+    await reply(200, { id: TAG_ID, name: 'news', type: 'text' });
     await added;
 
     (element.querySelector('.tagElement .remove') as HTMLElement).click();
     await flush();
-    expect(page.requests[0]).toMatchObject({ method: 'DELETE', url: '/api/posts/p1/tags/t1' });
+    expect(page.requests[0]).toMatchObject({ method: 'DELETE', url: `/api/posts/p1/tags/${TAG_ID}` });
     await reply(200);
 
     expect(element.tagIds).toEqual([]);
@@ -541,7 +543,7 @@ describe('post-tags-input', () => {
     await flush();
 
     expect(page.requests[0]).toMatchObject({ method: 'POST', url: '/api/tags', body: JSON.stringify({ name: 'fresh', type: 'text' }) });
-    await reply(200, { id: 't9', name: 'fresh' });
+    await reply(200, { id: 't9', name: 'fresh', type: 'text' });
     await created;
   });
 });
@@ -554,7 +556,7 @@ describe('moderation-page', () => {
     page.window.alert = vi.fn();
   });
 
-  const pending = [{ id: 'p1', created_at: 100, owner: { id: 'u1', name: 'Ann' } }];
+  const pending = [{ id: 'p1', type: 'post', created_at: 100 }];
   const mount = async (posts: unknown[] = pending) => {
     const element = page.mount('<moderation-page></moderation-page>');
     await flush();
@@ -569,7 +571,6 @@ describe('moderation-page', () => {
     expect(element.querySelector('.loading')?.classList.contains('hidden')).toBe(true);
     const wrapper = element.querySelector('.postModerationWrapper');
     expect(wrapper?.getAttribute('post-id')).toBe('p1');
-    expect(wrapper?.querySelector('post-preview')?.getAttribute('owner-name')).toBe('Ann');
     expect(wrapper?.querySelector('post-tags-input')?.getAttribute('post-id')).toBe('p1');
   });
 
@@ -616,8 +617,8 @@ describe('moderation-page', () => {
   test('approves a tagged post', async () => {
     const element = await mount();
     const tagsInput = element.querySelector('post-tags-input') as HTMLElement & { add: (id: string, assign: boolean) => Promise<void> };
-    const added = tagsInput.add('t1', false);
-    await reply(200, { id: 't1', name: 'news' });
+    const added = tagsInput.add(TAG_ID, false);
+    await reply(200, { id: TAG_ID, name: 'news', type: 'text' });
     await added;
 
     (element.querySelector('.approve') as HTMLElement).click();
@@ -643,12 +644,16 @@ describe('profile-page', () => {
   });
 
   const sessions = [
-    { sessionId: 's1', sessionStatus: 'active', sessionCreatedAt: 1, loginType: 'email', lastActive: 2, details: { userAgent: 'UA' } },
-    { sessionId: 's2', sessionStatus: 'pending', sessionCreatedAt: 1, loginType: 'other', details: null },
+    { userId: 'u1', sessionId: 's1', sessionStatus: 'active', sessionCreatedAt: 1, loginType: 'email', lastActive: 2, details: { userAgent: 'UA', remoteAddress: null } },
+    { userId: 'u1', sessionId: 's2', sessionStatus: 'pending', sessionCreatedAt: 1, loginType: 'other', lastActive: null, details: null },
   ];
   const mount = async () => {
     const element = page.mount('<profile-page session-id="s1"></profile-page>');
-    await reply(200, { user: { name: 'Ann' } });
+    await reply(200, {
+      user: { id: 'u1', name: 'Ann', role: 'user', created_at: 1 },
+      session: { id: 's1', users_login_id: 'l1', status: 'active', created_at: 1, last_active: null },
+      login: { id: 'l1', type: 'email', user_id: 'u1', value: 'a@b.c' },
+    });
     await reply(200, sessions);
     return element;
   };
@@ -744,8 +749,8 @@ describe('user-roles', () => {
   });
 
   const users = [
-    { id: 'u1', name: 'Ann', role: 'admin' },
-    { id: 'u2', name: undefined, role: 'user' },
+    { id: 'u1', name: 'Ann', role: 'admin', created_at: 1 },
+    { id: 'u2', name: null, role: 'user', created_at: 2 },
   ];
 
   test('lists users with their roles', async () => {

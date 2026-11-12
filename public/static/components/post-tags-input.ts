@@ -75,7 +75,7 @@ class PostTagsInput extends Component {
       .then(() => request({
         method: 'POST',
         url: `/api/posts/${postId}/tags`,
-        payload: JSON.stringify({ id: tagId }),
+        payload: JSON.stringify(ApiSchemas.AddPostTagRequestSchema.parse({ id: tagId })),
       }))
       .catch(() =>
         Promise.resolve()
@@ -151,7 +151,7 @@ class PostTagsInput extends Component {
       method: 'GET',
       url: `/api/tags?s=${term}`,
     }).then(response => {
-      const results = JSON.parse(response.responseText);
+      const results = ApiSchemas.TagListResponseSchema.parse(JSON.parse(response.responseText));
       this.resultsWrapper.innerHTML = '';
       let hasExactMatch = false;
       results.forEach(tag => {
@@ -200,7 +200,7 @@ class PostTagsInput extends Component {
     return Promise.resolve()
       .then(() => request({ method: 'GET', url: `/api/tags/${id}` }))
       .then(response => {
-        const tag = JSON.parse(response.responseText);
+        const tag = ApiSchemas.TagResponseSchema.parse(JSON.parse(response.responseText));
         if (tag) return Promise.resolve(tag);
 
         return Promise.reject();
@@ -212,10 +212,10 @@ class PostTagsInput extends Component {
       .then(() => request({
         method: 'POST',
         url: `/api/tags`,
-        payload: JSON.stringify({ name, type }),
+        payload: JSON.stringify(ApiSchemas.CreateTagRequestSchema.parse({ name, type })),
       }))
       .then(response => {
-        const tag = JSON.parse(response.responseText);
+        const tag = ApiSchemas.TagResponseSchema.parse(JSON.parse(response.responseText));
         Promise.resolve()
           .then(() => this.add(tag.id, true))
           .then(() => Promise.resolve(tag))

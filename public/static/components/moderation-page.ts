@@ -204,7 +204,7 @@ class ModerationPage extends Component {
       request.onreadystatechange = e => {
         if (request.readyState === 4) {
           if (request.status === 200) {
-            resolve(JSON.parse(request.responseText));
+            resolve(ApiSchemas.PostListResponseSchema.parse(JSON.parse(request.responseText)));
           }
           reject();
         }
@@ -223,7 +223,7 @@ class ModerationPage extends Component {
     };
     request.open("PUT", `/api/posts/${postId}`, true);
     request.setRequestHeader('Content-Type', 'application/json');
-    request.send(JSON.stringify({ status }));
+    request.send(JSON.stringify(ApiSchemas.SetPostStatusRequestSchema.parse({ status })));
   }
 }
 

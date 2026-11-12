@@ -192,7 +192,7 @@ class ProfilePage extends Component {
       request.onreadystatechange = e => {
         if (request.readyState === 4) {
           if (request.status === 200) {
-            const userInfo = JSON.parse(request.responseText);
+            const userInfo = ApiSchemas.UserInfoResponseSchema.parse(JSON.parse(request.responseText));
             if (userInfo.user) {
               this.renameInput.value = userInfo.user.name || '';
               resolve(userInfo);
@@ -212,7 +212,7 @@ class ProfilePage extends Component {
       request.onreadystatechange = e => {
         if (request.readyState === 4) {
           if (request.status === 200) {
-            const sessions = JSON.parse(request.responseText);
+            const sessions = ApiSchemas.SessionListResponseSchema.parse(JSON.parse(request.responseText));
             resolve(sessions);
           }
           reject();
@@ -233,7 +233,7 @@ class ProfilePage extends Component {
       };
       request.open("PUT", "/api/user/name", true);
       request.setRequestHeader('Content-Type', 'application/json');
-      request.send(JSON.stringify({ name: name }));
+      request.send(JSON.stringify(ApiSchemas.SetUserNameRequestSchema.parse({ name })));
     }
   }
 }
