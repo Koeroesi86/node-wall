@@ -1,7 +1,8 @@
-import type { LambdaCallback, LambdaEvent, RequestHeaders } from '../lib/types';
+import type { LambdaCallback, LambdaEvent } from '../lib/types';
 import moment from 'moment';
 import cookie from 'cookie';
 import { isLoginCodeExpired, isLoginCodeMatch, LOGIN_CODE_MAX_ATTEMPTS } from '../lib/utils/loginCode';
+import detectLanguage from '../lib/utils/detectLanguage';
 import createDatabase from '../lib/utils/createDatabase';
 import getUserInfoFromSession from '../lib/utils/getUserInfoFromSession';
 import welcomeTemplate from '../lib/templates/page/welcome';
@@ -18,13 +19,6 @@ const keepAliveCallback = () => {
   process.exit(0);
 };
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
-
-function detectLanguage(headers: RequestHeaders) {
-  if (headers['accept-language']) {
-    return Promise.resolve(headers['accept-language'].substr(0, 5));
-  }
-  return Promise.resolve('en-GB');
-}
 
 export = async (event: LambdaEvent, callback: LambdaCallback) => {
   clearTimeout(keepAliveTimer);

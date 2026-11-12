@@ -1,4 +1,5 @@
-import type { LambdaCallback, LambdaEvent, RequestHeaders } from '../../../lib/types';
+import type { LambdaCallback, LambdaEvent } from '../../../lib/types';
+import detectLanguage from '../../../lib/utils/detectLanguage';
 import getTranslation from '../../../lib/translations/getTranslation';
 
 const keepAliveTimeout = 5 * 60 * 1000;
@@ -13,13 +14,6 @@ const getResponseHeaders = (headers = {}) => ({
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   ...headers,
 });
-
-function detectLanguage(headers: RequestHeaders) {
-  if (headers['accept-language']) {
-    return Promise.resolve(headers['accept-language'].substr(0, 5));
-  }
-  return Promise.resolve('en-GB');
-}
 
 export = async (event: LambdaEvent, callback: LambdaCallback) => {
   try {
