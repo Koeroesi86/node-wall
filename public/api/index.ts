@@ -1,5 +1,5 @@
 import type { LambdaCallback, LambdaEvent } from '../../lib/types';
-import cookie from 'cookie';
+import { parseCookies, buildSessionCookie } from '../../lib/utils/sessionCookie';
 import crypto from 'crypto';
 import moment from 'moment';
 import matchAll from 'match-all';
@@ -47,7 +47,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       headers,
     } = event;
     const cookiesRaw = headers.Cookie || headers.cookie || '';
-    const cookies = cookie.parse(cookiesRaw);
+    const cookies = parseCookies(cookiesRaw);
     let userInfo = null;
 
     if (cookies.sessionId) {
@@ -624,7 +624,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
                 headers: {
                   'Content-Type': 'text/html',
                   'Cache-Control': 'public, max-age=0',
-                  'Set-Cookie': `sessionId=none; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`,
+                  'Set-Cookie': buildSessionCookie('none', expires.format('ddd, DD MMM YYYY HH:mm:ss')),
                 },
                 body: '',
                 isBase64Encoded: false,

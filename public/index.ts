@@ -1,6 +1,6 @@
 import type { LambdaCallback, LambdaEvent } from '../lib/types';
 import moment from 'moment';
-import cookie from 'cookie';
+import { parseCookies, buildSessionCookie } from '../lib/utils/sessionCookie';
 import { isLoginCodeExpired, isLoginCodeMatch, LOGIN_CODE_MAX_ATTEMPTS } from '../lib/utils/loginCode';
 import detectLanguage from '../lib/utils/detectLanguage';
 import createDatabase from '../lib/utils/createDatabase';
@@ -30,7 +30,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
   } = event;
   const knex = await createDatabase();
   const cookiesRaw = headers.Cookie || headers.cookie || '';
-  const cookies = cookie.parse(cookiesRaw);
+  const cookies = parseCookies(cookiesRaw);
   let userInfo = null;
   const language = await detectLanguage(headers);
 
@@ -180,7 +180,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
     /** @route /logout */
     if (pathFragments[0] === 'logout') {
       if (cookiesRaw) {
-        const cookies = cookie.parse(cookiesRaw);
+        const cookies = parseCookies(cookiesRaw);
         if (cookies.sessionId) {
           await knex('users_session')
             .where({ id: cookies.sessionId })
@@ -194,7 +194,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
         headers: {
           'Content-Type': 'text/html',
           'Cache-Control': 'public, max-age=0',
-          'Set-Cookie': `sessionId=none; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`,
+          'Set-Cookie': buildSessionCookie('none', expires.format('ddd, DD MMM YYYY HH:mm:ss')),
           'Location': `/login`,
         },
         body: '',
@@ -269,7 +269,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
                 'Content-Type': 'text/html',
                 'Cache-Control': 'public, max-age=0',
                 ...(verified && {
-                  'Set-Cookie': `sessionId=${session}; Expires=${expires.format('ddd, DD MMM YYYY HH:mm:ss')} GMT; Path=/`,
+                  'Set-Cookie': buildSessionCookie(session, expires.format('ddd, DD MMM YYYY HH:mm:ss')),
                 }),
                 'Location': verified ? `/` : `/login?session=${encodeURIComponent(session)}`,
               },

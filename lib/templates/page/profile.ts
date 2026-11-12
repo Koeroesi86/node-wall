@@ -1,4 +1,5 @@
 import type { PageProps } from '../../types';
+import escapeHtml from '../../utils/escapeHtml';
 import wrapper from './wrapper';
 
 export default (props: PageProps = {}) => wrapper({
@@ -8,5 +9,5 @@ export default (props: PageProps = {}) => wrapper({
     <script src="/static/components/tag-inline.js"></script>
     <script src="/static/components/profile-page.js"></script>
   `,
-  content: `<profile-page session-id="${props.sessionId}"></profile-page>`,
+  content: `<profile-page session-id="${escapeHtml(props.sessionId)}"></profile-page>`,
 });

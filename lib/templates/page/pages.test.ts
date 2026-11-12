@@ -10,6 +10,8 @@ import wrapper from './wrapper';
 
 vi.mock('crypto', () => ({ randomUUID: () => 'generated-instance' }));
 
+const SID = '123e4567-e89b-12d3-a456-426614174000';
+
 describe('wrapper', () => {
   test('renders defaults', () => {
     const html = wrapper();
@@ -24,15 +26,15 @@ describe('wrapper', () => {
       siteName: 'Wall',
       title: 'Home',
       language: 'hu-HU',
-      sessionId: 's1',
+      sessionId: SID,
       content: '<p>content</p>',
       headers: '<script src="/x.js"></script>',
       initialState: { a: 1 },
     });
     expect(html).toContain('<title>Wall :: Home</title>');
     expect(html).toContain('<html lang="hu">');
-    expect(html).toContain('<meta name="x-session-id" content="s1" />');
-    expect(html).toContain('<navigation-wrapper session-id="s1">');
+    expect(html).toContain(`<meta name="x-session-id" content="${SID}" />`);
+    expect(html).toContain(`<navigation-wrapper session-id="${SID}">`);
     expect(html).toContain('<p>content</p>');
     expect(html).toContain('<script src="/x.js"></script>');
     expect(html).toContain(`window['__STATE__'] = {"a":1};`);
@@ -40,19 +42,19 @@ describe('wrapper', () => {
 });
 
 describe('pages', () => {
-  const props = { language: 'hu-HU', sessionId: 's1' };
+  const props = { language: 'hu-HU', sessionId: SID };
 
   test.each([
     ['login', login, '<login-page></login-page>', 'login-page.js'],
     ['welcome', welcome, '<welcome-page></welcome-page>', 'welcome-page.js'],
     ['moderation', moderation, '<moderation-page></moderation-page>', 'moderation-page.js'],
-    ['profile', profile, '<profile-page session-id="s1"></profile-page>', 'profile-page.js'],
+    ['profile', profile, `<profile-page session-id="${SID}"></profile-page>`, 'profile-page.js'],
   ])('%s renders its component inside the wrapper', (_name, render, content, script) => {
     const html = render(props);
     expect(html).toContain(content);
     expect(html).toContain(`/static/components/${script}`);
     expect(html).toContain('<html lang="hu">');
-    expect(html).toContain('<meta name="x-session-id" content="s1" />');
+    expect(html).toContain(`<meta name="x-session-id" content="${SID}" />`);
   });
 
   test('post renders the post id', () => {
@@ -78,5 +80,18 @@ describe('pages', () => {
 
   test('pages work without props', () => {
     [login, welcome, moderation, profile, post].forEach(render => expect(render()).toContain('<!DOCTYPE html>'));
+  });
+});
+
+describe('wrapper escaping', () => {
+  test('drops a session id that is not a UUID', () => {
+    const html = wrapper({ sessionId: '"><script>alert(1)</script>' });
+    expect(html).toContain('<meta name="x-session-id" content="" />');
+    expect(html).not.toContain('<script>alert(1)</script>');
+  });
+
+  test('escapes the language', () => {
+    const html = wrapper({ language: '"><script>x</script>' });
+    expect(html).not.toContain('<script>x</script>');
   });
 });
