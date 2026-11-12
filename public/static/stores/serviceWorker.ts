@@ -2,7 +2,18 @@ const SERVICE_WORKER_ACTIONS = {
   REFRESH_CACHE: 'SW_REFRESH_CACHE',
   UPDATE_FOUND: 'SW_UPDATE_FOUND',
   MESSAGE_RECEIVED: 'SW_MESSAGE_RECEIVED',
+  SESSION: 'SW_SESSION',
 };
+
+// tells the worker which session this page runs in, so it keeps per-user responses apart
+function reportSessionToServiceWorker() {
+  if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
+    return;
+  }
+
+  const sessionId = document.querySelector('meta[name="x-session-id"]')?.getAttribute('content') ?? '';
+  navigator.serviceWorker.controller.postMessage({ type: SERVICE_WORKER_ACTIONS.SESSION, sessionId });
+}
 
 function serviceWorkerReducer(state = {}, action) {
   if (action.type === SERVICE_WORKER_ACTIONS.UPDATE_FOUND) {
@@ -20,6 +31,9 @@ function serviceWorkerReducer(state = {}, action) {
 
 const serviceWorkerMiddleware = store => {
   if ('serviceWorker' in navigator) {
+    reportSessionToServiceWorker();
+    navigator.serviceWorker.addEventListener('controllerchange', reportSessionToServiceWorker);
+
     navigator.serviceWorker
       .getRegistrations()
       .then(registrations => Promise.all(

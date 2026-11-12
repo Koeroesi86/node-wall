@@ -47,6 +47,7 @@ const getResponseHeaders = (headers = {}) => ({
   'Content-Type': 'application/json; charset=utf-8',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, PUT, GET, DELETE, OPTIONS',
+  'Cache-Control': 'private, no-store',
   ...headers,
 });
 const transporter = createMailer();

@@ -4,7 +4,7 @@ type Listener = (event: unknown) => void;
 
 const listeners: Record<string, Listener> = {};
 const cache = { addAll: vi.fn(), put: vi.fn() };
-const caches = { delete: vi.fn(), open: vi.fn(), match: vi.fn() };
+const caches = { delete: vi.fn(), open: vi.fn(), match: vi.fn(), keys: vi.fn() };
 const fetchMock = vi.fn();
 const scope = {
   registration: {},
@@ -23,9 +23,18 @@ const load = async () => {
   await import(/* @vite-ignore */ workerPath);
 };
 
-const fetchEvent = (url: string, method = 'GET') => {
+const SESSION = '11111111-2222-3333-4444-555555555555';
+const CLIENT = 'client-1';
+
+const sessionMessage = (sessionId: string, clientId = CLIENT) => {
+  const waitUntil = vi.fn();
+  listeners.message({ data: { type: 'SW_SESSION', sessionId }, source: { id: clientId }, waitUntil });
+  return Promise.all(waitUntil.mock.calls.map(([promise]) => promise));
+};
+
+const fetchEvent = (url: string, method = 'GET', clientId = CLIENT) => {
   const request = new Request(url, { method });
-  const event = { request, respondWith: vi.fn() };
+  const event = { request, clientId, respondWith: vi.fn() };
   listeners.fetch(event);
   return { request, event, response: () => event.respondWith.mock.calls[0]?.[0] as Promise<Response> };
 };
@@ -36,6 +45,7 @@ beforeEach(() => {
   caches.open.mockResolvedValue(cache);
   caches.delete.mockResolvedValue(true);
   caches.match.mockResolvedValue(undefined);
+  caches.keys.mockResolvedValue([]);
   scope.navigator.onLine = true;
   vi.stubGlobal('self', scope);
   vi.stubGlobal('caches', caches);
@@ -56,7 +66,7 @@ describe('loading', () => {
 
   test('listens to install, fetch and message events', async () => {
     await load();
-    expect(Object.keys(listeners).sort()).toEqual(['fetch', 'install', 'message']);
+    expect(Object.keys(listeners).sort()).toEqual(['activate', 'fetch', 'install', 'message']);
   });
 });
 
@@ -68,8 +78,8 @@ describe('install', () => {
     listeners.install({ waitUntil });
     await Promise.all(waitUntil.mock.calls.map(([promise]) => promise));
 
-    expect(caches.delete).toHaveBeenCalledWith('node-wall-cache-v1');
-    expect(caches.open).toHaveBeenCalledWith('node-wall-cache-v1');
+    expect(caches.delete).toHaveBeenCalledWith('node-wall-cache-v2');
+    expect(caches.open).toHaveBeenCalledWith('node-wall-cache-v2');
     expect(cache.addAll).toHaveBeenCalledWith(expect.arrayContaining(['/', '/wall', '/static/components/_component.js', '/static/stores/redux.js']));
   });
 });
@@ -77,6 +87,7 @@ describe('install', () => {
 describe('fetch', () => {
   beforeEach(async () => {
     await load();
+    await sessionMessage(SESSION);
     fetchMock.mockResolvedValue(new Response('network'));
   });
 
@@ -124,7 +135,39 @@ describe('fetch', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(await result.text()).toBe('network');
+    expect(caches.open).toHaveBeenCalledWith(`node-wall-session-${SESSION}`);
     expect(cache.put).toHaveBeenCalledWith('https://wall.example/api/posts/p1', expect.any(Response));
+  });
+
+  test('keeps per-user responses out of the shared cache', async () => {
+    const { response } = fetchEvent('https://wall.example/api/user/tags');
+    await response();
+
+    expect(caches.match).toHaveBeenCalledWith('https://wall.example/api/user/tags', { cacheName: `node-wall-session-${SESSION}` });
+  });
+
+  test('uses the shared cache for public responses', async () => {
+    const { response } = fetchEvent('https://wall.example/api/translation/a');
+    await response();
+
+    expect(caches.match).toHaveBeenCalledWith('https://wall.example/api/translation/a', { cacheName: 'node-wall-cache-v2' });
+  });
+
+  test('does not cache per-user responses for pages that reported no session', async () => {
+    const { response } = fetchEvent('https://wall.example/api/posts?status=pending', 'GET', 'unknown');
+    await response();
+
+    expect(caches.match).not.toHaveBeenCalled();
+    expect(cache.put).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalled();
+  });
+
+  test('does not cache per-user responses after the page logged out', async () => {
+    await sessionMessage('');
+    const { response } = fetchEvent('https://wall.example/api/posts');
+    await response();
+
+    expect(cache.put).not.toHaveBeenCalled();
   });
 
   test('falls back to the cached response when the network fails', async () => {
@@ -161,6 +204,50 @@ describe('fetch', () => {
     const { event } = fetchEvent('https://wall.example/api/user');
     expect(event.respondWith).toHaveBeenCalledWith(expect.any(Promise));
     expect(caches.match).not.toHaveBeenCalled();
+  });
+});
+
+describe('cleanup', () => {
+  beforeEach(() => load());
+
+  const other = 'aaaaaaaa-2222-3333-4444-555555555555';
+
+  test('activation drops old versions and every unclaimed session cache', async () => {
+    caches.keys.mockResolvedValue(['node-wall-cache-v1', 'node-wall-cache-v2', `node-wall-session-${SESSION}`]);
+    const waitUntil = vi.fn();
+
+    listeners.activate({ waitUntil });
+    await Promise.all(waitUntil.mock.calls.map(([promise]) => promise));
+
+    expect(caches.delete.mock.calls.map(([name]) => name).sort()).toEqual(['node-wall-cache-v1', `node-wall-session-${SESSION}`]);
+  });
+
+  test('a new session removes the caches of other sessions', async () => {
+    caches.keys.mockResolvedValue(['node-wall-cache-v2', `node-wall-session-${other}`, `node-wall-session-${SESSION}`]);
+
+    await sessionMessage(SESSION);
+
+    expect(caches.delete.mock.calls.map(([name]) => name)).toEqual([`node-wall-session-${other}`]);
+  });
+
+  test('logging out removes the session cache', async () => {
+    await sessionMessage(SESSION);
+    caches.keys.mockResolvedValue(['node-wall-cache-v2', `node-wall-session-${SESSION}`]);
+
+    await sessionMessage('');
+
+    expect(caches.delete).toHaveBeenCalledWith(`node-wall-session-${SESSION}`);
+  });
+
+  test('keeps caches of sessions other pages still use', async () => {
+    await sessionMessage(SESSION, 'client-1');
+    await sessionMessage(other, 'client-2');
+    caches.keys.mockResolvedValue(['node-wall-cache-v2', `node-wall-session-${SESSION}`, `node-wall-session-${other}`]);
+    caches.delete.mockClear();
+
+    await sessionMessage('', 'client-1');
+
+    expect(caches.delete.mock.calls.map(([name]) => name)).toEqual([`node-wall-session-${SESSION}`]);
   });
 });
 

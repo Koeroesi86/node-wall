@@ -298,7 +298,7 @@ describe('service worker', () => {
     const unregister = vi.fn().mockResolvedValue(true);
     Object.defineProperty(browser.window.navigator, 'serviceWorker', {
       configurable: true,
-      value: { getRegistrations: vi.fn().mockResolvedValue([{ unregister }, { unregister }]) },
+      value: { getRegistrations: vi.fn().mockResolvedValue([{ unregister }, { unregister }]), addEventListener: vi.fn() },
     });
 
     run('serviceWorkerMiddleware', {}, { type: 'OTHER' });
@@ -311,7 +311,7 @@ describe('service worker', () => {
     const postMessage = vi.fn();
     Object.defineProperty(browser.window.navigator, 'serviceWorker', {
       configurable: true,
-      value: { getRegistrations: vi.fn().mockResolvedValue([]), controller: { postMessage } },
+      value: { getRegistrations: vi.fn().mockResolvedValue([]), addEventListener: vi.fn(), controller: { postMessage } },
     });
     const action = { type: 'SW_REFRESH_CACHE' };
 
@@ -319,6 +319,21 @@ describe('service worker', () => {
 
     expect(postMessage).toHaveBeenCalledWith(action);
     expect(store.next).toHaveBeenCalledWith(action);
+  });
+
+  test('reports the page session to the controlling worker', () => {
+    const postMessage = vi.fn();
+    const addEventListener = vi.fn();
+    browser.window.document.head.innerHTML = '<meta name="x-session-id" content="s1">';
+    Object.defineProperty(browser.window.navigator, 'serviceWorker', {
+      configurable: true,
+      value: { getRegistrations: vi.fn().mockResolvedValue([]), addEventListener, controller: { postMessage } },
+    });
+
+    run('serviceWorkerMiddleware', {}, { type: 'OTHER' });
+
+    expect(postMessage).toHaveBeenCalledWith({ type: 'SW_SESSION', sessionId: 's1' });
+    expect(addEventListener).toHaveBeenCalledWith('controllerchange', expect.any(Function));
   });
 
   test('works in browsers without service workers', () => {
