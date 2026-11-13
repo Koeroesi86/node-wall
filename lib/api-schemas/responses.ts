@@ -12,7 +12,7 @@ export const AuditEntryResponseSchema = AuditLogSchema.omit({ id: true }).extend
 export const AuditListResponseSchema = AuditEntryResponseSchema.array();
 
 /** What anybody may learn about a post owner. */
-export const PostOwnerSchema = UsersSchema.pick({ id: true, name: true });
+export const PostOwnerSchema = UsersSchema.pick({ name: true }).extend({ id: UsersSchema.shape.id.optional() });
 
 export const PostSummarySchema = z.object({ id: z.string(), type: z.string().nullable(), created_at: TimestampSchema });
 export const PostListResponseSchema = PostSummarySchema.array();
@@ -24,7 +24,7 @@ export const PostResponseSchema = PostSummarySchema.extend({
   tags: TagListResponseSchema,
 });
 
-export const CommentResponseSchema = PostsCommentsSchema.extend({ created_at: TimestampSchema, body: z.string() });
+export const CommentResponseSchema = PostsCommentsSchema.omit({ owner: true, status: true }).extend({ created_at: TimestampSchema, body: z.string() });
 
 export const BoundsResponseSchema = z.object({ oldest: TimestampSchema, newest: TimestampSchema });
 
