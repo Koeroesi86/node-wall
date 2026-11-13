@@ -3,11 +3,22 @@ import { resolve } from 'path';
 import dotenv from 'dotenv';
 import getEnvPath from './lib/utils/getEnvPath';
 import assertSafeLoginLogging from './lib/utils/assertSafeLoginLogging';
+import { purgeExpiredData } from './lib/scheduler/purge';
+import { startPurgeScheduler } from './lib/scheduler/start-purge-scheduler';
 
 const env = dotenv.parse(fs.readFileSync(getEnvPath()));
 assertSafeLoginLogging({ LOG_LOGIN_CODE: process.env.LOG_LOGIN_CODE ?? env.LOG_LOGIN_CODE, SITE_PROTOCOL: env.SITE_PROTOCOL });
 // On the server APP_ROOT is the stable `build` symlink of the deploy, so new releases are picked up without a reload.
 const appRoot = env.APP_ROOT || __dirname;
+
+const dbDriver = env.DB_DRIVER || 'sqlite3';
+const dbDatabase = env.DB_DATABASE || resolve(appRoot, './lib/data/wall.sqlite').replace(/\\/g, '/');
+
+// The webserver loads this config in its long-lived main process (the API workers exit when idle), so the
+// retention purge is scheduled here and needs the database settings the workers get through `options.env`.
+process.env.DB_DRIVER = dbDriver;
+process.env.DB_DATABASE = dbDatabase;
+startPurgeScheduler(purgeExpiredData);
 
 export = {
   hostname: env.SITE_DOMAIN,
@@ -18,8 +29,8 @@ export = {
   options: {
     root: resolve(appRoot, './public').replace(/\\/g, '/'),
     env: {
-      DB_DRIVER: env.DB_DRIVER || 'sqlite3',
-      DB_DATABASE: env.DB_DATABASE || resolve(appRoot, './lib/data/wall.sqlite').replace(/\\/g, '/'),
+      DB_DRIVER: dbDriver,
+      DB_DATABASE: dbDatabase,
       NODEMAILER_HOST: env.NODEMAILER_HOST,
       NODEMAILER_PORT: env.NODEMAILER_PORT,
       NODEMAILER_USER: env.NODEMAILER_USER,

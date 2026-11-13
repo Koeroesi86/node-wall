@@ -46,11 +46,11 @@ Pages send a CSP (`default-src 'self'`, `frame-ancestors 'none'`, `form-action '
 
 Account deletion and data export (GDPR) are on the profile page. Deleting needs a code emailed to the login address (10 minutes, 5 attempts) and removes the user, logins, sessions and tag preferences; posts and comments they wrote are kept with the owner cleared. The export is JSON (profile, logins, sessions without ids or secrets, tag preferences, posts and comments). Both are recorded in the `audit_log` table (action and user id only).
 
-Admin actions (role changes, post status changes, tag creation, tags added to or removed from posts) are recorded in `audit_log` with the actor, action, target id and a per-request id. The newest 50 admin entries (not the users' own `account.*` events) are listed with the actor's name on the moderation page (`GET /api/users/audit`, admins only). Entries older than a year are deleted on the next login request.
+Admin actions (role changes, post status changes, tag creation, tags added to or removed from posts) are recorded in `audit_log` with the actor, action, target id and a per-request id. The newest 50 admin entries (not the users' own `account.*` events) are listed with the actor's name on the moderation page (`GET /api/users/audit`, admins only). Entries older than a year are purged by the hourly scheduler.
 
 ### Data retention
 
-There is no privacy notice yet, so the retention periods live here and must be copied into it when it is written. Cleanup runs on login requests (`sessionService.cleanup`, `auditService.cleanup`); there is no separate cron job.
+There is no privacy notice yet, so the retention periods live here and must be copied into it when it is written. A scheduler in the webserver's main process (`lib/scheduler`, started from `serverConfig.ts`) runs the purges one minute after start and then hourly, independent of traffic. No cron job is needed.
 
 | Data | Kept | Then |
 | --- | --- | --- |
@@ -61,6 +61,7 @@ There is no privacy notice yet, so the retention periods live here and must be c
 | Deleted sessions | 90 days after their last activity | row deleted; the login keeps its `verified_at` so the account is not mistaken for an unverified one |
 | `audit_log` entries | 1 year | deleted |
 | Rate limit counters | until their window expires | deleted |
+| Account deletion confirmations | 10 minutes | deleted |
 | Server logs (`shared/log`) | not rotated by the app | rotate and delete them on the server (for example with `logrotate`, 30 days); logs hold session ids but no email addresses or login codes in production |
 | Account data | until the user deletes the account (profile page) | removed, see above |
 

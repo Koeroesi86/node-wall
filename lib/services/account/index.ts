@@ -5,6 +5,7 @@ import bumpConfirmationAttempts from './queries/bumpConfirmationAttempts';
 import getConfirmation from './queries/getConfirmation';
 import logAudit from '../audit/queries/log';
 import removeConfirmation from './queries/removeConfirmation';
+import removeExpiredConfirmations from './queries/removeExpiredConfirmations';
 import saveConfirmation from './queries/saveConfirmation';
 import generateCode from '../../utils/generateCode';
 import { hashLoginCode, isLoginCodeExpired, isLoginCodeMatch, LOGIN_CODE_MAX_ATTEMPTS } from '../../utils/loginCode';
@@ -37,6 +38,7 @@ export default {
     await deleteAccount(userId);
     return true;
   },
+  cleanup: async () => removeExpiredConfirmations(),
   export: async (userId: string) => {
     await logAudit(uuid(), userId, 'account.exported');
     return exportData(userId);

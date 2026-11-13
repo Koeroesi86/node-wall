@@ -31,7 +31,6 @@ import {
   SetUserRoleRequestSchema, SetUserTagRequestSchema, TagListResponseSchema, TagResponseSchema, UserInfoResponseSchema,
   UserListResponseSchema, UserTagListResponseSchema,
 } from '../../lib/api-schemas';
-import rateLimitService from '../../lib/services/rate-limit';
 import createRateLimiter from '../../lib/utils/createRateLimiter';
 import getClientIp from '../../lib/utils/getClientIp';
 import formatError from '../../lib/utils/formatError';
@@ -558,10 +557,6 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       if (pathFragments.length === 2) {
         if (httpMethod === 'POST') {
           const payload = await readBody(LoginRequestSchema);
-
-          await rateLimitService.removeExpired();
-          await sessionService.cleanup();
-          await auditService.cleanup();
 
           if (!await loginIpLimiter.consume(`ip:${clientIp}`)) {
             return callback(tooManyRequests());
