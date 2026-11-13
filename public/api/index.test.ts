@@ -476,11 +476,12 @@ describe('/api/posts', () => {
     });
 
     test('passes paging and tag filters, and exposes the next page', async () => {
+      const [A, B, C] = ['1', '2', '3'].map(n => `00000000-0000-0000-0000-00000000000${n}`);
       vi.mocked(postService.getNextPage).mockResolvedValue({ nextPageBefore: 99 });
 
-      const response = await request({ path: 'api/posts', query: { before: '20', since: '10', likedTags: 'a,b', dislikedTags: 'c' } });
+      const response = await request({ path: 'api/posts', query: { before: '20', since: '10', likedTags: `${A},${B},bad`, dislikedTags: C } });
 
-      expect(postService.getList).toHaveBeenCalledWith('public', '20', '10', ['a', 'b'], ['c']);
+      expect(postService.getList).toHaveBeenCalledWith('public', '20', '10', [A, B], [C]);
       expect(response.headers?.['x-next-page-before']).toBe(99);
     });
 

@@ -3,6 +3,8 @@ import { PostsSchema } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
 import { parseRows, TimestampSchema } from '../../../utils/validateRows';
 
+export const POSTS_PAGE_SIZE = 50;
+
 const schema = PostsSchema.pick({ id: true, owner: true, type: true }).extend({ created_at: TimestampSchema });
 
 async function getList(status: string, before: string | undefined, since: string | undefined, likedTags: string[], dislikedTags: string[]) {
@@ -12,7 +14,8 @@ async function getList(status: string, before: string | undefined, since: string
     .select('id', 'owner', 'type', 'created_at')
     .orderBy('created_at', 'desc')
     .groupBy('posts.id')
-    .where('status', status);
+    .where('status', status)
+    .limit(POSTS_PAGE_SIZE);
 
     if (before) {
       postsPromise.where('created_at', '<', before);

@@ -89,6 +89,7 @@ test('getList selects users newest first', async () => {
     ['knex', 'users'],
     ['select', 'id', 'name', 'role', 'created_at'],
     ['orderBy', 'created_at', 'desc'],
+    ['limit', 200],
   ]);
 });
 

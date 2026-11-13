@@ -2,6 +2,8 @@ import { TagsSchema } from '../../../data-schemas';
 import createDatabase from '../../../utils/createDatabase';
 import { parseRows } from '../../../utils/validateRows';
 
+export const TAGS_LIST_LIMIT = 100;
+
 async function getList(search = '', exact = false) {
   const knex = await createDatabase();
 
@@ -15,7 +17,7 @@ async function getList(search = '', exact = false) {
     }
   }
 
-  return parseRows(TagsSchema, await tagsPromise);
+  return parseRows(TagsSchema, await tagsPromise.limit(TAGS_LIST_LIMIT));
 }
 
 export default getList;
