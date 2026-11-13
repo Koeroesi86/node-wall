@@ -31,6 +31,8 @@ export = {
       ZOHO_ACCOUNT_ID: env.ZOHO_ACCOUNT_ID,
       SITE_PROTOCOL: env.SITE_PROTOCOL || 'http',
       SITE_DOMAIN: env.SITE_DOMAIN || 'localhost',
+      PRIVACY_CONTROLLER: env.PRIVACY_CONTROLLER,
+      PRIVACY_CONTACT_EMAIL: env.PRIVACY_CONTACT_EMAIL,
     },
     cwd: resolve(appRoot),
     limitRequestBody: 64 * 1024,
