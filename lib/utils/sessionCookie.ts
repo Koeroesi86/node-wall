@@ -13,4 +13,4 @@ export const parseCookies = (raw: string): Record<string, string | undefined> =>
   return isSessionId(sessionId) ? { ...rest, sessionId } : rest;
 };
 
-export const buildSessionCookie = (value: string, expires: string) => `sessionId=${value}; Expires=${expires} GMT; ${getSessionCookieFlags()}`;
+export const buildSessionCookie = (value: string, expires: Date) => `sessionId=${value}; Expires=${expires.toUTCString()}; ${getSessionCookieFlags()}`;

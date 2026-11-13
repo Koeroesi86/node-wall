@@ -1,7 +1,6 @@
 import type { LambdaCallback, LambdaEvent } from '../../lib/types';
 import { parseCookies, buildSessionCookie } from '../../lib/utils/sessionCookie';
 import crypto from 'crypto';
-import moment from 'moment';
 import matchAll from 'match-all';
 import storageService from '../../lib/services/storage';
 import postService from '../../lib/services/post';
@@ -97,7 +96,7 @@ const jsonResponse = <Schema extends ZodType>(schema: Schema, data: unknown, hea
 });
 
 /** Ties the pending login to the browser that asked for it; the code is only accepted from the same browser. */
-const pendingSessionCookie = (sessionId: string) => buildSessionCookie(sessionId, moment().add(1, 'hour').format('ddd, DD MMM YYYY HH:mm:ss'));
+const pendingSessionCookie = (sessionId: string) => buildSessionCookie(sessionId, new Date(Date.now() + 60 * 60 * 1000));
 
 export = async (event: LambdaEvent, callback: LambdaCallback) => {
   clearTimeout(keepAliveTimer);
@@ -643,9 +642,9 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
           if (!await accountService.confirmDeletion(userInfo.user.id, code)) throw new Error('invalid confirmation code');
 
-          const expires = moment().subtract(1, 'year');
+          const expires = new Date(0);
           return callback(jsonResponse(EmptyResponseSchema, {}, {
-            'Set-Cookie': buildSessionCookie('none', expires.format('ddd, DD MMM YYYY HH:mm:ss')),
+            'Set-Cookie': buildSessionCookie('none', expires),
           }));
         }
 
@@ -655,13 +654,13 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             if (!userInfo) {
               // The login page asks who is logged in while its pending session cookie is still needed to enter the code.
               const keepCookie = !!cookies.sessionId && await sessionService.isPending(cookies.sessionId);
-              const expires = moment().subtract(1, 'year');
+              const expires = new Date(0);
               return callback({
                 statusCode: 401,
                 headers: {
                   'Content-Type': 'text/html',
                   'Cache-Control': 'private, no-store',
-                  ...(!keepCookie && { 'Set-Cookie': buildSessionCookie('none', expires.format('ddd, DD MMM YYYY HH:mm:ss')) }),
+                  ...(!keepCookie && { 'Set-Cookie': buildSessionCookie('none', expires) }),
                 },
                 body: '',
                 isBase64Encoded: false,

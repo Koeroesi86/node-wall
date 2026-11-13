@@ -15,8 +15,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24 # matches the Node on the server (native sqlite3 module)
           cache: npm
@@ -31,7 +31,7 @@ jobs:
           mkdir build/deploy && cp deploy/pre-activate.sh build/deploy/
       # A tarball keeps the symlinks in node_modules intact, which upload-artifact would flatten.
       - run: tar -cf build.tar build
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build
           path: build.tar
@@ -41,11 +41,11 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: build
       - run: tar -xf build.tar
-      - uses: Koeroesi86/deploy-action@v1
+      - uses: Koeroesi86/deploy-action@76c29edef5286cac1f585e569e3d2761fa3fc6e6 # v1
         with:
           host: ${{ vars.DEPLOY_HOST }}
           user: ${{ vars.DEPLOY_USER }}

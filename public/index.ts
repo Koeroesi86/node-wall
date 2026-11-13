@@ -1,5 +1,4 @@
 import type { LambdaCallback, LambdaEvent } from '../lib/types';
-import moment from 'moment';
 import { parseCookies, buildSessionCookie, isSessionId } from '../lib/utils/sessionCookie';
 import { isLoginCodeExpired, isLoginCodeMatch, LOGIN_CODE_MAX_ATTEMPTS } from '../lib/utils/loginCode';
 import crypto from 'crypto';
@@ -214,13 +213,13 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
           .update({ status: 'deleted', secret: '' });
       }
 
-      const expires = moment().subtract(1, 'year');
+      const expires = new Date(0);
       return callback({
         statusCode: 302,
         headers: {
           'Content-Type': 'text/html',
           'Cache-Control': 'private, no-store',
-          'Set-Cookie': buildSessionCookie('none', expires.format('ddd, DD MMM YYYY HH:mm:ss')),
+          'Set-Cookie': buildSessionCookie('none', expires),
           'Location': `/login`,
         },
         body: '',
@@ -319,10 +318,10 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
         const activeSessionId = crypto.randomUUID();
         const activated = verified && await sessionService.activate(pendingSessionId, activeSessionId) > 0;
 
-        const expires = moment().add(SESSION_MAX_AGE_MS, 'ms');
+        const expires = new Date(Date.now() + SESSION_MAX_AGE_MS);
         return respondActivation(
           activated ? 200 : 403,
-          activated ? { 'Set-Cookie': buildSessionCookie(activeSessionId, expires.format('ddd, DD MMM YYYY HH:mm:ss')) } : {},
+          activated ? { 'Set-Cookie': buildSessionCookie(activeSessionId, expires) } : {},
         );
       }
     }
