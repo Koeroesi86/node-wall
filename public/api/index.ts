@@ -31,14 +31,18 @@ import {
   SetUserRoleRequestSchema, SetUserTagRequestSchema, TagListResponseSchema, TagResponseSchema, UserInfoResponseSchema,
   UserListResponseSchema, UserTagListResponseSchema,
 } from '../../lib/api-schemas';
-import rateLimitService from '../../lib/services/rate-limit';
 import createRateLimiter from '../../lib/utils/createRateLimiter';
 import getClientIp from '../../lib/utils/getClientIp';
 import formatError from '../../lib/utils/formatError';
 import assertSafeLoginLogging from '../../lib/utils/assertSafeLoginLogging';
 import parseTagIds from '../../lib/utils/parseTagIds';
+import { purgeExpiredData } from '../../lib/scheduler/purge';
+import { startPurgeScheduler } from '../../lib/scheduler/start-purge-scheduler';
 
 assertSafeLoginLogging(process.env);
+
+// Retention purge: once when the worker starts, then hourly for as long as it stays alive (it exits when idle).
+startPurgeScheduler(purgeExpiredData);
 
 const hour = 60 * 60 * 1000;
 // Deliberately very low for now; raise once real usage is known.
@@ -558,10 +562,6 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       if (pathFragments.length === 2) {
         if (httpMethod === 'POST') {
           const payload = await readBody(LoginRequestSchema);
-
-          await rateLimitService.removeExpired();
-          await sessionService.cleanup();
-          await auditService.cleanup();
 
           if (!await loginIpLimiter.consume(`ip:${clientIp}`)) {
             return callback(tooManyRequests());
