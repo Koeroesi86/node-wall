@@ -6,6 +6,7 @@ import activate from './queries/activate';
 import expireStale from './queries/expireStale';
 import purgeUnverified from './queries/purgeUnverified';
 import scrubEndedDetails from './queries/scrubEndedDetails';
+import purgeDeleted from './queries/purgeDeleted';
 import sessionService from './index';
 
 vi.mock('./queries/create');
@@ -15,6 +16,7 @@ vi.mock('./queries/activate');
 vi.mock('./queries/expireStale');
 vi.mock('./queries/purgeUnverified');
 vi.mock('./queries/scrubEndedDetails');
+vi.mock('./queries/purgeDeleted');
 
 beforeEach(() => vi.resetAllMocks());
 
@@ -49,6 +51,7 @@ test('cleanup expires stale sessions then purges unverified accounts', async () 
   expect(expireStale).toHaveBeenCalled();
   expect(purgeUnverified).toHaveBeenCalled();
   expect(scrubEndedDetails).toHaveBeenCalled();
+  expect(purgeDeleted).toHaveBeenCalled();
 });
 
 test('activate delegates to the query', async () => {

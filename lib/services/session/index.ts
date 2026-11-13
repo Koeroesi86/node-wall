@@ -7,6 +7,7 @@ import expireStale from './queries/expireStale';
 import purgeUnverified from './queries/purgeUnverified';
 import isPending from './queries/isPending';
 import scrubEndedDetails from './queries/scrubEndedDetails';
+import purgeDeleted from './queries/purgeDeleted';
 
 export default {
   create: async (id: string, loginId: string, secret: string, status = 'pending') => {
@@ -27,5 +28,6 @@ export default {
     await expireStale();
     await purgeUnverified();
     await scrubEndedDetails();
+    await purgeDeleted();
   },
 };

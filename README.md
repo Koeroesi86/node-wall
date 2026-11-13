@@ -57,7 +57,8 @@ There is no privacy notice yet, so the retention periods live here and must be c
 | Pending (never verified) sessions | 24 hours | row deleted |
 | Users and logins without a verified session | 24 hours | deleted |
 | Active sessions | 30 days maximum, 7 days idle | marked deleted, secret cleared |
-| Session user agent and remote address | 30 days after the session's last activity once it is deleted | both set to `NULL`; the row stays so the account keeps a session record |
+| Session user agent and remote address | 30 days after the session's last activity once it is deleted | both set to `NULL` |
+| Deleted sessions | 90 days after their last activity | row deleted; the login keeps its `verified_at` so the account is not mistaken for an unverified one |
 | `audit_log` entries | 1 year | deleted |
 | Rate limit counters | until their window expires | deleted |
 | Server logs (`shared/log`) | not rotated by the app | rotate and delete them on the server (for example with `logrotate`, 30 days); logs hold session ids but no email addresses or login codes in production |

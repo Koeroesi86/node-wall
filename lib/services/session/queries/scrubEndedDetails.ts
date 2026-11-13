@@ -3,8 +3,7 @@ import { DETAILS_RETENTION_MS, toSqliteTimestamp } from '../../../utils/sessionL
 
 /**
  * Clears the user agent and remote address of sessions that ended (deleted) more than the retention period ago.
- * The row itself stays: verified accounts must keep a session row (see purgeUnverified). The end time is
- * approximated by the last activity, falling back to creation.
+ * The end time is approximated by the last activity, falling back to creation.
  */
 async function scrubEndedDetails(now = Date.now()) {
   const knex = await createDatabase();

@@ -2,8 +2,8 @@ import createDatabase from '../../../utils/createDatabase';
 import { PENDING_RETENTION_MS, toSqliteTimestamp } from '../../../utils/sessionLifetime';
 
 /**
- * Deletes pending sessions older than the retention period, then the logins and users that never got a
- * verified session. Verified accounts always keep an active or deleted session, so they are never removed.
+ * Deletes pending sessions older than the retention period, then the logins and users that never verified
+ * (`verified_at` is set on first activation, so verified accounts survive their sessions being purged).
  */
 async function purgeUnverified(now = Date.now()) {
   const knex = await createDatabase();
@@ -12,7 +12,7 @@ async function purgeUnverified(now = Date.now()) {
   await knex.raw(`DELETE FROM users_session WHERE status = 'pending' AND created_at < ?`, [cutoff]);
   await knex.raw(
     `DELETE FROM users_login
-     WHERE id NOT IN (SELECT users_login_id FROM users_session)
+     WHERE verified_at IS NULL AND id NOT IN (SELECT users_login_id FROM users_session)
        AND user_id IN (SELECT id FROM users WHERE created_at < ?)`,
     [cutoff],
   );
