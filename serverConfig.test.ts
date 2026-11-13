@@ -33,6 +33,12 @@ describe('serverConfig', () => {
     expect((await load('')).options.env.SITE_DOMAIN).toBe('localhost');
   });
 
+  test('passes the privacy notice contact to the worker', async () => {
+    const config = await load('PRIVACY_CONTROLLER=Op\nPRIVACY_CONTACT_EMAIL=me@example.com\n');
+
+    expect(config.options.env).toMatchObject({ PRIVACY_CONTROLLER: 'Op', PRIVACY_CONTACT_EMAIL: 'me@example.com' });
+  });
+
   test('takes everything from the .env when configured', async () => {
     const config = await load([
       'SITE_DOMAIN=wall.example',
