@@ -2,7 +2,8 @@ import cookie from 'cookie';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export const SESSION_COOKIE_FLAGS = 'Path=/; Secure; HttpOnly; SameSite=Lax';
+/** Secure unless the site is explicitly served over plain http (local dev), where browsers like Safari drop Secure cookies. */
+export const getSessionCookieFlags = () => `Path=/; ${process.env.SITE_PROTOCOL === 'http' ? '' : 'Secure; '}HttpOnly; SameSite=Lax`;
 
 export const isSessionId = (value: unknown): value is string => typeof value === 'string' && UUID_PATTERN.test(value);
 
@@ -12,4 +13,4 @@ export const parseCookies = (raw: string): Record<string, string | undefined> =>
   return isSessionId(sessionId) ? { ...rest, sessionId } : rest;
 };
 
-export const buildSessionCookie = (value: string, expires: string) => `sessionId=${value}; Expires=${expires} GMT; ${SESSION_COOKIE_FLAGS}`;
+export const buildSessionCookie = (value: string, expires: string) => `sessionId=${value}; Expires=${expires} GMT; ${getSessionCookieFlags()}`;

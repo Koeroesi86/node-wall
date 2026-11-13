@@ -5,6 +5,7 @@ import activate from './queries/activate';
 import setDetails from './queries/setDetails';
 import expireStale from './queries/expireStale';
 import purgeUnverified from './queries/purgeUnverified';
+import isPending from './queries/isPending';
 
 export default {
   create: async (id: string, loginId: string, secret: string, status = 'pending') => {
@@ -19,6 +20,7 @@ export default {
     await setDetails(sessionId, userAgent, remoteAddress);
   },
   remove: async (id: string) => remove(id),
+  isPending: async (id: string) => isPending(id),
   activate: async (id: string, newId: string) => activate(id, newId),
   cleanup: async () => {
     await expireStale();

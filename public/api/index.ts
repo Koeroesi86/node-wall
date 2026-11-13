@@ -625,13 +625,15 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           /** @route /api/user */
           if (pathFragments.length === 2) {
             if (!userInfo) {
+              // The login page asks who is logged in while its pending session cookie is still needed to enter the code.
+              const keepCookie = !!cookies.sessionId && await sessionService.isPending(cookies.sessionId);
               const expires = moment().subtract(1, 'year');
               return callback({
                 statusCode: 401,
                 headers: {
                   'Content-Type': 'text/html',
                   'Cache-Control': 'private, no-store',
-                  'Set-Cookie': buildSessionCookie('none', expires.format('ddd, DD MMM YYYY HH:mm:ss')),
+                  ...(!keepCookie && { 'Set-Cookie': buildSessionCookie('none', expires.format('ddd, DD MMM YYYY HH:mm:ss')) }),
                 },
                 body: '',
                 isBase64Encoded: false,
