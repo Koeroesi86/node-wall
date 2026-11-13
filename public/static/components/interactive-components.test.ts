@@ -176,12 +176,29 @@ describe('login-page', () => {
     expect(page.requests).toHaveLength(0);
   });
 
+  test('posts the code with the pending session to activate it', () => {
+    const sessionId = 'aaaaaaaa-0000-0000-0000-000000000000';
+    page.window.history.pushState({}, '', `/login?session=${sessionId}`);
+    const element = mount();
+    (element.querySelector('.activateSession .input') as HTMLInputElement).value = 'ABC123';
+    const submit = new page.window.Event('submit', { cancelable: true });
+
+    element.querySelector('.activateSession form')!.dispatchEvent(submit);
+
+    expect(submit.defaultPrevented).toBe(true);
+    expect(page.requests[0]).toMatchObject({
+      method: 'POST',
+      url: '/login/email',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session: sessionId, code: 'ABC123' }),
+    });
+  });
+
   test.each([
-    ['a valid code', 'ABC123', true],
-    ['a code of the wrong length', 'ABC', false],
-    ['lowercase characters', 'abc123', false],
-  ])('activating with %s', (_name, code, navigates) => {
-    page.window.history.pushState({}, '', '/login?session=abc');
+    ['a code of the wrong length', 'ABC'],
+    ['lowercase characters', 'abc123'],
+  ])('does not post %s', (_name, code) => {
+    page.window.history.pushState({}, '', '/login?session=aaaaaaaa-0000-0000-0000-000000000000');
     const element = mount();
     (element.querySelector('.activateSession .input') as HTMLInputElement).value = code;
     const submit = new page.window.Event('submit', { cancelable: true });
@@ -189,9 +206,7 @@ describe('login-page', () => {
     element.querySelector('.activateSession form')!.dispatchEvent(submit);
 
     expect(submit.defaultPrevented).toBe(true);
-    // jsdom cannot navigate, and says so when the page tries to
-    const attempted = vi.mocked(console.error).mock.calls.some(([error]) => String(error?.message ?? error).includes('navigation'));
-    expect(attempted).toBe(navigates);
+    expect(page.requests).toHaveLength(0);
   });
 });
 
@@ -233,7 +248,9 @@ describe('navigation-wrapper', () => {
     const element = mount();
     page.redux.setState(user());
     expect(element.querySelector('.userNameWrapper')?.textContent).toContain('Ann');
-    expect(element.querySelector('.logout')).not.toBeNull();
+    expect(element.querySelector('form.logoutForm')?.getAttribute('method')).toBe('post');
+    expect(element.querySelector('form.logoutForm')?.getAttribute('action')).toBe('/logout');
+    expect(element.querySelector('button.logout')).not.toBeNull();
     expect(element.querySelector('.moderation')).toBeNull();
   });
 

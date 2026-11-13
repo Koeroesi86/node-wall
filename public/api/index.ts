@@ -76,6 +76,9 @@ const jsonResponse = <Schema extends ZodType>(schema: Schema, data: unknown, hea
   isBase64Encoded: false,
 });
 
+/** Ties the pending login to the browser that asked for it; the code is only accepted from the same browser. */
+const pendingSessionCookie = (sessionId: string) => buildSessionCookie(sessionId, moment().add(1, 'hour').format('ddd, DD MMM YYYY HH:mm:ss'));
+
 export = async (event: LambdaEvent, callback: LambdaCallback) => {
   clearTimeout(keepAliveTimer);
   keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
@@ -539,7 +542,8 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           // Cap the emails sent per address without refusing the login, so nobody can lock a victim out.
           // The response looks the same either way.
           if (!await loginAddressLimiter.consume(`${payload.type}:${normalizeLogin(payload.type, payload.value)}`)) {
-            return callback(jsonResponse(LoginResponseSchema, { sessionId: crypto.randomUUID() }));
+            const decoyId = crypto.randomUUID();
+            return callback(jsonResponse(LoginResponseSchema, { sessionId: decoyId }, { 'Set-Cookie': pendingSessionCookie(decoyId) }));
           }
 
           let login;
@@ -566,15 +570,13 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           await sessionService.create(session.id, login.id, hashLoginCode(session.secret), 'pending');
 
           if (payload.type === 'email') {
-            const verifyUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login/email`);
-            verifyUrl.searchParams.set('code', session.secret);
-            verifyUrl.searchParams.set('session', session.id);
-            if (process.env.LOG_LOGIN_CODE === 'true') {
-              console.log('login url (dev only)', verifyUrl.toString()); // assertSafeLoginLogging forbids this on https
-              return callback(jsonResponse(LoginResponseSchema, { sessionId: session.id }));
-            }
             const activateUrl = new URL(`${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}/login`);
             activateUrl.searchParams.set('session', session.id);
+            const pendingCookie = pendingSessionCookie(session.id);
+            if (process.env.LOG_LOGIN_CODE === 'true') {
+              console.log('login url (dev only)', activateUrl.toString(), 'code', session.secret); // assertSafeLoginLogging forbids this on https
+              return callback(jsonResponse(LoginResponseSchema, { sessionId: session.id }, { 'Set-Cookie': pendingCookie }));
+            }
             const { value: title } = await getTranslation('email.verify.title', await detectLanguage(headers));
             transporter.sendMail({
               from: process.env.NODEMAILER_USER || 'sender@example.com',
@@ -586,7 +588,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
                 title,
                 code: session.secret,
                 activateUrl: activateUrl.toString(),
-                verifyUrl: verifyUrl.toString(),
+                verifyUrl: activateUrl.toString(),
               }),
             }, (err) => {
               if (err) {

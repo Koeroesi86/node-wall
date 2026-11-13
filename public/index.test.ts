@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { Readable } from 'node:stream';
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { LambdaEvent, LambdaResponse } from '../lib/types';
 import { fakeDb } from '../lib/test-utils/fakeDb';
@@ -16,19 +17,21 @@ interface Request {
   path?: string;
   query?: Record<string, string | undefined>;
   headers?: Record<string, string | undefined>;
+  method?: string;
+  body?: unknown;
 }
 
 const loadHandler = async () => (await import('./index')).default;
 
 let handler: Awaited<ReturnType<typeof loadHandler>>;
 
-const request = ({ path = '', query, headers = { cookie: `sessionId=${SESSION_ID}` } }: Request = {}) => new Promise<LambdaResponse>((resolve, reject) => {
+const request = ({ path = '', query, headers = { cookie: `sessionId=${SESSION_ID}` }, method = 'GET', body }: Request = {}) => new Promise<LambdaResponse>((resolve, reject) => {
   const event: LambdaEvent = {
-    httpMethod: 'GET',
+    httpMethod: method,
     pathFragments: path.split('/').filter(Boolean),
     headers,
     queryStringParameters: query,
-    bodyStream: undefined as never,
+    bodyStream: Readable.from([JSON.stringify(body ?? {})]),
   };
   handler(event, resolve).catch(reject);
 });
@@ -140,7 +143,7 @@ describe('/profile', () => {
 
 describe('/logout', () => {
   test('deletes the session, clears the cookie and redirects', async () => {
-    const response = await request({ path: 'logout' });
+    const response = await request({ path: 'logout', method: 'POST' });
 
     expect(response.statusCode).toBe(302);
     expect(response.headers).toMatchObject({ Location: '/login' });
@@ -153,13 +156,25 @@ describe('/logout', () => {
   });
 
   test('works without a session', async () => {
-    const response = await request({ path: 'logout', headers: anonymous });
+    const response = await request({ path: 'logout', method: 'POST', headers: anonymous });
     expect(response.statusCode).toBe(302);
+    expect(fakeDb.calls).toEqual([]);
+  });
+
+  test('does nothing on a GET', async () => {
+    const response = await request({ path: 'logout' });
+    expect(response).toMatchObject({ statusCode: 302, headers: { Location: '/' } });
+    expect(response.headers?.['Set-Cookie']).toBeUndefined();
     expect(fakeDb.calls).toEqual([]);
   });
 });
 
 describe('/login', () => {
+  test('keeps the session id out of the Referer header', async () => {
+    expect((await request({ path: 'login', headers: anonymous })).headers).toMatchObject({ 'Referrer-Policy': 'no-referrer' });
+    expect((await request({ path: '', headers: anonymous })).headers).toMatchObject({ 'Referrer-Policy': 'strict-origin-when-cross-origin' });
+  });
+
   test('renders the login page for new visitors', async () => {
     const response = await request({ path: 'login', headers: anonymous });
     expect(response.body).toContain('<login-page>');
@@ -180,7 +195,8 @@ describe('/login', () => {
   });
 
   describe('/login/email', () => {
-    const verify = (query?: Request['query']) => request({ path: 'login/email', query, headers: anonymous });
+    const pendingCookie = { cookie: `sessionId=${SESSION_ID}` };
+    const verify = (body: unknown, headers: Request['headers'] = pendingCookie) => request({ path: 'login/email', method: 'POST', headers, body });
     const code = 'SECRET';
     const hash = createHash('sha256').update(code).digest('hex');
     const freshlyCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -192,7 +208,7 @@ describe('/login', () => {
 
       const response = await verify({ code, session: SESSION_ID });
 
-      expect(response).toMatchObject({ statusCode: 302, headers: { Location: '/' } });
+      expect(response.statusCode).toBe(200);
       const cookieId = response.headers?.['Set-Cookie']?.match(/^sessionId=([^;]+);/)?.[1];
       expect(cookieId).toMatch(/^[0-9a-f-]{36}$/);
       expect(cookieId).not.toBe(SESSION_ID);
@@ -204,16 +220,16 @@ describe('/login', () => {
     test('leaves the session pending and sets no cookie when the code is wrong', async () => {
       fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash, created_at: freshlyCreated, attempts: 0 });
 
-      const response = await verify({ code: 'WRONG', session: SESSION_ID });
+      const response = await verify({ code: 'WRONG1', session: SESSION_ID });
 
-      expect(response.statusCode).toBe(302);
+      expect(response.statusCode).toBe(403);
       expect(response.headers?.['Set-Cookie']).toBeUndefined();
       expect(fakeDb.calls.map(call => call[0])).not.toContain('update');
     });
 
     test('counts a wrong attempt', async () => {
       fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash, created_at: freshlyCreated, attempts: 1 });
-      await verify({ code: 'WRONG', session: SESSION_ID });
+      await verify({ code: 'WRONG1', session: SESSION_ID });
       expect(fakeDb.calls).toContainEqual(['increment', 'attempts', 1]);
     });
 
@@ -247,13 +263,39 @@ describe('/login', () => {
       expect(fakeDb.calls.map(call => call[0])).not.toContain('update');
     });
 
-    test.each([
-      ['no query', undefined],
-      ['no code', { session: SESSION_ID }],
-      ['no session', { code }],
-    ])('redirects to /login with %s', async (_name, query) => {
-      expect(await verify(query)).toMatchObject({ statusCode: 302, headers: { Location: '/login' } });
+    test('answers 403 when the code is wrong', async () => {
+      fakeDb.resolvesInOrder({ id: SESSION_ID, status: 'pending', secret: hash, created_at: freshlyCreated, attempts: 0 });
+      expect((await verify({ code: 'WRONG1', session: SESSION_ID })).statusCode).toBe(403);
+    });
+
+    test('refuses a session that is not the one this browser asked for', async () => {
+      const response = await verify({ code, session: SESSION_ID }, { cookie: 'sessionId=bbbbbbbb-0000-0000-0000-000000000000' });
+      expect(response.statusCode).toBe(403);
+      expect(response.headers?.['Set-Cookie']).toBeUndefined();
       expect(fakeDb.calls).toEqual([]);
+    });
+
+    test('refuses a browser without a pending session cookie', async () => {
+      expect((await verify({ code, session: SESSION_ID }, anonymous)).statusCode).toBe(403);
+      expect(fakeDb.calls).toEqual([]);
+    });
+
+    describe('GET', () => {
+      const open = (query?: Request['query']) => request({ path: 'login/email', query, headers: anonymous });
+
+      test('only leads to the login page and never touches the session', async () => {
+        const response = await open({ code, session: SESSION_ID });
+        expect(response).toMatchObject({ statusCode: 302, headers: { Location: `/login?session=${SESSION_ID}` } });
+        expect(response.headers?.['Set-Cookie']).toBeUndefined();
+        expect(fakeDb.calls).toEqual([]);
+      });
+
+      test.each([
+        ['no query', undefined],
+        ['an invalid session', { session: 'nope' }],
+      ])('redirects to /login with %s', async (_name, query) => {
+        expect(await open(query)).toMatchObject({ statusCode: 302, headers: { Location: '/login' } });
+      });
     });
   });
 });

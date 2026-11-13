@@ -91,6 +91,7 @@ interface ApiSchema<T> {
 }
 
 declare const ApiSchemas: {
+  ActivateSessionRequestSchema: ApiSchema<{ session: string; code: string }>;
   AddPostTagRequestSchema: ApiSchema<{ id: string }>;
   BoundsResponseSchema: ApiSchema<{ oldest: number | string | null; newest: number | string | null }>;
   CommentResponseSchema: ApiSchema<CommentData>;

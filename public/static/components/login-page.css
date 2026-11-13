@@ -19,6 +19,22 @@ login-page .note a {
     color: inherit;
 }
 
+login-page form.logoutInline {
+    display: inline;
+    margin: 0;
+}
+
+login-page form.logoutInline button {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 login-page form.inline {
     display: flex;
     flex-direction: row;
