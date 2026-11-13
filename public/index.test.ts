@@ -74,6 +74,12 @@ describe('pages', () => {
     expect(response.body).toContain(`<meta name="x-session-id" content="${SESSION_ID}" />`);
   });
 
+  test('/privacy renders the privacy notice without a session', async () => {
+    const response = await request({ path: 'privacy' });
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toContain('<privacy-page');
+  });
+
   test('/wall renders the wall', async () => {
     expect((await request({ path: 'wall' })).body).toContain('<post-wall');
   });

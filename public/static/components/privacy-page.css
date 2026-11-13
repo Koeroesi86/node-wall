@@ -1,0 +1,16 @@
+privacy-page {
+    display: block;
+    padding: 12px 20px;
+    max-width: 800px;
+    font-size: 14px;
+}
+
+privacy-page h4 {
+    margin: 16px 0 6px;
+}
+
+privacy-page a,
+privacy-page a:visited {
+    color: var(--main-link-color);
+    text-decoration: underline;
+}

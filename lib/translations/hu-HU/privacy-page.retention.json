@@ -1,0 +1,3 @@
+{
+  "value": "<h4>Meddig őrizzük</h4><ul><li>Soha nem megerősített bejelentkezési kísérletek: 24 óra.</li><li>Munkamenetek: 30 nap után, vagy 7 nap tétlenség után lejárnak; az IP címet és a user agent azonosítót a munkamenet lejárta után 30 nappal töröljük, a munkamenet rekordját 90 nap után töröljük.</li><li>Audit napló bejegyzések: 1 év.</li><li>Szervernaplók: kb. 30 nap.</li><li>Fiókadatok, bejegyzések és hozzászólások: a fiókod törléséig. Ezután a bejegyzések és hozzászólások a neved nélkül maradnak meg.</li></ul>"
+}

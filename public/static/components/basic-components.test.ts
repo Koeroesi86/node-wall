@@ -55,6 +55,18 @@ describe('welcome-page', () => {
   });
 });
 
+describe('privacy-page', () => {
+  test('renders every section and the operator contact as text', async () => {
+    page = await loadComponents(['privacy-page']);
+
+    const element = page.mount('<privacy-page controller="Op &lt;b&gt;" contact="me@example.com"></privacy-page>');
+
+    expect(element.querySelectorAll('translate-text')).toHaveLength(11);
+    expect(element.querySelector('.controller')?.textContent).toBe('Op <b>');
+    expect(element.querySelector('.contact')?.getAttribute('href')).toBe('mailto:me@example.com');
+  });
+});
+
 describe('translate-text', () => {
   beforeEach(async () => {
     page = await loadComponents(['translate-text']);

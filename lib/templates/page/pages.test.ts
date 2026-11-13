@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from 'vitest';
 import login from './login';
 import moderation from './moderation';
 import post from './post';
+import privacy from './privacy';
 import profile from './profile';
 import tag from './tag';
 import wall from './wall';
@@ -47,6 +48,7 @@ describe('pages', () => {
   test.each([
     ['login', login, '<login-page></login-page>', 'login-page.js'],
     ['welcome', welcome, '<welcome-page></welcome-page>', 'welcome-page.js'],
+    ['privacy', privacy, '<privacy-page controller="" contact=""></privacy-page>', 'privacy-page.js'],
     ['moderation', moderation, '<moderation-page></moderation-page>', 'moderation-page.js'],
     ['profile', profile, `<profile-page session-id="${SID}"></profile-page>`, 'profile-page.js'],
   ])('%s renders its component inside the wrapper', (_name, render, content, script) => {
