@@ -61,6 +61,7 @@ export default (props: WrapperProps = {}) => (`
       <navigation-wrapper session-id="${getSessionId(props)}"></navigation-wrapper>
       <content-wrapper>
         ${getContent(props)}
+        <footer class="site-footer"><a href="/privacy"><translate-text alias="navigation-wrapper.privacy"></translate-text></a></footer>
       </content-wrapper>
     </main-wrapper>
   </body>

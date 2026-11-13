@@ -4,3 +4,12 @@ content-wrapper {
     border-left: 1px solid var(--content-wrapper-border-color);
     color: var(--content-wrapper-text-color);
 }
+
+content-wrapper .site-footer {
+    padding: 12px 20px;
+    font-size: 12px;
+}
+
+content-wrapper .site-footer a {
+    color: inherit;
+}

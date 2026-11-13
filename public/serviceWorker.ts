@@ -34,6 +34,8 @@ const urlsToCache = [
   '/static/components/post-tags-input.css',
   '/static/components/post-wall.js',
   '/static/components/post-wall.css',
+  '/static/components/privacy-page.js',
+  '/static/components/privacy-page.css',
   '/static/components/profile-page.js',
   '/static/components/profile-page.css',
   '/static/components/tag-inline.js',

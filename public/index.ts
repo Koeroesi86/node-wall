@@ -10,6 +10,7 @@ import securityHeaders from '../lib/utils/securityHeaders';
 import detectLanguage from '../lib/utils/detectLanguage';
 import createDatabase from '../lib/utils/createDatabase';
 import getUserInfoFromSession from '../lib/utils/getUserInfoFromSession';
+import privacyTemplate from '../lib/templates/page/privacy';
 import welcomeTemplate from '../lib/templates/page/welcome';
 import wallTemplate from '../lib/templates/page/wall';
 import tagTemplate from '../lib/templates/page/tag';
@@ -62,6 +63,22 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
           'Cache-Control': 'private, no-store',
         },
         body: welcomeTemplate({
+          language,
+          sessionId: cookies.sessionId,
+        }),
+        isBase64Encoded: false,
+      });
+    }
+
+    /** @route /privacy */
+    if (pathFragments[0] === 'privacy' && pathFragments.length === 1) {
+      return callback({
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'text/html',
+          'Cache-Control': 'private, no-store',
+        },
+        body: privacyTemplate({
           language,
           sessionId: cookies.sessionId,
         }),

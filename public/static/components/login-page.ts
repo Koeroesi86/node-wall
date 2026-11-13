@@ -67,6 +67,9 @@ class LoginPage extends Component {
         <div class="note">
           <translate-text alias="login-page.create-session.header"></translate-text>
         </div>
+        <div class="note">
+          <translate-text alias="login-page.privacy-note"></translate-text>
+        </div>
         <form class="inline">
           <input type="email" class="input" name="email" />
           <button type="submit" class="button">
