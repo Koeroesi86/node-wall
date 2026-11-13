@@ -294,10 +294,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
 
         // The pending session cookie was set in the browser that asked for the login,
         // so a link carrying somebody else's session cannot sign this browser in as them.
-        const devLog = (reason: string) => process.env.LOG_LOGIN_CODE === 'true' && console.log(`login refused (dev only): ${reason}`);
-
         if (cookies.sessionId !== pendingSessionId) {
-          devLog(cookies.sessionId ? 'sessionId cookie differs from the session in the request' : 'no sessionId cookie was sent');
           return respondActivation(403);
         }
 
@@ -318,10 +315,6 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
         }
 
         const verified = isUsable && isLoginCodeMatch(code, currentSession.secret);
-
-        if (!verified) {
-          devLog(!currentSession ? 'session not found' : !isPending ? `session status is ${currentSession.status}` : !isUsable ? 'code expired or too many attempts' : 'wrong code');
-        }
 
         const activeSessionId = crypto.randomUUID();
         const activated = verified && await sessionService.activate(pendingSessionId, activeSessionId) > 0;
