@@ -34,6 +34,7 @@ vi.mock('../../lib/services/storage');
 vi.mock('../../lib/services/tag');
 vi.mock('../../lib/services/user');
 vi.mock('../../lib/services/account');
+vi.mock('../../lib/scheduler/start-purge-scheduler', () => ({ startPurgeScheduler: vi.fn() }));
 vi.mock('../../lib/translations/getTranslation');
 vi.mock('../../lib/utils/generateCode');
 vi.mock('../../lib/utils/getUserInfoFromSession');

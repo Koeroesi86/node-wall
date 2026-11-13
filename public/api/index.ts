@@ -36,8 +36,13 @@ import getClientIp from '../../lib/utils/getClientIp';
 import formatError from '../../lib/utils/formatError';
 import assertSafeLoginLogging from '../../lib/utils/assertSafeLoginLogging';
 import parseTagIds from '../../lib/utils/parseTagIds';
+import { purgeExpiredData } from '../../lib/scheduler/purge';
+import { startPurgeScheduler } from '../../lib/scheduler/start-purge-scheduler';
 
 assertSafeLoginLogging(process.env);
+
+// Retention purge: once when the worker starts, then hourly for as long as it stays alive (it exits when idle).
+startPurgeScheduler(purgeExpiredData);
 
 const hour = 60 * 60 * 1000;
 // Deliberately very low for now; raise once real usage is known.

@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 const files = vi.hoisted(() => ({ content: '' }));
 
 vi.mock('fs', () => ({ default: { readFileSync: () => files.content } }));
-vi.mock('./lib/scheduler/start-purge-scheduler', () => ({ startPurgeScheduler: vi.fn() }));
 vi.mock('./lib/utils/getEnvPath', () => ({ default: () => '/app/.env' }));
 
 const load = async (env: string) => {

@@ -50,7 +50,7 @@ Admin actions (role changes, post status changes, tag creation, tags added to or
 
 ### Data retention
 
-There is no privacy notice yet, so the retention periods live here and must be copied into it when it is written. A scheduler in the webserver's main process (`lib/scheduler`, started from `serverConfig.ts`) runs the purges one minute after start and then hourly, independent of traffic. No cron job is needed.
+There is no privacy notice yet, so the retention periods live here and must be copied into it when it is written. The API worker (`public/api/index.ts`, scheduler in `lib/scheduler`) runs the purges when it starts and then hourly while it stays alive; it exits when idle and the next request starts it again, which runs the purges again. The webserver's main thread is not involved and no cron job is needed.
 
 | Data | Kept | Then |
 | --- | --- | --- |
