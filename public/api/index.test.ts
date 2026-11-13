@@ -695,6 +695,13 @@ describe('/api/user', () => {
       expect(response.headers?.['Set-Cookie']).toMatch(/^sessionId=none; Expires=/);
     });
 
+    test('keeps the cookie of a pending login so the code can still be entered', async () => {
+      vi.mocked(sessionService.isPending).mockResolvedValue(true);
+      const response = await request({ path: 'api/user', headers: { cookie: `sessionId=${SESSION_ID}` } });
+      expect(response.statusCode).toBe(401);
+      expect(response.headers?.['Set-Cookie']).toBeUndefined();
+    });
+
     test('returns the user info when logged in', async () => {
       loggedInAs('user');
       expect(jsonBody(await request({ path: 'api/user' }))).toEqual(userInfo('user'));

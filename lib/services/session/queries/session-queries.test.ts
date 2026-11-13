@@ -2,6 +2,7 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { fakeDb } from '../../../test-utils/fakeDb';
 import create from './create';
 import remove from './remove';
+import isPending from './isPending';
 import setLastActive from './setLastActive';
 import setDetails from './setDetails';
 
@@ -72,4 +73,19 @@ test('expireStale and purgeUnverified issue the cleanup statements', async () =>
   expect(sql[1]).toContain("status = 'pending'");
   expect(sql[2]).toContain('DELETE FROM users_login');
   expect(sql[3]).toContain('DELETE FROM users');
+});
+
+test('isPending looks for a pending session with that id', async () => {
+  fakeDb.resolves({ id: 's1' });
+  expect(await isPending('s1')).toBe(true);
+  expect(fakeDb.calls).toEqual([
+    ['knex', 'users_session'],
+    ['where', { id: 's1', status: 'pending' }],
+    ['first', 'id'],
+  ]);
+});
+
+test('isPending is false without a pending session', async () => {
+  fakeDb.resolves(undefined);
+  expect(await isPending('s1')).toBe(false);
 });
