@@ -23,7 +23,7 @@ class PrivacyPage extends Component {
     this.querySelector('.controller').textContent = controller;
     const link = this.querySelector('.contact');
     link.textContent = contact;
-    if (contact) link.setAttribute('href', `mailto:${encodeURIComponent(contact)}`.replace('%40', '@'));
+    if (contact) link.setAttribute('href', `mailto:${encodeURI(contact)}`);
   }
 }
 
