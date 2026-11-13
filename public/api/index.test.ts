@@ -752,7 +752,8 @@ describe('/api/user', () => {
       const response = await login();
       expect(response.statusCode).toBe(200);
       expect(jsonBody(response)).toEqual({ sessionId: SESSION_ID });
-      expect(log).toHaveBeenCalledWith('login url (dev only)', `https://example.com/login/email?code=SECRET&session=${SESSION_ID}`);
+      expect(log).toHaveBeenCalledWith('login url (dev only)', `https://example.com/login?session=${SESSION_ID}`, 'code', 'SECRET');
+      expect(response.headers?.['Set-Cookie']).toMatch(new RegExp(`^sessionId=${SESSION_ID}; Expires=.* GMT; Path=/; Secure; HttpOnly; SameSite=Lax$`));
       expect(transporter.sendMail).toHaveBeenCalledTimes(1);
 
       vi.unstubAllEnvs();

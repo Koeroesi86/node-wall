@@ -34,3 +34,9 @@ export const RemoveUserTagRequestSchema = z.object({ id: IdSchema });
 
 /** The code emailed by the deletion request. */
 export const DeleteAccountRequestSchema = z.object({ code: z.string().trim().regex(/^[A-Z0-9]{6}$/i) });
+
+/** The pending session and the emailed code, posted by the login page. */
+export const ActivateSessionRequestSchema = z.object({
+  session: IdSchema,
+  code: z.string().trim().regex(/^[A-Z0-9]{6}$/i),
+});

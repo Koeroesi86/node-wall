@@ -92,9 +92,17 @@ class LoginPage extends Component {
         e.preventDefault();
         e.stopPropagation();
         if (activateSessionInput.value && activateSessionInput.value.length === 6 && /^[A-Z0-9]+$/.test(activateSessionInput.value)) {
-          currentUrl.searchParams.set('code', activateSessionInput.value);
-          currentUrl.pathname = '/login/email';
-          location.href = currentUrl.toString();
+          const request = new XMLHttpRequest();
+          request.onreadystatechange = () => {
+            if (request.readyState !== 4) return;
+            location.href = request.status === 200 ? '/' : `/login?session=${encodeURIComponent(sessionId)}`;
+          };
+          request.open('POST', '/login/email', true);
+          request.setRequestHeader('Content-Type', 'application/json');
+          request.send(JSON.stringify(ApiSchemas.ActivateSessionRequestSchema.parse({
+            session: sessionId,
+            code: activateSessionInput.value,
+          })));
         }
       });
     } else {

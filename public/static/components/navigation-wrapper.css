@@ -7,6 +7,7 @@ navigation-wrapper {
 
 navigation-wrapper .user,
 navigation-wrapper a,
+navigation-wrapper button.logout,
 navigation-wrapper a:visited {
     display: flex;
     flex-direction: row;
@@ -24,10 +25,13 @@ navigation-wrapper a:visited {
     overflow: hidden;
 }
 
-navigation-wrapper a {
+navigation-wrapper a,
+navigation-wrapper button.logout {
     color: rgba(var(--main-link-color-rgb), .6);
 }
 
+navigation-wrapper button.logout:hover,
+navigation-wrapper button.logout:focus,
 navigation-wrapper a:hover,
 navigation-wrapper a:active,
 navigation-wrapper a:focus,
@@ -38,7 +42,8 @@ navigation-wrapper a.current{
 }
 
 navigation-wrapper .user span,
-navigation-wrapper a span {
+navigation-wrapper a span,
+navigation-wrapper button.logout span {
     padding-left: 6px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -120,7 +125,8 @@ navigation-wrapper .bottom {
     justify-content: flex-end;
 }
 
-navigation-wrapper .bottom a {
+navigation-wrapper .bottom a,
+navigation-wrapper .bottom button.logout {
     min-width: 100%;
 }
 
@@ -128,7 +134,8 @@ navigation-wrapper.collapsed {
     width: 40px;
 }
 
-navigation-wrapper.collapsed a {
+navigation-wrapper.collapsed a,
+navigation-wrapper.collapsed button.logout {
     height: 35px;
 }
 
@@ -143,7 +150,8 @@ navigation-wrapper.collapsed a span {
     }
 
     navigation-wrapper .user span,
-    navigation-wrapper a span {
+    navigation-wrapper a span,
+navigation-wrapper button.logout span {
         display: none;
         height: 0;
     }
@@ -154,8 +162,20 @@ navigation-wrapper.collapsed a span {
 }
 
 @media (min-device-width: 1024px) {
-    navigation-wrapper a {
+    navigation-wrapper a,
+    navigation-wrapper button.logout {
         line-height: 45px;
         height: 45px;
     }
+}
+
+navigation-wrapper form.logoutForm {
+    margin: 0;
+}
+
+navigation-wrapper button.logout {
+    width: 100%;
+    border: 0;
+    background: none;
+    font-family: inherit;
 }

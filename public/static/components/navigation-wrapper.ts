@@ -149,10 +149,12 @@ class NavigationWrapper extends Component {
       }
 
       this.userPanel.innerHTML += `
-        <a href="/logout" class="logout">
-          <x-icon type="logout"></x-icon>
-          <span><translate-text alias="navigation-wrapper.logout"></translate-text></span>
-        </a>
+        <form action="/logout" method="post" class="logoutForm">
+          <button type="submit" class="logout">
+            <x-icon type="logout"></x-icon>
+            <span><translate-text alias="navigation-wrapper.logout"></translate-text></span>
+          </button>
+        </form>
       `;
     } else {
       this.userPanel.innerHTML = `
