@@ -36,7 +36,7 @@ describe('getList', () => {
   test('lists everything without a search', async () => {
     fakeDb.resolves([{ id: 't1', name: 'tag', type: null }]);
     expect(await getList()).toEqual([{ id: 't1', name: 'tag', type: null }]);
-    expect(fakeDb.calls).toEqual([['knex', 'tags'], ['select', 'id', 'name', 'type']]);
+    expect(fakeDb.calls).toEqual([['knex', 'tags'], ['select', 'id', 'name', 'type'], ['limit', 100]]);
   });
 
   test('matches partially by default', async () => {

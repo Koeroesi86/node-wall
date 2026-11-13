@@ -37,6 +37,7 @@ import createRateLimiter from '../../lib/utils/createRateLimiter';
 import getClientIp from '../../lib/utils/getClientIp';
 import formatError from '../../lib/utils/formatError';
 import assertSafeLoginLogging from '../../lib/utils/assertSafeLoginLogging';
+import parseTagIds from '../../lib/utils/parseTagIds';
 
 assertSafeLoginLogging(process.env);
 
@@ -308,11 +309,11 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
             }
 
             if (event.queryStringParameters.likedTags) {
-              likedTags = event.queryStringParameters.likedTags.split(',');
+              likedTags = parseTagIds(event.queryStringParameters.likedTags);
             }
 
             if (event.queryStringParameters.dislikedTags) {
-              dislikedTags = event.queryStringParameters.dislikedTags.split(',');
+              dislikedTags = parseTagIds(event.queryStringParameters.dislikedTags);
             }
 
             const nextPageBeforeResult = await postService.getNextPage(status, before, since, likedTags, dislikedTags);

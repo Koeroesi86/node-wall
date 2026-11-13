@@ -113,6 +113,7 @@ describe('getList', () => {
       ['orderBy', 'created_at', 'desc'],
       ['groupBy', 'posts.id'],
       ['where', 'status', 'public'],
+      ['limit', 50],
     ]);
   });
 
