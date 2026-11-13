@@ -1,6 +1,7 @@
 export const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 export const SESSION_IDLE_TIMEOUT_MS = 7 * 24 * 60 * 60 * 1000;
 export const PENDING_RETENTION_MS = 24 * 60 * 60 * 1000;
+export const DETAILS_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
 /** Formats epoch millis like sqlite's `CURRENT_TIMESTAMP` (UTC `YYYY-MM-DD HH:MM:SS`). */
 export const toSqliteTimestamp = (millis: number) => new Date(millis).toISOString().slice(0, 19).replace('T', ' ');

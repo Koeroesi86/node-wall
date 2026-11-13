@@ -89,3 +89,11 @@ test('isPending is false without a pending session', async () => {
   fakeDb.resolves(undefined);
   expect(await isPending('s1')).toBe(false);
 });
+
+test('scrubEndedDetails clears details of sessions deleted before the cutoff', async () => {
+  const { default: scrubEndedDetails } = await import('./scrubEndedDetails');
+  await scrubEndedDetails(100 * 24 * 60 * 60 * 1000);
+  expect(fakeDb.calls).toEqual([
+    ['raw', expect.stringContaining("SET user_agent = NULL, remote_address = NULL"), [70 * 24 * 60 * 60 * 1000]],
+  ]);
+});

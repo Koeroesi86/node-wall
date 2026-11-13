@@ -48,6 +48,21 @@ Account deletion and data export (GDPR) are on the profile page. Deleting needs 
 
 Admin actions (role changes, post status changes, tag creation, tags added to or removed from posts) are recorded in `audit_log` with the actor, action, target id and a per-request id. The newest 50 admin entries (not the users' own `account.*` events) are listed with the actor's name on the moderation page (`GET /api/users/audit`, admins only). Entries older than a year are deleted on the next login request.
 
+### Data retention
+
+There is no privacy notice yet, so the retention periods live here and must be copied into it when it is written. Cleanup runs on login requests (`sessionService.cleanup`, `auditService.cleanup`); there is no separate cron job.
+
+| Data | Kept | Then |
+| --- | --- | --- |
+| Pending (never verified) sessions | 24 hours | row deleted |
+| Users and logins without a verified session | 24 hours | deleted |
+| Active sessions | 30 days maximum, 7 days idle | marked deleted, secret cleared |
+| Session user agent and remote address | 30 days after the session's last activity once it is deleted | both set to `NULL`; the row stays so the account keeps a session record |
+| `audit_log` entries | 1 year | deleted |
+| Rate limit counters | until their window expires | deleted |
+| Server logs (`shared/log`) | not rotated by the app | rotate and delete them on the server (for example with `logrotate`, 30 days); logs hold session ids but no email addresses or login codes in production |
+| Account data | until the user deletes the account (profile page) | removed, see above |
+
 Production `.env` needs `SERVER_PROTOCOL=http`, `SITE_PROTOCOL=https`, `SITE_DOMAIN=uzeno.koro.si`, an absolute `DB_DATABASE=/var/www/uzeno.koro.si/shared/data/wall.sqlite` and `APP_ROOT=/var/www/uzeno.koro.si/build`.
 
 One-time server migration (as root), from the old flat checkout:
