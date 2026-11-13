@@ -62,12 +62,31 @@ const keepAliveCallback = () => {
 let keepAliveTimer = setTimeout(keepAliveCallback, keepAliveTimeout);
 const getResponseHeaders = (headers = {}) => ({
   'Content-Type': 'application/json; charset=utf-8',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, PUT, GET, DELETE, OPTIONS',
   'Cache-Control': 'private, no-store',
   ...headers,
 });
 const transporter = createMailer();
+
+const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+
+/** Same-origin only: a browser always sends Origin on mutating requests, and it must be this site. */
+const isSameOrigin = (origin?: string) => origin === undefined || origin === `${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}`;
+
+const isJsonContentType = (contentType = '') => contentType.split(';')[0].trim().toLowerCase() === 'application/json';
+
+const forbidden = () => ({
+  statusCode: 403,
+  headers: getResponseHeaders(),
+  body: JSON.stringify({ message: 'Forbidden.' }),
+  isBase64Encoded: false,
+});
+
+/** Anybody may see an author's display name; the internal id is for admins only. */
+const getPublicOwner = async (ownerId: string | null | undefined, includeId: boolean) => {
+  const owner = ownerId ? await userService.get(ownerId) : undefined;
+
+  return owner ? { name: owner.name, ...(includeId && { id: owner.id }) } : null;
+};
 
 /** Serializes a 200 response, throwing (so the client gets a 400) instead of sending data that does not match its schema. */
 const jsonResponse = <Schema extends ZodType>(schema: Schema, data: unknown, headers = {}) => ({
@@ -91,11 +110,20 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       pathFragments,
       headers,
     } = event;
+    const readBody = <Schema extends ZodType>(schema: Schema) => {
+      if (!isJsonContentType(headers['content-type'] || headers['Content-Type'])) throw new Error('Content-Type must be application/json');
+
+      return readJson(event.bodyStream, schema);
+    };
     const clientIp = getClientIp(event);
     const requestId = crypto.randomUUID();
     const cookiesRaw = headers.Cookie || headers.cookie || '';
     const cookies = parseCookies(cookiesRaw);
     let userInfo = null;
+
+    if (mutatingMethods.includes(httpMethod) && !isSameOrigin(headers.origin || headers.Origin)) {
+      return callback(forbidden());
+    }
 
     if (cookies.sessionId) {
       userInfo = await getUserInfoFromSession(cookies.sessionId);
@@ -149,7 +177,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
     /** @route /api/comment */
     if (pathFragments[1] === 'comment') {
       if (httpMethod === 'POST' && pathFragments.length === 2) {
-        const payload = await readJson(event.bodyStream, CreateCommentRequestSchema);
+        const payload = await readBody(CreateCommentRequestSchema);
         const owner = userInfo ? userInfo.user.id : null;
 
         const post = await postService.get(payload.postId);
@@ -191,7 +219,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       if (httpMethod === 'PUT' && pathFragments[2] && /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/gi.test(pathFragments[2])) {
         const id = pathFragments[2];
         if (isAdmin(userInfo)) {
-          const payload = await readJson(event.bodyStream, SetPostStatusRequestSchema);
+          const payload = await readBody(SetPostStatusRequestSchema);
 
           if (payload.status === 'public') {
             let content = await storageService.read(id, 'post');
@@ -266,7 +294,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
               content: await postService.getContent(post.id, post.type ?? undefined),
               created_at: post.created_at,
               comments: (await postService.getComments(postId)).map(c => c.id),
-              owner: (post.owner && await userService.get(post.owner)) || null,
+              owner: await getPublicOwner(post.owner, isAdmin(userInfo)),
               tags: postTags
             }));
           }
@@ -332,7 +360,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
       if (httpMethod === 'POST') {
         if (pathFragments.length === 2) {
-          const payload = await readJson(event.bodyStream, CreatePostRequestSchema);
+          const payload = await readBody(CreatePostRequestSchema);
 
           if (!await contentLimiter.consume(userInfo?.user.id ?? `ip:${clientIp}`)) {
             return callback(tooManyRequests());
@@ -361,7 +389,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           const postTags = await postService.getTags(postId);
 
           if (pathFragments[3] === 'tags') {
-            const payload = await readJson(event.bodyStream, AddPostTagRequestSchema);
+            const payload = await readBody(AddPostTagRequestSchema);
 
             const tagId = payload.id;
             if (!await postService.get(postId)) throw new Error('post not found');
@@ -466,7 +494,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
           if (!userInfo) throw new Error('Not logged in');
           if (!isAdmin(userInfo)) throw new Error('Not authorized');
 
-          const payload = await readJson(event.bodyStream, CreateTagRequestSchema);
+          const payload = await readBody(CreateTagRequestSchema);
           const tag = await tagService.create(payload.name, payload.type);
           await auditService.record(userInfo.user.id, 'tag.created', tag.id, requestId);
 
@@ -510,7 +538,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
       }
 
       if (httpMethod === 'PUT' && pathFragments.length === 3) {
-        const { role } = await readJson(event.bodyStream, SetUserRoleRequestSchema);
+        const { role } = await readBody(SetUserRoleRequestSchema);
         const [, , targetId = ''] = pathFragments;
         if (targetId === userInfo.user.id) throw new Error('cannot change own role');
 
@@ -530,7 +558,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
     if (pathFragments[1] === 'user') {
       if (pathFragments.length === 2) {
         if (httpMethod === 'POST') {
-          const payload = await readJson(event.bodyStream, LoginRequestSchema);
+          const payload = await readBody(LoginRequestSchema);
 
           await rateLimitService.removeExpired();
           await sessionService.cleanup();
@@ -611,7 +639,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
         if (httpMethod === 'DELETE') {
           if (!userInfo) throw new Error('not logged in');
-          const { code } = await readJson(event.bodyStream, DeleteAccountRequestSchema);
+          const { code } = await readBody(DeleteAccountRequestSchema);
 
           if (!await accountService.confirmDeletion(userInfo.user.id, code)) throw new Error('invalid confirmation code');
 
@@ -730,7 +758,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
         if (httpMethod === 'PUT') {
           if (!userInfo) throw new Error('not logged in');
-          const payload = await readJson(event.bodyStream, SetUserNameRequestSchema);
+          const payload = await readBody(SetUserNameRequestSchema);
 
           await userService.setName(userInfo.user.id, payload.name);
 
@@ -760,7 +788,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
         if (httpMethod === 'PUT') {
           if (!userInfo) throw new Error('not logged in');
-          const payload = await readJson(event.bodyStream, SetUserTagRequestSchema);
+          const payload = await readBody(SetUserTagRequestSchema);
           if (!await tagService.get(payload.id)) throw new Error('tag not found');
 
           await userService.addTag(payload.id, userInfo.user.id, payload.type);
@@ -775,7 +803,7 @@ export = async (event: LambdaEvent, callback: LambdaCallback) => {
 
         if (httpMethod === 'DELETE') {
           if (!userInfo) throw new Error('not logged in');
-          const payload = await readJson(event.bodyStream, RemoveUserTagRequestSchema);
+          const payload = await readBody(RemoveUserTagRequestSchema);
 
           await userService.removeTag(payload.id, userInfo.user.id);
 

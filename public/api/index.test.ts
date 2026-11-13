@@ -76,7 +76,7 @@ const request = ({ method = 'GET', path, query, headers = {}, body }: Request) =
   const event: LambdaEvent = {
     httpMethod: method,
     pathFragments: path.split('/').filter(Boolean),
-    headers: { ...headers, ...(!('cookie' in headers) && { cookie: `sessionId=${SESSION_ID}` }) },
+    headers: { ...(body !== undefined && { 'content-type': 'application/json' }), ...headers, ...(!('cookie' in headers) && { cookie: `sessionId=${SESSION_ID}` }) },
     queryStringParameters: query,
     remoteAddress: '127.0.0.1',
     bodyStream: Readable.from([body === undefined ? '' : JSON.stringify(body)]),
@@ -336,7 +336,7 @@ describe('/api/comment', () => {
 
     const response = await request({ path: `api/comment/${ID}` });
 
-    expect(jsonBody(response)).toEqual({ ...commentRow, body: 'hi' });
+    expect(jsonBody(response)).toEqual({ id: commentRow.id, post: commentRow.post, parent: null, created_at: 1, body: 'hi' });
   });
 
   test('ignores comment ids that are not uuids', async () => {
@@ -346,6 +346,20 @@ describe('/api/comment', () => {
 
 describe('/api/posts', () => {
   const post = { id: ID, type: 'post', status: 'public', created_at: 1, owner: 'u1' };
+
+  test('does not send CORS headers', async () => {
+    expect((await request({ method: 'OPTIONS', path: 'api/posts' })).headers).not.toHaveProperty('Access-Control-Allow-Origin');
+  });
+
+  test('rejects mutating requests from another origin', async () => {
+    const response = await request({ method: 'POST', path: 'api/posts', body: { content: 'x' }, headers: { origin: 'https://evil.example' } });
+    expect(response.statusCode).toBe(403);
+  });
+
+  test('rejects JSON bodies without a JSON content type', async () => {
+    const response = await request({ method: 'POST', path: 'api/posts', body: { content: 'x' }, headers: { 'content-type': 'text/plain' } });
+    expect(response.statusCode).toBe(400);
+  });
 
   test('answers OPTIONS', async () => {
     expect((await request({ method: 'OPTIONS', path: 'api/posts' })).statusCode).toBe(200);
@@ -433,10 +447,21 @@ describe('/api/posts', () => {
         content: 'hello',
         created_at: 1,
         comments: ['c1', 'c2'],
-        owner: { id: 'u1', name: 'Ann' },
+        owner: { name: 'Ann' },
         tags: [expect.objectContaining({ id: 't1' })],
       });
       expect(postService.getContent).toHaveBeenCalledWith(ID, 'post');
+    });
+
+    test('includes the owner id for admins only', async () => {
+      loggedInAs('admin');
+      vi.mocked(postService.get).mockResolvedValue(post);
+      vi.mocked(postService.getTags).mockResolvedValue([]);
+      vi.mocked(postService.getComments).mockResolvedValue([]);
+      vi.mocked(postService.getContent).mockResolvedValue('hello');
+      vi.mocked(userService.get, { partial: true }).mockResolvedValue({ id: 'u1', name: 'Ann', role: 'admin' });
+
+      expect(jsonBody(await request({ path: `api/posts/${ID}` })).owner).toEqual({ id: 'u1', name: 'Ann' });
     });
 
     test('returns a null owner for anonymous posts', async () => {

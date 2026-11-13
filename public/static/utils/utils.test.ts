@@ -81,7 +81,7 @@ describe('requests', () => {
   const postId = '11111111-2222-3333-4444-555555555555';
   const parentId = '66666666-7777-8888-9999-000000000000';
   const postData = { id: 'p1', type: 'post', content: 'hello', created_at: 1, comments: [], owner: null, tags: [] };
-  const commentData = { id: 'c1', post: 'p1', parent: null, owner: null, status: 'public', created_at: 1, body: 'hi' };
+  const commentData = { id: 'c1', post: 'p1', parent: null, created_at: 1, body: 'hi' };
 
   test('getPost fetches a post', async () => {
     const result = api().getPost('p1');
