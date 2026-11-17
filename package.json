@@ -22,7 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@fortawesome/fontawesome-free": "5.15.4",
-    "@webcomponents/webcomponentsjs": "2.2.10",
+    "@webcomponents/webcomponentsjs": "2.8.0",
     "cookie": "^0.7.0",
     "dotenv": "^16.0.0",
     "jsdom": "^31.0.1",
