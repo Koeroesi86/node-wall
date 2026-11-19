@@ -8,7 +8,6 @@ cpSync('public', 'dist/public', { recursive: true, filter: isAsset });
 // Third-party browser scripts are self hosted so the CSP can restrict scripts to this origin.
 mkdirSync('dist/public/static/vendor', { recursive: true });
 [
-  'node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js',
   'node_modules/redux/dist/redux.min.js',
   'node_modules/tributejs/dist/tribute.min.js',
 ].forEach((source) => cpSync(source, `dist/public/static/vendor/${source.split('/').pop()}`));

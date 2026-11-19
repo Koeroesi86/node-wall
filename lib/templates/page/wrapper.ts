@@ -38,7 +38,6 @@ export default (props: WrapperProps = {}) => (`
     <script src="/static/utils/post.js"></script>
     <script src="/static/utils/comments.js"></script>
     <script src="/static/stores/serviceWorker.js"></script>
-    <script src="/static/stores/translations.js"></script>
     <script src="/static/stores/tags.js"></script>
     <script src="/static/stores/posts.js"></script>
     <script src="/static/stores/bounds.js"></script>

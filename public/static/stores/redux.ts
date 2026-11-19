@@ -1,5 +1,4 @@
 const reducers = Redux.combineReducers({
-  translations: translationsReducer,
   serviceWorker: serviceWorkerReducer,
   tags: tagsReducer,
   posts: postsReducer,
@@ -11,7 +10,6 @@ const reducers = Redux.combineReducers({
 });
 
 const middlewares = [
-  translationsMiddleware,
   serviceWorkerMiddleware,
   tagsMiddleware,
   postsMiddleware,

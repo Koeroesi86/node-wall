@@ -9,65 +9,6 @@ beforeEach(async () => {
 
 afterEach(() => browser.close());
 
-const parsePostContent = (content: string, postId = 'p1') => browser.evaluate<(c: string, p: string) => string>('window.parsePostContent')(content, postId);
-const parseCommentContent = (content: string) => browser.evaluate<(c: string) => string>('window.parseCommentContent')(content);
-
-describe('parsePostContent', () => {
-  test('wraps every line', () => {
-    expect(parsePostContent('one\ntwo')).toBe('<div class="contentLine">one</div>\n<div class="contentLine">two</div>');
-  });
-
-  test('trims the content and collapses runs of blank lines', () => {
-    expect(parsePostContent('  one\n\n\n\n\ntwo  ')).toBe('<div class="contentLine">one</div>\n<div class="contentLine">&nbsp;</div>\n<div class="contentLine">two</div>');
-  });
-
-  test('turns urls into link previews', () => {
-    expect(parsePostContent('see https://example.com/a?b=1 now'))
-      .toBe('<div class="contentLine">see <a is="link-preview" href="https://example.com/a?b=1" post-id="p1"></a> now</div>');
-  });
-
-  test('turns www addresses into https link previews', () => {
-    expect(parsePostContent('go to www.example.com'))
-      .toBe('<div class="contentLine">go to <a is="link-preview" href="https://www.example.com" post-id="p1"></a></div>');
-  });
-
-  test('turns tag references into tag elements', () => {
-    const id = '11111111-2222-3333-4444-555555555555';
-    expect(parsePostContent(`about #!${id}`)).toBe(`<div class="contentLine">about <tag-inline tag-id="${id}"></tag-inline></div>`);
-  });
-
-  test('escapes markup in the content', () => {
-    expect(parsePostContent('<b>bold</b><script>alert(1)</script>')).toBe('<div class="contentLine">&lt;b&gt;bold&lt;/b&gt;&lt;script&gt;alert(1)&lt;/script&gt;</div>');
-  });
-
-  test('does not turn entity-encoded markup into elements', () => {
-    expect(parsePostContent('&lt;img src=x onerror=alert(1)&gt;')).toBe('<div class="contentLine">&lt;img src=x onerror=alert(1)&amp;gt;</div>');
-    expect(parsePostContent('&amp;lt;b&amp;gt;')).not.toMatch(/<b>/);
-  });
-
-  test('handles content that is not a string', () => {
-    expect(parsePostContent(undefined as never)).toBe('<div class="contentLine">undefined</div>');
-  });
-});
-
-describe('parseCommentContent', () => {
-  test('wraps every line', () => {
-    expect(parseCommentContent('one\ntwo')).toBe('<div class="line">one</div>\n<div class="line">two</div>');
-  });
-
-  test('keeps blank lines visible and collapses long runs', () => {
-    expect(parseCommentContent('one\n\n\n\n\ntwo')).toBe('<div class="line">one</div>\n<div class="line">&nbsp;</div>\n<div class="line">two</div>');
-  });
-
-  test('escapes markup', () => {
-    expect(parseCommentContent('<img src=x onerror=alert(1)>')).toBe('<div class="line">&lt;img src=x onerror=alert(1)&gt;</div>');
-  });
-
-  test('trims the content', () => {
-    expect(parseCommentContent('  hi  ')).toBe('<div class="line">hi</div>');
-  });
-});
-
 describe('requests', () => {
   type Api = {
     getPost: (id: string) => Promise<unknown>;

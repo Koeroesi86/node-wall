@@ -126,44 +126,6 @@ describe('links', () => {
   });
 });
 
-describe('translations', () => {
-  beforeEach(() => load('translations'));
-
-  test('action creators', () => {
-    expect(browser.evaluate('translationsActions.request("a")')).toEqual({ type: 'TRANSLATIONS_REQUEST', payload: { alias: 'a' } });
-    expect(browser.evaluate('translationsActions.receive("a", "x")')).toEqual({ type: 'TRANSLATIONS_RECEIVE', payload: { alias: 'a', translation: 'x' } });
-  });
-
-  test('reducer stores translations by alias', () => {
-    const reducer = browser.evaluate<Reducer>('translationsReducer');
-    expect(reducer({}, { type: 'TRANSLATIONS_RECEIVE', payload: { alias: 'a', translation: 'x' } })).toEqual({ a: 'x' });
-    expect(reducer(undefined, { type: 'OTHER' })).toEqual({});
-  });
-
-  test('reserves the alias, fetches it and stores the value', () => {
-    const store = run('translationsMiddleware', { translations: {} }, { type: 'TRANSLATIONS_REQUEST', payload: { alias: 'a' } });
-
-    expect(store.dispatch).toHaveBeenCalledWith({ type: 'TRANSLATIONS_RECEIVE', payload: { alias: 'a', translation: '' } });
-    expect(browser.requests[0]).toMatchObject({ method: 'GET', url: '/api/translation/a' });
-
-    browser.requests[0].respond(200, { value: 'Hello' });
-    expect(store.dispatch).toHaveBeenLastCalledWith({ type: 'TRANSLATIONS_RECEIVE', payload: { alias: 'a', translation: 'Hello' } });
-  });
-
-  test('warns when the translation cannot be fetched', () => {
-    run('translationsMiddleware', { translations: {} }, { type: 'TRANSLATIONS_REQUEST', payload: { alias: 'a' } });
-    browser.requests[0].respond(500);
-    expect(console.warn).toHaveBeenCalledWith('failed to fetch translation for a');
-  });
-
-  test('does not fetch an alias that is already known, even when empty', () => {
-    const store = run('translationsMiddleware', { translations: { a: '' } }, { type: 'TRANSLATIONS_REQUEST', payload: { alias: 'a' } });
-    expect(browser.requests).toHaveLength(0);
-    expect(store.dispatch).not.toHaveBeenCalled();
-    expect(store.next).toHaveBeenCalledOnce();
-  });
-});
-
 describe('posts', () => {
   beforeEach(() => load('posts'));
 

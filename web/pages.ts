@@ -13,7 +13,7 @@ export type PageProps = Record<string, unknown>;
 
 /**
  * The React pages by name. The server renders one into `#root` and the browser hydrates it,
- * so a page must only be listed here once its custom element counterpart is gone.
+ * so every page of the site is listed here.
  */
 export const pages: Record<string, ComponentType<PageProps>> = {
   wall: PostWall,

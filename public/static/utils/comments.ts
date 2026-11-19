@@ -1,14 +1,4 @@
 (function (g: Window) {
-  function parseCommentContent(content: string, postId?: string) {
-    return (content + '')
-      .trim()
-      .replace(/\n{3,}/gi, '\n\n')
-      .split('\n')
-      .map(line => `<div class="line">${escapeHtml(line) || '&nbsp;'}</div>`)
-      .join('\n');
-  }
-  g.parseCommentContent = parseCommentContent;
-
   function getComment(id: string): Promise<CommentData> {
     return new Promise<CommentData>((resolve, reject) => {
       const request = new XMLHttpRequest();

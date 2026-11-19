@@ -3,7 +3,7 @@ import { loadBrowser, type Browser } from '../../../lib/test-utils/browser';
 import { reduxStub } from '../../../lib/test-utils/reduxStub';
 
 const files = [
-  ...['serviceWorker', 'translations', 'tags', 'posts', 'bounds', 'postsList', 'user', 'comments', 'links'].map(name => `public/static/stores/${name}.ts`),
+  ...['serviceWorker', 'tags', 'posts', 'bounds', 'postsList', 'user', 'comments', 'links'].map(name => `public/static/stores/${name}.ts`),
   'public/static/stores/redux.ts',
 ];
 
@@ -77,7 +77,7 @@ describe('the store', () => {
     const mapState = vi.fn();
     call<(l: Listener) => void>('connectRedux')(mapState);
     expect(Object.keys(mapState.mock.calls[0][0]).sort()).toEqual(
-      ['bounds', 'comments', 'links', 'posts', 'postsList', 'serviceWorker', 'tags', 'translations', 'user'],
+      ['bounds', 'comments', 'links', 'posts', 'postsList', 'serviceWorker', 'tags', 'user'],
     );
   });
 });
