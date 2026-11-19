@@ -137,7 +137,7 @@ describe('/moderation', () => {
 
   test('renders for admins', async () => {
     vi.mocked(getUserInfoFromSession).mockResolvedValue(userInfo('admin'));
-    expect((await request({ path: 'moderation' })).body).toContain('<moderation-page>');
+    expect((await request({ path: 'moderation' })).body).toContain('<div class="moderation-page">');
   });
 });
 

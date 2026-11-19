@@ -48,6 +48,15 @@ interface SessionInfo {
 declare function escapeHtml(value?: unknown): string;
 declare const ApiSchemas: {
   TagListResponseSchema: { parse(data: unknown): unknown };
+  AddPostTagRequestSchema: { parse(data: unknown): unknown };
+  CreateTagRequestSchema: { parse(data: unknown): unknown };
+  TagResponseSchema: { parse(data: unknown): { id: string; name: string } };
+  PostListResponseSchema: { parse(data: unknown): unknown };
+  PostResponseSchema: { parse(data: unknown): unknown };
+  SetPostStatusRequestSchema: { parse(data: unknown): unknown };
+  UserListResponseSchema: { parse(data: unknown): { id: string; name?: string; role: string }[] };
+  SetUserRoleRequestSchema: { parse(data: unknown): unknown };
+  AuditListResponseSchema: { parse(data: unknown): { user_id: string | null; user_name: string | null; action: string; target_id: string | null; created_at: number }[] };
   UserInfoResponseSchema: { parse(data: unknown): { user: { name?: string } } };
   SessionListResponseSchema: { parse(data: unknown): SessionInfo[] };
   SetUserNameRequestSchema: { parse(data: unknown): unknown };

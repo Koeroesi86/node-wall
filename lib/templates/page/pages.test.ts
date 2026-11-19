@@ -50,12 +50,11 @@ describe('wrapper', () => {
 describe('pages', () => {
   const props = { language: 'hu-HU', sessionId: SID };
 
-  test.each([
-    ['moderation', moderation, '<moderation-page></moderation-page>', 'moderation-page.js'],
-  ])('%s renders its component inside the wrapper', (_name, render, content, script) => {
-    const html = render(props);
-    expect(html).toContain(content);
-    expect(html).toContain(`/static/components/${script}`);
+  test('moderation renders the pages of the moderators', () => {
+    const html = moderation(props);
+    expect(html).toContain('<div class="moderation-page">');
+    expect(html).toContain('<div class="user-roles">');
+    expect(html).toContain('<div class="audit-log">');
     expect(html).toContain('<html lang="hu">');
     expect(html).toContain(`<meta name="x-session-id" content="${SID}" />`);
   });

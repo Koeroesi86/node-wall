@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import { ProfilePage } from './components/profile-page.tsx';
 import { LoginPage } from './components/login-page.tsx';
+import { ModerationView } from './components/moderation-view.tsx';
 import { PostPage } from './components/post-page.tsx';
 import { PostWall } from './components/post-wall.tsx';
 import { PrivacyPage } from './components/privacy-page.tsx';
@@ -17,6 +18,7 @@ export type PageProps = Record<string, unknown>;
 export const pages: Record<string, ComponentType<PageProps>> = {
   wall: PostWall,
   login: LoginPage,
+  moderation: ModerationView,
   post: PostPage,
   profile: ProfilePage,
   tag: TagPage,

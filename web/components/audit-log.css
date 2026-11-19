@@ -1,13 +1,13 @@
-audit-log {
+.audit-log {
     display: block;
     margin-top: 24px;
 }
 
-audit-log .heading {
+.audit-log .heading {
     margin-bottom: 12px;
 }
 
-audit-log .entry {
+.audit-log .entry {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
@@ -17,6 +17,6 @@ audit-log .entry {
     font-size: 0.85em;
 }
 
-audit-log .entry .action {
+.audit-log .entry .action {
     flex: 1;
 }

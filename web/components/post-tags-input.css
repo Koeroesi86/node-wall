@@ -1,12 +1,12 @@
-post-tags-input {
+.post-tags-input {
     display: block;
 }
 
-post-tags-input.focused {
+.post-tags-input.focused {
     outline: 0;
 }
 
-post-tags-input .tags {
+.post-tags-input .tags {
     position: relative;
     display: flex;
     flex-direction: row;
@@ -18,12 +18,12 @@ post-tags-input .tags {
     border: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.2);
 }
 
-post-tags-input.focused .tags {
+.post-tags-input.focused .tags {
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
 }
 
-post-tags-input .tags .tagElement {
+.post-tags-input .tags .tagElement {
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -34,7 +34,7 @@ post-tags-input .tags .tagElement {
     background: rgba(var(--main-link-highlighted-color-rgb), 0.05);
 }
 
-post-tags-input .tags .tagElement .remove {
+.post-tags-input .tags .tagElement .remove {
     display: flex;
     height: 100%;
     width: 20px;
@@ -43,24 +43,24 @@ post-tags-input .tags .tagElement .remove {
     align-items: center;
 }
 
-post-tags-input .tags .tagElement .label {
+.post-tags-input .tags .tagElement .label {
     height: 100%;
     padding-left: 6px;
 }
 
-post-tags-input .tags .tagElement .remove .icon {
+.post-tags-input .tags .tagElement .remove .icon {
     display: block;
     width: 14px;
     height: 14px;
 }
 
-post-tags-input .tags .tagElement .remove .icon polygon {
+.post-tags-input .tags .tagElement .remove .icon polygon {
     fill: currentColor;
     stroke-width: 4px;
     stroke: currentColor;
 }
 
-post-tags-input .tags .input {
+.post-tags-input .tags .input {
     flex: 1 1 0;
     display: inline-block;
     min-width: 320px;
@@ -71,18 +71,18 @@ post-tags-input .tags .input {
     color: inherit;
 }
 
-post-tags-input.focused .tags .input {
+.post-tags-input.focused .tags .input {
     outline: 0;
 }
 
-post-tags-input.focused .tags .results {
+.post-tags-input.focused .tags .results {
     display: block;
     border-bottom-right-radius: 3px;
     border-bottom-left-radius: 3px;
     border: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.2);
 }
 
-post-tags-input .tags .results {
+.post-tags-input .tags .results {
     display: none;
     position: absolute;
     top: 100%;
@@ -93,13 +93,13 @@ post-tags-input .tags .results {
     box-shadow: 2px 4px 4px rgba(var(--main-link-highlighted-color-rgb), 0.2);
 }
 
-post-tags-input .tags .results .tagResult {
+.post-tags-input .tags .results .tagResult {
     display: block;
     line-height: 20px;
     padding: 0 6px;
     cursor: pointer;
 }
 
-post-tags-input .tags .results .tagResult:hover {
+.post-tags-input .tags .results .tagResult:hover {
     background: rgba(var(--main-link-highlighted-color-rgb), 0.05);
 }
