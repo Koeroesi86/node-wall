@@ -21,15 +21,15 @@ Run the narrowest check that covers your change; run full `typecheck` + `test` o
 - `lib/services/<name>/index.ts` — service; SQL in `queries/*.ts`, one function per file.
 - `lib/templates/` — HTML (`page/`) and email templates.
 - `lib/utils/`, `lib/translations/en-GB|hu-HU/*.json` (one key per file).
-- `public/index.ts`, `public/api/` — server entry points; `public/static/` — the classic browser scripts that are left (redux stores, API helpers; compiled by its own tsconfig).
-- `web/` — the React pages (`components/`, `pages.ts` registry, `entry-client.tsx`/`entry-server.ts`), built with Vite into `dist/public/static/app` (hashed, with a manifest) and `dist/ssr`. Page templates call `reactTemplate` (`lib/templates/page/`); translations reach the components through the page props (`web/translations.tsx`).
+- `public/index.ts`, `public/api/` — server entry points; `public/static/` — static files only (the notification sound).
+- `web/` — the React pages (`components/`, `pages.ts` registry, `entry-client.tsx`/`entry-server.ts`), the redux store (`store/`, one module per slice) and the request helpers (`api/`), built with Vite into `dist/public/static/app` (hashed, with a manifest) and `dist/ssr`. Page templates call `reactTemplate` (`lib/templates/page/`); translations reach the components through the page props (`web/translations.tsx`).
 - `migrations/` — knex; must stay backward compatible (rollback does not revert them).
 - `dev.configuration.ts`, `serverConfig.ts` — webserver config. `.env.example` lists config.
 - `deploy/pre-activate.sh`, `.github/workflows/` — deploy to VPS via deploy-action; `checks.yml` ends in one `required` job.
 
 ## Conventions
 
-- Tests sit next to the code as `*.test.ts` (Vitest). Query tests use `lib/test-utils/fakeDb.ts`; service tests `vi.mock` their `queries/*`; React components are tested with React Testing Library under jsdom (`web/**/*.test.tsx`, `// @vitest-environment jsdom`, helpers in `web/test-utils/`); the classic stores in `public/static/` use `lib/test-utils/browser.ts`. See the `write-unit-test` skill.
+- Tests sit next to the code as `*.test.ts` (Vitest). Query tests use `lib/test-utils/fakeDb.ts`; service tests `vi.mock` their `queries/*`; React components are tested with React Testing Library under jsdom (`web/**/*.test.tsx`, `// @vitest-environment jsdom`, helpers in `web/test-utils/`); the store modules and API helpers use a fake `XMLHttpRequest` (`web/test-utils/xhr.ts`). See the `write-unit-test` skill.
 - New user-facing text: add translation JSON files for every language dir.
 - Config changes: update `.env.example` and README.
 - Never read or print `.env`, `dist/`, `node_modules/`, `package-lock.json`, `lib/data/`.
