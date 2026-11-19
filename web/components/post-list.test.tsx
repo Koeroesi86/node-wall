@@ -4,6 +4,10 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { fakeRedux } from '../test-utils/redux.ts';
 import { PostList } from './post-list.tsx';
 
+vi.mock('./post-preview.tsx', () => ({
+  PostPreview: ({ postId }: { postId: string }) => <post-preview post-id={postId}></post-preview>,
+}));
+
 let redux: ReturnType<typeof fakeRedux>;
 
 const list = (posts: string[], extra = {}) => ({ postsList: { i1: { posts, isLoading: false, ...extra } } });

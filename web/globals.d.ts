@@ -23,6 +23,10 @@ declare const userActions: {
   requestTags: () => ReduxAction;
 };
 
+declare const postsActions: {
+  request: (id: string) => ReduxAction;
+};
+declare function parsePostContent(content: string, postId: string): string;
 declare function createPost(content?: string): Promise<unknown>;
 
 declare module '*.css';

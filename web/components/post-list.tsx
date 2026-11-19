@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { PostPreview } from './post-preview.tsx';
 import { useRedux } from '../use-redux.ts';
 import './post-list.css';
 
@@ -47,7 +48,7 @@ export const PostList = ({ instance = '' }: PostListProps) => {
 
   return (
     <div className="post-list" ref={list} onScroll={loadMore}>
-      {posts.map(id => <post-preview post-id={id} key={id}></post-preview>)}
+      {posts.map(id => <PostPreview postId={id} key={id} />)}
       <audio src="/static/media/notification.mp3" className="notification" ref={notification}></audio>
       <div className={instanceState?.isLoading ? 'end loading' : 'end'} ref={end}>
         <div className="indicator"><translate-text alias="post-list.loading"></translate-text></div>
