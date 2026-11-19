@@ -26,8 +26,6 @@ const urlsToCache = [
   '/static/components/post-preview.css',
   '/static/components/post-tags-input.js',
   '/static/components/post-tags-input.css',
-  '/static/components/profile-page.js',
-  '/static/components/profile-page.css',
   '/static/components/tag-inline.js',
   '/static/components/tag-inline.css',
   '/static/components/translate-text.js',

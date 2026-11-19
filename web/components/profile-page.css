@@ -1,22 +1,22 @@
-profile-page {
+.profile-page {
     display: flex;
     max-width: 100%;
     height: 100%;
     flex-direction: column;
 }
 
-profile-page h2 {
+.profile-page h2 {
     padding: 0 20px;
 }
 
-profile-page .renameUserWrapper {
+.profile-page .renameUserWrapper {
     display: flex;
     flex-direction: row;
     align-items: center;
     padding: 0 20px;
 }
 
-profile-page .renameUserWrapper .name {
+.profile-page .renameUserWrapper .name {
     display: inline-block;
     margin: 0;
     padding: 0 6px;
@@ -32,7 +32,7 @@ profile-page .renameUserWrapper .name {
     color: var(--main-text-color);
 }
 
-profile-page .renameUserWrapper .button {
+.profile-page .renameUserWrapper .button {
     display: inline-block;
     margin: 0;
     padding: 0 6px;
@@ -49,15 +49,15 @@ profile-page .renameUserWrapper .button {
     transition: all .2s ease-in-out;
 }
 
-profile-page .renameUserWrapper .button:hover {
+.profile-page .renameUserWrapper .button:hover {
     background: rgba(var(--tooltip-button-background-color-rgb), 0.2);
 }
 
-profile-page .userTagsWrapper {
+.profile-page .userTagsWrapper {
     padding: 0 20px;
 }
 
-profile-page .userTagsWrapper .list {
+.profile-page .userTagsWrapper .list {
     padding: 6px 12px;
     font-size: 12px;
     border-radius: 6px;
@@ -66,15 +66,15 @@ profile-page .userTagsWrapper .list {
     background: rgba(var(--tooltip-button-background-color-rgb), 0.05);
 }
 
-profile-page .userTagsWrapper .list tag-inline {
+.profile-page .userTagsWrapper .list .tag-inline {
     margin-right: 6px;
 }
 
-profile-page .sessionListWrapper {
+.profile-page .sessionListWrapper {
     padding: 0 20px;
 }
 
-profile-page .sessionList .session {
+.profile-page .sessionList .session {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -86,25 +86,25 @@ profile-page .sessionList .session {
     border-radius: 3px;
 }
 
-profile-page .sessionList .session.current {
+.profile-page .sessionList .session.current {
     background: rgba(var(--tooltip-button-background-color-rgb), 0.3);
     border: 1px solid rgba(var(--tooltip-button-border-color-rgb), 0.3);
 }
 
-profile-page .sessionList .session .type {
+.profile-page .sessionList .session .type {
     font-size: 20px;
     width: 35px;
     text-align: center;
 }
 
-profile-page .sessionList .session .meta {
+.profile-page .sessionList .session .meta {
     font-size: 12px;
     padding-left: 6px;
     text-align: center;
     opacity: .8;
 }
 
-profile-page .sessionList .session .actionsWrapper {
+.profile-page .sessionList .session .actionsWrapper {
     flex-grow: 1;
     display: flex;
     flex-direction: row;
@@ -113,7 +113,7 @@ profile-page .sessionList .session .actionsWrapper {
     opacity: .8;
 }
 
-profile-page .sessionList .session button {
+.profile-page .sessionList .session button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -128,12 +128,12 @@ profile-page .sessionList .session button {
     transition: all .2s ease-in-out;
 }
 
-profile-page .sessionList .session button:hover {
+.profile-page .sessionList .session button:hover {
     background: rgba(var(--main-button-background-color-rgb), 0.4);
     border-color: rgba(var(--main-button-background-color-rgb), 0.8);
 }
 
-profile-page .accountActionsWrapper {
+.profile-page .accountActionsWrapper {
     display: flex;
     flex-direction: row;
     gap: 8px;

@@ -52,7 +52,6 @@ describe('pages', () => {
 
   test.each([
     ['moderation', moderation, '<moderation-page></moderation-page>', 'moderation-page.js'],
-    ['profile', profile, `<profile-page session-id="${SID}"></profile-page>`, 'profile-page.js'],
   ])('%s renders its component inside the wrapper', (_name, render, content, script) => {
     const html = render(props);
     expect(html).toContain(content);
@@ -64,6 +63,12 @@ describe('pages', () => {
   test('login renders the form and the pending session', () => {
     expect(login(props)).toContain('<div class="login-page">');
     expect(login({ ...props, session: 'abc' })).toContain('"session":"abc"');
+  });
+
+  test('profile renders the page and knows the session', () => {
+    const html = profile(props);
+    expect(html).toContain('<div class="profile-page">');
+    expect(html).toContain(`"sessionId":"${SID}"`);
   });
 
   test('welcome renders inside the wrapper', () => {

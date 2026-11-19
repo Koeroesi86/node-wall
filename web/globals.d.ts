@@ -36,9 +36,22 @@ declare const commentsActions: {
 declare const linksActions: {
   request: (href: string, postId: string) => ReduxAction;
 };
+interface SessionInfo {
+  sessionId: string;
+  sessionStatus: string;
+  sessionCreatedAt: number;
+  lastActive?: number | null;
+  loginType?: string;
+  details?: { userAgent?: string } | null;
+}
+
 declare function escapeHtml(value?: unknown): string;
 declare const ApiSchemas: {
   TagListResponseSchema: { parse(data: unknown): unknown };
+  UserInfoResponseSchema: { parse(data: unknown): { user: { name?: string } } };
+  SessionListResponseSchema: { parse(data: unknown): SessionInfo[] };
+  SetUserNameRequestSchema: { parse(data: unknown): unknown };
+  DeleteAccountRequestSchema: { parse(data: unknown): unknown };
   ActivateSessionRequestSchema: { parse(data: unknown): unknown };
   LoginRequestSchema: { parse(data: unknown): unknown };
   LoginResponseSchema: { parse(data: unknown): { sessionId: string } };

@@ -148,7 +148,7 @@ describe('/profile', () => {
 
   test('renders for logged in users', async () => {
     vi.mocked(getUserInfoFromSession).mockResolvedValue(userInfo('user'));
-    expect((await request({ path: 'profile' })).body).toContain(`<profile-page session-id="${SESSION_ID}">`);
+    expect((await request({ path: 'profile' })).body).toContain('<div class="profile-page">');
   });
 });
 
