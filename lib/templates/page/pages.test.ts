@@ -40,7 +40,6 @@ describe('wrapper', () => {
     expect(html).toContain('<title>Wall :: Home</title>');
     expect(html).toContain('<html lang="hu">');
     expect(html).toContain(`<meta name="x-session-id" content="${SID}" />`);
-    expect(html).toContain(`<navigation-wrapper session-id="${SID}">`);
     expect(html).toContain('<p>content</p>');
     expect(html).toContain('<script src="/x.js"></script>');
     expect(html).toContain('id="initial-state">{"a":1}</script>');
@@ -72,7 +71,8 @@ describe('pages', () => {
 
   test('welcome renders inside the wrapper', () => {
     const html = welcome(props);
-    expect(html).toContain('<div id="root" data-page="welcome"><div class="welcome-page">');
+    expect(html).toContain('<div id="root" data-page="welcome"><div class="main-wrapper">')
+    expect(html).toContain('<div class="content-wrapper"><div class="welcome-page">');
     expect(html).toContain('<html lang="hu">');
     expect(html).toContain('Üdv');
   });
@@ -100,7 +100,7 @@ describe('pages', () => {
   });
 
   test('wall uses the given instance', () => {
-    expect(wall({ instance: 'i1' })).toContain('<div id="root" data-page="wall"><div class="post-wall"><div class="compose-post"><div class="post-editor">')
+    expect(wall({ instance: 'i1' })).toContain('<div class="post-wall"><div class="compose-post"><div class="post-editor">')
     expect(wall({ instance: 'i1' })).toContain('"instance":"i1"');
   });
 

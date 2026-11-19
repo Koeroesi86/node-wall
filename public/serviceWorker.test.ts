@@ -80,7 +80,7 @@ describe('install', () => {
 
     expect(caches.delete).toHaveBeenCalledWith('node-wall-cache-v2');
     expect(caches.open).toHaveBeenCalledWith('node-wall-cache-v2');
-    expect(cache.addAll).toHaveBeenCalledWith(expect.arrayContaining(['/', '/wall', '/static/components/_component.js', '/static/stores/redux.js']));
+    expect(cache.addAll).toHaveBeenCalledWith(expect.arrayContaining(['/', '/wall', '/static/media/notification.mp3']));
   });
 });
 
@@ -121,7 +121,7 @@ describe('fetch', () => {
     const cached = new Response('cached');
     caches.match.mockResolvedValue(cached);
 
-    const { response } = fetchEvent('https://wall.example/static/components/_component.js');
+    const { response } = fetchEvent('https://wall.example/static/media/notification.mp3');
 
     expect(await response()).toBe(cached);
     expect(fetchMock).not.toHaveBeenCalled();

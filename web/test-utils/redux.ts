@@ -26,7 +26,7 @@ export const fakeRedux = () => {
       create: (id: string, body: string, parent: string | null) => ({ type: 'COMMENTS_CREATE', payload: { id, parent, body } }),
     },
     postsActions: { request: (id: string) => ({ type: 'POSTS_REQUEST', payload: { id } }) },
-    userActions: { requestTags: () => ({ type: 'USER_REQUEST_TAGS', payload: {} }) },
+    userActions: { request: () => ({ type: 'USER_REQUEST', payload: {} }), requestTags: () => ({ type: 'USER_REQUEST_TAGS', payload: {} }) },
   });
 
   return {

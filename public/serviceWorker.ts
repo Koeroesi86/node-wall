@@ -9,17 +9,7 @@ const clientSessions = new Map<string, string>();
 const urlsToCache = [
   '/',
   '/wall',
-  '/static/components/_component.js',
-  '/static/components/content-wrapper.js',
-  '/static/components/content-wrapper.css',
-  '/static/components/main-wrapper.js',
-  '/static/components/main-wrapper.css',
-  '/static/components/navigation-wrapper.js',
-  '/static/components/navigation-wrapper.css',
-  '/static/components/translate-text.js',
-  '/static/components/translate-text.css',
   '/static/media/notification.mp3',
-  '/static/stores/redux.js',
 ];
 
 function isServiceWorkerScope(scope: WorkerGlobalScope): scope is ServiceWorkerGlobalScope {

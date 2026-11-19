@@ -32,7 +32,6 @@ export default (props: WrapperProps = {}) => (`
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap&subset=latin-ext" rel="stylesheet">
     <link href="/static/vendor/fontawesome/css/all.min.css" rel="stylesheet">
     <link href="/static/vendor/fontawesome/css/v4-shims.min.css" rel="stylesheet">
-    <script src="/static/vendor/webcomponents-bundle.js"></script>
     <script src="/static/vendor/redux.min.js"></script>
     <script src="/static/vendor/api-schemas.js"></script>
     <script type="application/json" id="initial-state">${getInitialState(props)}</script>
@@ -48,22 +47,10 @@ export default (props: WrapperProps = {}) => (`
     <script src="/static/stores/comments.js"></script>
     <script src="/static/stores/links.js"></script>
     <script src="/static/stores/redux.js"></script>
-    <script src="/static/components/_component.js"></script>
-    <script src="/static/components/translate-text.js"></script>
-    <script src="/static/components/x-icon.js"></script>
-    <script src="/static/components/navigation-wrapper.js"></script>
-    <script src="/static/components/content-wrapper.js"></script>
-    <script src="/static/components/main-wrapper.js"></script>
     ${getHeaders(props)}
   </head>
   <body>
-    <main-wrapper>
-      <navigation-wrapper session-id="${getSessionId(props)}"></navigation-wrapper>
-      <content-wrapper>
-        ${getContent(props)}
-        <footer class="site-footer"><a href="/privacy"><translate-text alias="navigation-wrapper.privacy"></translate-text></a></footer>
-      </content-wrapper>
-    </main-wrapper>
+    ${getContent(props)}
   </body>
 </html>
 `);

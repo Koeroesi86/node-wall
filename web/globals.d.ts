@@ -20,6 +20,7 @@ declare const postsListActions: {
   setFilterTags: (instance: string, likedTags?: string[], dislikedTags?: string[]) => ReduxAction;
 };
 declare const userActions: {
+  request: () => ReduxAction;
   requestTags: () => ReduxAction;
 };
 
