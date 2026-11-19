@@ -1,10 +1,10 @@
-compose-post {
+.compose-post {
     display: flex;
     flex-direction: column;
     max-height: 100vh;
 }
 
-compose-post .send {
+.compose-post .send {
     flex: 0 0;
     display: block;
     padding: 0 6px;
@@ -15,15 +15,15 @@ compose-post .send {
     cursor: pointer;
 }
 
-compose-post.sending .send {
+.compose-post.sending .send {
     opacity: 0.6;
 }
 
-compose-post.sending .send .toSend,
-compose-post .send .inProgress {
+.compose-post.sending .send .toSend,
+.compose-post .send .inProgress {
     display: none;
 }
 
-compose-post.sending .send .inProgress {
+.compose-post.sending .send .inProgress {
     display: inline;
 }

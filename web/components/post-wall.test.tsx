@@ -21,7 +21,7 @@ describe('post-wall', () => {
       { type: 'POSTS_LIST_CREATE_FILTER', payload: { instance: 'i1', likedTags: [], dislikedTags: [] } },
       { type: 'USER_REQUEST_TAGS', payload: {} },
     ]);
-    expect(container.querySelector('compose-post')).not.toBeNull();
+    expect(container.querySelector('.compose-post')).not.toBeNull();
   });
 
   test('applies the tag preferences once they are known and shows the list', () => {

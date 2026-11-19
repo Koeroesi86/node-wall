@@ -132,67 +132,6 @@ describe('x-icon', () => {
   });
 });
 
-describe('compose-post', () => {
-  beforeEach(async () => {
-    page = await loadComponents(['compose-post']);
-  });
-
-  const compose = () => {
-    const element = page.mount('<compose-post></compose-post>');
-    const editor = element.querySelector('post-editor') as HTMLElement & { value: string };
-    const button = element.querySelector('.send') as HTMLElement;
-    return { element, editor, button };
-  };
-
-  test('renders an editor and a send button', () => {
-    const { element, editor, button } = compose();
-    expect(editor).not.toBeNull();
-    expect(button.querySelector('translate-text')?.getAttribute('alias')).toBe('compose-post.button.to-send');
-    expect(element.querySelector('translate-text[alias="compose-post.button.sending"]')).not.toBeNull();
-  });
-
-  test('does not send an empty message', () => {
-    page.window.createPost = vi.fn();
-    const { editor, button } = compose();
-    editor.value = '';
-
-    button.click();
-
-    expect(page.window.createPost).not.toHaveBeenCalled();
-  });
-
-  test('sends the message, shows progress and clears the editor', async () => {
-    let finish: () => void = () => undefined;
-    page.window.createPost = vi.fn(() => new Promise<void>(resolve => (finish = resolve)));
-    const { element, editor, button } = compose();
-    editor.value = 'hello';
-
-    button.click();
-    await flush();
-
-    expect(page.window.createPost).toHaveBeenCalledWith('hello');
-    expect(element.classList.contains('sending')).toBe(true);
-
-    finish();
-    await flush();
-
-    expect(element.classList.contains('sending')).toBe(false);
-    expect(editor.value).toBe('');
-  });
-
-  test('keeps the message when sending fails', async () => {
-    page.window.createPost = vi.fn().mockRejectedValue(new Error('offline'));
-    const { editor, button } = compose();
-    editor.value = 'hello';
-
-    button.click();
-    await flush();
-
-    expect(editor.value).toBe('hello');
-    expect(console.error).toHaveBeenCalled();
-  });
-});
-
 describe('post-comments-item', () => {
   beforeEach(async () => {
     page = await loadComponents(['post-comments-item']);

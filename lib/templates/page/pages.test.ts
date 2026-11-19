@@ -78,7 +78,7 @@ describe('pages', () => {
   });
 
   test('wall uses the given instance', () => {
-    expect(wall({ instance: 'i1' })).toContain('<div id="root" data-page="wall"><div class="post-wall"><compose-post></compose-post></div></div>')
+    expect(wall({ instance: 'i1' })).toContain('<div id="root" data-page="wall"><div class="post-wall"><div class="compose-post"><post-editor></post-editor>')
     expect(wall({ instance: 'i1' })).toContain('"instance":"i1"');
   });
 

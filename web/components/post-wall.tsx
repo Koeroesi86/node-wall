@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRedux } from '../use-redux.ts';
+import { ComposePost } from './compose-post.tsx';
 import './post-wall.css';
 
 interface PostWallProps {
@@ -45,7 +46,7 @@ export const PostWall = ({ instance = '' }: PostWallProps) => {
 
   return (
     <div className="post-wall">
-      <compose-post></compose-post>
+      <ComposePost />
       {listShown && <post-list instance={instance}></post-list>}
     </div>
   );

@@ -13,6 +13,6 @@ describe('renderPage', () => {
   });
 
   test('renders the migrated pages from the default registry', () => {
-    expect(renderPage('wall', { instance: 'i1' })).toBe('<div class="post-wall"><compose-post></compose-post></div>');
+    expect(renderPage('wall', { instance: 'i1' })).toContain('<div class="post-wall"><div class="compose-post"><post-editor></post-editor>');
   });
 });

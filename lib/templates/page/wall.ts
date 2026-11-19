@@ -25,7 +25,6 @@ export default (props: WallPageProps = {}) => {
     <script src="/static/components/post-preview.js"></script>
     <script src="/static/components/post-list.js"></script>
     <script src="/static/components/post-editor.js"></script>
-    <script src="/static/components/compose-post.js"></script>
     ${page.headers}
   `,
     content: page.content,

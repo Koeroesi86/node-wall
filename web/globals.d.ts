@@ -21,4 +21,6 @@ declare const userActions: {
   requestTags: () => ReduxAction;
 };
 
+declare function createPost(content?: string): Promise<unknown>;
+
 declare module '*.css';

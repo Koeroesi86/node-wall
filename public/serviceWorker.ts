@@ -10,8 +10,6 @@ const urlsToCache = [
   '/',
   '/wall',
   '/static/components/_component.js',
-  '/static/components/compose-post.js',
-  '/static/components/compose-post.css',
   '/static/components/content-wrapper.js',
   '/static/components/content-wrapper.css',
   '/static/components/link-preview.js',
