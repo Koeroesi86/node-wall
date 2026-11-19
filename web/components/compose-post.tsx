@@ -1,10 +1,9 @@
 import { useRef, useState } from 'react';
+import { PostEditor, type PostEditorHandle } from './post-editor.tsx';
 import './compose-post.css';
 
-type Editor = HTMLElement & { value: string };
-
 export const ComposePost = () => {
-  const editor = useRef<Editor>(null);
+  const editor = useRef<PostEditorHandle>(null);
   const [sending, setSending] = useState(false);
 
   const send = () => {
@@ -23,7 +22,7 @@ export const ComposePost = () => {
 
   return (
     <div className={sending ? 'compose-post sending' : 'compose-post'}>
-      <post-editor ref={editor}></post-editor>
+      <PostEditor ref={editor} />
       <button className="send" type="button" onClick={send}>
         <span className="toSend">
           <translate-text alias="compose-post.button.to-send"></translate-text>

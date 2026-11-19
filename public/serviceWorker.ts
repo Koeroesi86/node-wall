@@ -22,8 +22,6 @@ const urlsToCache = [
   '/static/components/moderation-page.css',
   '/static/components/navigation-wrapper.js',
   '/static/components/navigation-wrapper.css',
-  '/static/components/post-editor.js',
-  '/static/components/post-editor.css',
   '/static/components/post-list.js',
   '/static/components/post-list.css',
   '/static/components/post-preview.js',

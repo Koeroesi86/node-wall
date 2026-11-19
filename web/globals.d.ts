@@ -27,6 +27,15 @@ declare const postsActions: {
   request: (id: string) => ReduxAction;
 };
 declare function parsePostContent(content: string, postId: string): string;
+declare function escapeHtml(value?: unknown): string;
+declare const ApiSchemas: {
+  TagListResponseSchema: { parse(data: unknown): unknown };
+};
+declare class Tribute {
+  constructor(options: Record<string, unknown>);
+  attach(element: Element): void;
+  detach(element: Element): void;
+}
 declare function createPost(content?: string): Promise<unknown>;
 
 declare module '*.css';

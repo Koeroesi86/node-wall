@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { act, cleanup, render } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { fakeRedux } from '../test-utils/redux.ts';
 import { PostWall } from './post-wall.tsx';
 
 let redux: ReturnType<typeof fakeRedux>;
 
 beforeEach(() => {
+  Object.assign(window, { Tribute: class { attach = vi.fn(); detach = vi.fn(); } });
   redux = fakeRedux();
   redux.setState({ bounds: { newest: null, oldest: null }, postsList: {}, user: { role: 'guest', tags: null } });
 });

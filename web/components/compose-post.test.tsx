@@ -3,8 +3,6 @@ import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { ComposePost } from './compose-post.tsx';
 
-type Editor = HTMLElement & { value: string };
-
 const setCreatePost = (createPost: () => Promise<unknown>) => Object.assign(window, { createPost: vi.fn(createPost) });
 
 const compose = () => {
@@ -12,12 +10,13 @@ const compose = () => {
 
   return {
     element: container.firstElementChild as HTMLElement,
-    editor: container.querySelector('post-editor') as Editor,
+    editor: container.querySelector('.postEditorInput') as HTMLElement,
     button: container.querySelector('.send') as HTMLElement,
   };
 };
 
 beforeEach(() => {
+  Object.assign(window, { Tribute: class { attach = vi.fn(); detach = vi.fn(); } });
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 
@@ -38,7 +37,7 @@ describe('compose-post', () => {
   test('does not send an empty message', () => {
     setCreatePost(() => Promise.resolve());
     const { editor, button } = compose();
-    editor.value = '';
+    editor.innerHTML = '';
 
     fireEvent.click(button);
 
@@ -49,7 +48,7 @@ describe('compose-post', () => {
     let finish: () => void = () => undefined;
     setCreatePost(() => new Promise<void>(resolve => (finish = resolve)));
     const { element, editor, button } = compose();
-    editor.value = 'hello';
+    editor.innerHTML = 'hello';
 
     await act(async () => fireEvent.click(button));
 
@@ -59,17 +58,17 @@ describe('compose-post', () => {
     await act(async () => finish());
 
     expect(element.classList.contains('sending')).toBe(false);
-    expect(editor.value).toBe('');
+    expect(editor.innerHTML).toBe('');
   });
 
   test('keeps the message when sending fails', async () => {
     setCreatePost(() => Promise.reject(new Error('offline')));
     const { editor, button } = compose();
-    editor.value = 'hello';
+    editor.innerHTML = 'hello';
 
     await act(async () => fireEvent.click(button));
 
-    expect(editor.value).toBe('hello');
+    expect(editor.innerHTML).toBe('hello');
     expect(console.error).toHaveBeenCalled();
   });
 });
