@@ -1,4 +1,4 @@
-post-preview {
+.post-preview {
     display: block;
     margin-bottom: 12px;
     padding: 3px 9px;
@@ -6,22 +6,22 @@ post-preview {
     border-radius: 3px;
 }
 
-post-preview .tags {
+.post-preview .tags {
     padding-bottom: 6px;
     margin-bottom: 3px;
     font-size: 12px;
     border-bottom: 1px solid rgba(var(--main-link-highlighted-color-rgb), 0.1);
 }
 
-post-preview.noTags .tags {
+.post-preview.noTags .tags {
     display: none;
 }
 
-post-preview .tags .tag-inline {
+.post-preview .tags .tag-inline {
     margin-right: 6px;
 }
 
-post-preview .content {
+.post-preview .content {
     padding: 6px 0;
     font-size: 12px;
     max-height: 100px;
@@ -29,7 +29,7 @@ post-preview .content {
     transition: max-height .3s ease-in-out;
 }
 
-post-preview .meta {
+.post-preview .meta {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -39,58 +39,58 @@ post-preview .meta {
     padding-top: 3px;
 }
 
-post-preview .meta .owner {
+.post-preview .meta .owner {
     flex: 1 1 0;
     padding-left: 12px;
 }
 
-post-preview .meta .tags {
+.post-preview .meta .tags {
     padding: 0 12px;
     display: flex;
     flex-direction: row;
 }
 
-post-preview .meta .tags .tag-inline {
+.post-preview .meta .tags .tag-inline {
     margin-left: 6px;
 }
 
-post-preview.loading .sent,
-post-preview.loading .content {
+.post-preview.loading .sent,
+.post-preview.loading .content {
     display: none;
 }
 
-post-preview.loading .loadingIndicator {
+.post-preview.loading .loadingIndicator {
     display: block;
     font-size: 12px;
 }
 
-post-preview .loadingIndicator {
+.post-preview .loadingIndicator {
     display: none;
 }
 
-post-preview a {
+.post-preview a {
     color: inherit;
 }
 
-post-preview .contentToggleWrapper, post-preview.long.showAll .contentToggleWrapper {
+.post-preview .contentToggleWrapper, .post-preview.long.showAll .contentToggleWrapper {
     display: none;
 }
 
-post-preview.long .contentToggleWrapper {
+.post-preview.long .contentToggleWrapper {
     display: block;
 }
 
-post-preview.long .content {
+.post-preview.long .content {
 }
 
-post-preview.long .content::after {
+.post-preview.long .content::after {
     display: block;
     position: absolute;
     bottom: 0;
 
 }
 
-post-preview.long .contentToggle {
+.post-preview.long .contentToggle {
     position: relative;
     display: block;
     margin: -32px auto 3px auto;
@@ -105,7 +105,7 @@ post-preview.long .contentToggle {
     z-index: 1;
 }
 
-post-preview.long .contentShadow {
+.post-preview.long .contentShadow {
     box-shadow: 0 -4px 6px var(--main-background-color);
     width: 100%;
     height: 4px;

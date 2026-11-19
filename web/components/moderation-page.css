@@ -52,7 +52,7 @@
 }
 
 @media (max-device-width: 480px) {
-    moderation-page .postModerationWrapper .button {
+    .moderation-page .postModerationWrapper .button {
         flex: 1 1 0;
     }
 }

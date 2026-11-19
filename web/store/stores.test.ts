@@ -436,6 +436,11 @@ describe('postsList', () => {
       expect(reducer()(withInstance(), { type: 'POSTS_LIST_PREPEND', payload: { instance: 'i1', posts: ['b'] } }).i1).toEqual({ posts: ['b', 'a'] });
     });
 
+    test('shows a post once, even when a page comes back with posts the list has', () => {
+      expect(reducer()(withInstance(), { type: 'POSTS_LIST_APPEND', payload: { instance: 'i1', posts: ['a', 'b', 'b'] } }).i1).toEqual({ posts: ['a', 'b'] });
+      expect(reducer()(withInstance(), { type: 'POSTS_LIST_PREPEND', payload: { instance: 'i1', posts: ['a', 'c'] } }).i1).toEqual({ posts: ['c', 'a'] });
+    });
+
     test('ignores other actions', () => {
       expect(reducer()(undefined, { type: 'OTHER' })).toEqual({});
     });

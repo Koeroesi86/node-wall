@@ -50,6 +50,9 @@ const update = (state: ListsState, instance: string, change: Partial<PostsListSt
   [instance]: { ...state[instance], ...change },
 });
 
+/** A page can come back with posts the list has already; the list shows each post once. */
+const withoutKnown = (known: string[], posts: string[]) => posts.filter((id, index) => !known.includes(id) && posts.indexOf(id) === index);
+
 export function postsListReducer(state: ListsState = {}, action: AnyAction): ListsState {
   if (isAction<FilterAction>(action, POSTS_LIST_ACTIONS.CREATE_FILTER)) {
     const { instance, likedTags, dislikedTags } = action.payload;
@@ -90,13 +93,13 @@ export function postsListReducer(state: ListsState = {}, action: AnyAction): Lis
   if (isAction<AppendAction>(action, POSTS_LIST_ACTIONS.APPEND)) {
     const { instance, posts } = action.payload;
 
-    return update(state, instance, { posts: [...state[instance].posts, ...posts] });
+    return update(state, instance, { posts: [...state[instance].posts, ...withoutKnown(state[instance].posts, posts)] });
   }
 
   if (isAction<PrependAction>(action, POSTS_LIST_ACTIONS.PREPEND)) {
     const { instance, posts } = action.payload;
 
-    return update(state, instance, { posts: [...posts, ...state[instance].posts] });
+    return update(state, instance, { posts: [...withoutKnown(state[instance].posts, posts), ...state[instance].posts] });
   }
 
   if (isAction<LoadingStartedAction>(action, POSTS_LIST_ACTIONS.SET_LOADING_STARTED)) {
