@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "npm run generate:schemas",
     "build": "tsc -p tsconfig.json && tsc -p public/tsconfig.service-worker.json && npm run build:web && node scripts/copy-assets.mts",
-    "build:web": "vite build && vite build --ssr web/entry-server.ts",
+    "build:web": "vite build",
     "watch:web": "vite build --watch",
     "pretest": "npm run generate:schemas",
     "pretypecheck": "npm run generate:schemas",
