@@ -28,8 +28,6 @@ const urlsToCache = [
   '/static/components/post-preview.css',
   '/static/components/post-tags-input.js',
   '/static/components/post-tags-input.css',
-  '/static/components/privacy-page.js',
-  '/static/components/privacy-page.css',
   '/static/components/profile-page.js',
   '/static/components/profile-page.css',
   '/static/components/tag-inline.js',
@@ -38,8 +36,6 @@ const urlsToCache = [
   '/static/components/tag-page.css',
   '/static/components/translate-text.js',
   '/static/components/translate-text.css',
-  '/static/components/welcome-page.js',
-  '/static/components/welcome-page.css',
   '/static/media/notification.mp3',
   '/static/stores/redux.js',
 ];

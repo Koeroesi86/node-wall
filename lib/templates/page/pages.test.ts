@@ -52,8 +52,6 @@ describe('pages', () => {
 
   test.each([
     ['login', login, '<login-page></login-page>', 'login-page.js'],
-    ['welcome', welcome, '<welcome-page></welcome-page>', 'welcome-page.js'],
-    ['privacy', privacy, '<privacy-page controller="" contact=""></privacy-page>', 'privacy-page.js'],
     ['moderation', moderation, '<moderation-page></moderation-page>', 'moderation-page.js'],
     ['profile', profile, `<profile-page session-id="${SID}"></profile-page>`, 'profile-page.js'],
   ])('%s renders its component inside the wrapper', (_name, render, content, script) => {
@@ -62,6 +60,22 @@ describe('pages', () => {
     expect(html).toContain(`/static/components/${script}`);
     expect(html).toContain('<html lang="hu">');
     expect(html).toContain(`<meta name="x-session-id" content="${SID}" />`);
+  });
+
+  test('welcome renders inside the wrapper', () => {
+    const html = welcome(props);
+    expect(html).toContain('<div id="root" data-page="welcome"><div class="welcome-page">');
+    expect(html).toContain('<html lang="hu">');
+    expect(html).toContain('Üdv');
+  });
+
+  test('privacy renders the operator details', () => {
+    vi.stubEnv('PRIVACY_CONTROLLER', 'Op');
+    vi.stubEnv('PRIVACY_CONTACT_EMAIL', 'me@example.com');
+
+    expect(privacy(props)).toContain('<div class="controller">Op</div>');
+    expect(privacy(props)).toContain('href="mailto:me@example.com"');
+    vi.unstubAllEnvs();
   });
 
   test('post renders the post id', () => {

@@ -74,7 +74,7 @@ describe('pages', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.headers).toMatchObject({ 'Content-Type': 'text/html', 'Content-Security-Policy': expect.stringContaining("script-src 'self'") });
-    expect(response.body).toContain('<welcome-page>');
+    expect(response.body).toContain('<div class="welcome-page">');
     expect(response.body).toContain('<html lang="hu">');
     expect(response.body).toContain(`<meta name="x-session-id" content="${SESSION_ID}" />`);
   });
@@ -82,7 +82,7 @@ describe('pages', () => {
   test('/privacy renders the privacy notice without a session', async () => {
     const response = await request({ path: 'privacy' });
     expect(response.statusCode).toBe(200);
-    expect(response.body).toContain('<privacy-page');
+    expect(response.body).toContain('<div class="privacy-page">');
   });
 
   test('/wall renders the wall', async () => {
@@ -92,7 +92,7 @@ describe('pages', () => {
   test('unknown paths render the welcome page with 404', async () => {
     const response = await request({ path: 'nope' });
     expect(response.statusCode).toBe(404);
-    expect(response.body).toContain('<welcome-page>');
+    expect(response.body).toContain('<div class="welcome-page">');
   });
 
   test('/tag/:id renders an existing tag', async () => {

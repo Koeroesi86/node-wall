@@ -39,31 +39,8 @@ describe('Component base', () => {
 
 describe('wrappers', () => {
   test('are registered as custom elements', async () => {
-    page = await loadComponents(['main-wrapper', 'content-wrapper', 'welcome-page']);
-    ['main-wrapper', 'content-wrapper', 'welcome-page'].forEach(name => expect(page.window.customElements.get(name)).toBeDefined());
-  });
-});
-
-describe('welcome-page', () => {
-  test('renders its translated header and note', async () => {
-    page = await loadComponents(['welcome-page']);
-
-    const element = page.mount('<welcome-page></welcome-page>');
-
-    expect([...element.querySelectorAll('translate-text')].map(node => node.getAttribute('alias')))
-      .toEqual(['welcome-page.header', 'welcome-page.note']);
-  });
-});
-
-describe('privacy-page', () => {
-  test('renders every section and the operator contact as text', async () => {
-    page = await loadComponents(['privacy-page']);
-
-    const element = page.mount('<privacy-page controller="Op &lt;b&gt;" contact="me@example.com"></privacy-page>');
-
-    expect(element.querySelectorAll('translate-text')).toHaveLength(11);
-    expect(element.querySelector('.controller')?.textContent).toBe('Op <b>');
-    expect(element.querySelector('.contact')?.getAttribute('href')).toBe('mailto:me@example.com');
+    page = await loadComponents(['main-wrapper', 'content-wrapper']);
+    ['main-wrapper', 'content-wrapper'].forEach(name => expect(page.window.customElements.get(name)).toBeDefined());
   });
 });
 
