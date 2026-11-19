@@ -94,46 +94,6 @@ describe('post-preview', () => {
   });
 });
 
-describe('post-page', () => {
-  beforeEach(async () => {
-    page = await loadComponents(['post-page']);
-  });
-
-  const mount = () => page.mount('<post-page post-id="p1"></post-page>');
-
-  test('requests the post and embeds its comments', () => {
-    const element = mount();
-    expect(page.redux.dispatched()).toEqual([{ type: 'POSTS_REQUEST', payload: { id: 'p1' } }]);
-    expect(element.querySelector('post-comments')?.getAttribute('post-id')).toBe('p1');
-  });
-
-  test('renders the post once it arrives', () => {
-    const element = mount();
-
-    page.redux.setState({ posts: { p1: post({ tags: [{ id: 't1' }], owner: { id: 'u1', name: 'Ann' } }) } });
-
-    expect([...element.querySelectorAll('.postContent .contentLine')].map(line => line.textContent)).toEqual(['hello', 'world']);
-    expect(element.querySelector('.sentDate x-icon')?.getAttribute('type')).toBe('sentDate');
-    expect(element.querySelector('.tags tag-inline')?.getAttribute('tag-id')).toBe('t1');
-    expect(element.querySelector('.owner')?.textContent).toContain('Ann');
-  });
-
-  test('renders posts without an owner and with an unknown owner name', () => {
-    const element = mount();
-
-    page.redux.setState({ posts: { p1: post() } });
-    expect(element.querySelector('.owner')?.innerHTML).toBe('');
-
-    page.redux.setState({ posts: { p1: post({ content: 'x', owner: { id: 'u1', name: '' } }) } });
-    expect(element.querySelector('.owner translate-text[alias="post-preview.unknown-user"]')).not.toBeNull();
-  });
-
-  test('stops listening when removed', () => {
-    mount().remove();
-    expect(page.redux.listenerCount()).toBe(0);
-  });
-});
-
 describe('post-list', () => {
   beforeEach(async () => {
     page = await loadComponents(['post-list']);

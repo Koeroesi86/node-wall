@@ -21,6 +21,10 @@ export const fakeRedux = () => {
     },
     tagsActions: { request: (id: string) => ({ type: 'TAG_REQUEST', payload: { id } }) },
     linksActions: { request: (href: string, postId: string) => ({ type: 'LINKS_REQUEST', payload: { href, postId } }) },
+    commentsActions: {
+      request: (id: string) => ({ type: 'COMMENTS_REQUEST', payload: { id } }),
+      create: (id: string, body: string, parent: string | null) => ({ type: 'COMMENTS_CREATE', payload: { id, parent, body } }),
+    },
     postsActions: { request: (id: string) => ({ type: 'POSTS_REQUEST', payload: { id } }) },
     userActions: { requestTags: () => ({ type: 'USER_REQUEST_TAGS', payload: {} }) },
   });

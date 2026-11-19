@@ -83,16 +83,16 @@ describe('pages', () => {
   });
 
   test('post renders the post id', () => {
-    expect(post({ ...props, postId: 'p1' })).toContain('<post-page post-id="p1"></post-page>');
+    expect(post({ ...props, postId: 'p1' })).toContain('"postId":"p1"');
   });
 
   test('tag renders the tag attributes', () => {
     expect(tag({ ...props, tag: { id: 't1', name: 'news', type: 'text' } }))
-      .toContain('<tag-page tag-id="t1" tag-name="news" tag-type="text"></tag-page>');
+      .toContain('<div class="tag-page"><h2>#news</h2>');
   });
 
   test('tag renders empty attributes without a tag', () => {
-    expect(tag()).toContain('<tag-page tag-id="" tag-name="" tag-type=""></tag-page>');
+    expect(tag()).toContain('<div class="tag-page"></div>');
   });
 
   test('wall uses the given instance', () => {

@@ -29,6 +29,10 @@ declare const postsActions: {
 declare const tagsActions: {
   request: (id: string) => ReduxAction;
 };
+declare const commentsActions: {
+  request: (id: string) => ReduxAction;
+  create: (id: string, body: string, parent: string | null) => ReduxAction;
+};
 declare const linksActions: {
   request: (href: string, postId: string) => ReduxAction;
 };

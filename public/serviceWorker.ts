@@ -30,8 +30,6 @@ const urlsToCache = [
   '/static/components/profile-page.css',
   '/static/components/tag-inline.js',
   '/static/components/tag-inline.css',
-  '/static/components/tag-page.js',
-  '/static/components/tag-page.css',
   '/static/components/translate-text.js',
   '/static/components/translate-text.css',
   '/static/media/notification.mp3',

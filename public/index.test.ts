@@ -100,7 +100,7 @@ describe('pages', () => {
 
     const response = await request({ path: `tag/${ID}` });
 
-    expect(response.body).toContain(`<tag-page tag-id="${ID}" tag-name="news" tag-type="text">`);
+    expect(response.body).toContain('<div class="tag-page"><h2>#news</h2>');
     expect(fakeDb.calls).toContainEqual(['where', { id: ID }]);
   });
 
@@ -115,7 +115,7 @@ describe('pages', () => {
 
     const response = await request({ path: `post/${ID}` });
 
-    expect(response.body).toContain(`<post-page post-id="${ID}">`);
+    expect(response.body).toContain(`"postId":"${ID}"`);
     expect(fakeDb.calls).toContainEqual(['where', { id: ID, type: 'post', status: 'public' }]);
   });
 
