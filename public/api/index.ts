@@ -1,6 +1,7 @@
 import type { LambdaCallback, LambdaEvent } from '../../lib/types';
 import { parseCookies, buildSessionCookie } from '../../lib/utils/sessionCookie';
 import crypto from 'crypto';
+import isSameOrigin from '../../lib/utils/isSameOrigin';
 import matchAll from 'match-all';
 import storageService from '../../lib/services/storage';
 import postService from '../../lib/services/post';
@@ -70,10 +71,8 @@ const getResponseHeaders = (headers = {}) => ({
 });
 const transporter = createMailer();
 
-const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
-
 /** Same-origin only: a browser always sends Origin on mutating requests, and it must be this site. */
-const isSameOrigin = (origin?: string) => origin === undefined || origin === `${process.env.SITE_PROTOCOL}://${process.env.SITE_DOMAIN}`;
+const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
 const isJsonContentType = (contentType = '') => contentType.split(';')[0].trim().toLowerCase() === 'application/json';
 
