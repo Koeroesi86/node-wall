@@ -1,6 +1,7 @@
 import { randomUUID as uuid } from 'crypto';
 import type { PageProps } from '../../types';
 import wrapper from './wrapper';
+import { reactPage } from './reactPage';
 
 interface WallPageProps extends PageProps {
   instance?: string;
@@ -8,10 +9,15 @@ interface WallPageProps extends PageProps {
 
 const getInstance = (props: WallPageProps = {}) => props.instance || uuid();
 
-export default (props: WallPageProps = {}) => wrapper({
-  language: props.language,
-  sessionId: props.sessionId,
-  headers: `
+export default (props: WallPageProps = {}) => {
+  const page = reactPage('wall', { instance: getInstance(props) });
+
+  if (!page) throw new Error('The wall is rendered by React: run `npm run build` to create the server rendering bundle.');
+
+  return wrapper({
+    language: props.language,
+    sessionId: props.sessionId,
+    headers: `
     <script src="/static/vendor/tribute.min.js"></script>
     <script src="/static/utils/post.js"></script>
     <script src="/static/components/tag-inline.js"></script>
@@ -20,7 +26,8 @@ export default (props: WallPageProps = {}) => wrapper({
     <script src="/static/components/post-list.js"></script>
     <script src="/static/components/post-editor.js"></script>
     <script src="/static/components/compose-post.js"></script>
-    <script src="/static/components/post-wall.js"></script>
+    ${page.headers}
   `,
-  content: `<post-wall instance="${getInstance(props)}"></post-wall>`,
-});
+    content: page.content,
+  });
+};

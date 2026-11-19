@@ -219,50 +219,6 @@ describe('post-comments-item', () => {
   });
 });
 
-describe('post-wall', () => {
-  beforeEach(async () => {
-    page = await loadComponents(['post-wall']);
-  });
-
-  test('creates an unfiltered list and loads the tag preferences of the user', () => {
-    const element = page.mount('<post-wall instance="i1"></post-wall>');
-
-    expect(page.redux.dispatched()).toEqual([
-      { type: 'POSTS_LIST_CREATE_FILTER', payload: { instance: 'i1', likedTags: [], dislikedTags: [] } },
-      { type: 'USER_REQUEST_TAGS', payload: {} },
-    ]);
-    expect(element.querySelector('compose-post')).not.toBeNull();
-  });
-
-  test('applies the tag preferences once they are known and shows the list', () => {
-    const element = page.mount('<post-wall instance="i1"></post-wall>');
-    page.redux.setState({ postsList: { i1: {} }, user: { role: 'user', tags: [] } });
-    page.redux.clearDispatched();
-
-    page.redux.setState({
-      user: { role: 'user', tags: [{ tag_id: 'a', type: 'liked' }, { tag_id: 'b', type: 'disliked' }] },
-    });
-
-    expect(page.redux.dispatched()).toEqual([
-      { type: 'POSTS_LIST_SET_FILTER_TAGS', payload: { instance: 'i1', likedTags: ['a'], dislikedTags: ['b'] } },
-    ]);
-    expect(element.querySelectorAll('post-list')).toHaveLength(1);
-    expect(element.querySelector('post-list')?.getAttribute('instance')).toBe('i1');
-  });
-
-  test('creates the filter when the list does not exist yet, and adds the list only once', () => {
-    const element = page.mount('<post-wall instance="i1"></post-wall>');
-    page.redux.setState({ user: { role: 'user', tags: [] } });
-    page.redux.clearDispatched();
-
-    page.redux.setState({ user: { role: 'user', tags: [{ tag_id: 'a', type: 'liked' }] } });
-    page.redux.setState({ user: { role: 'user', tags: [{ tag_id: 'a', type: 'disliked' }] } });
-
-    expect(page.redux.dispatched()[0]).toMatchObject({ type: 'POSTS_LIST_CREATE_FILTER' });
-    expect(element.querySelectorAll('post-list')).toHaveLength(1);
-  });
-});
-
 describe('tag-page', () => {
   beforeEach(async () => {
     page = await loadComponents(['tag-page']);

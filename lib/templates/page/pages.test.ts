@@ -9,6 +9,11 @@ import wall from './wall';
 import welcome from './welcome';
 import wrapper from './wrapper';
 
+vi.mock('../../utils/loadRenderer', async () => {
+  // the server rendering bundle only exists after a build, so the tests render the React source
+  const { renderPage } = await import('../../../web/render-page.tsx');
+  return { loadRenderer: () => renderPage };
+});
 vi.mock('crypto', () => ({ randomUUID: () => 'generated-instance' }));
 
 const SID = '123e4567-e89b-12d3-a456-426614174000';
@@ -73,11 +78,12 @@ describe('pages', () => {
   });
 
   test('wall uses the given instance', () => {
-    expect(wall({ instance: 'i1' })).toContain('<post-wall instance="i1"></post-wall>');
+    expect(wall({ instance: 'i1' })).toContain('<div id="root" data-page="wall"><div class="post-wall"><compose-post></compose-post></div></div>')
+    expect(wall({ instance: 'i1' })).toContain('"instance":"i1"');
   });
 
   test('wall generates an instance when none is given', () => {
-    expect(wall()).toContain('<post-wall instance="generated-instance"></post-wall>');
+    expect(wall()).toContain('"instance":"generated-instance"');
   });
 
   test('pages work without props', () => {

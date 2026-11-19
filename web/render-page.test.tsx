@@ -12,7 +12,7 @@ describe('renderPage', () => {
     expect(renderPage('missing', {}, { hello: Hello })).toBeUndefined();
   });
 
-  test('has no pages registered before the migration of the first one', () => {
-    expect(renderPage('wall')).toBeUndefined();
+  test('renders the migrated pages from the default registry', () => {
+    expect(renderPage('wall', { instance: 'i1' })).toBe('<div class="post-wall"><compose-post></compose-post></div>');
   });
 });

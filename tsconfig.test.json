@@ -2,8 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "preserve",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": false
   },
-  "include": ["*.test.ts", "lib", "migrations", "types", "public/api", "public/index.ts", "public/**/*.test.ts", "vitest.config.mts"],
+  "include": ["*.test.ts", "lib", "migrations", "types", "public/api", "public/index.ts", "public/**/*.test.ts", "web", "vitest.config.mts"],
   "exclude": []
 }

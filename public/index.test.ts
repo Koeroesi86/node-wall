@@ -8,6 +8,11 @@ import getUserInfoFromSession from '../lib/utils/getUserInfoFromSession';
 vi.mock('../lib/utils/createDatabase', async () => ({
   default: async () => (await import('../lib/test-utils/fakeDb')).fakeDb.knex,
 }));
+vi.mock('../lib/utils/loadRenderer', async () => {
+  // the server rendering bundle only exists after a build, so the tests render the React source
+  const { renderPage } = await import('../web/render-page.tsx');
+  return { loadRenderer: () => renderPage };
+});
 vi.mock('../lib/utils/getUserInfoFromSession');
 
 const ID = '11111111-2222-3333-4444-555555555555';
@@ -81,7 +86,7 @@ describe('pages', () => {
   });
 
   test('/wall renders the wall', async () => {
-    expect((await request({ path: 'wall' })).body).toContain('<post-wall');
+    expect((await request({ path: 'wall' })).body).toContain('<div class="post-wall">');
   });
 
   test('unknown paths render the welcome page with 404', async () => {

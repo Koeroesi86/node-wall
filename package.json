@@ -40,6 +40,8 @@
   },
   "devDependencies": {
     "@koeroesi86/node-webserver-cli": "^26.11.42482079849-master",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
     "@types/cookie": "^0.4.1",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^24.19.2",
