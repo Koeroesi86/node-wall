@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { fakeApiSchemas } from '../test-utils/api-schemas.ts';
 import { fakeFetch } from '../test-utils/fetch.ts';
 import { renderWithTranslations as render } from '../test-utils/render.tsx';
 import { UserRoles } from './user-roles.tsx';
@@ -20,8 +19,6 @@ const mount = async () => {
   return { element: container.firstElementChild as HTMLElement, calls };
 };
 const toggle = (element: HTMLElement, index: number) => fireEvent.click(element.querySelectorAll('.user')[index].querySelector('.toggle') as HTMLElement);
-
-beforeEach(fakeApiSchemas);
 
 afterEach(() => {
   cleanup();

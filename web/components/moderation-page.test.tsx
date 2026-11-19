@@ -2,7 +2,6 @@
 import { act, cleanup, fireEvent } from '@testing-library/react';
 import { createElement } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { fakeApiSchemas } from '../test-utils/api-schemas.ts';
 import { fakeFetch } from '../test-utils/fetch.ts';
 import { renderWithTranslations as render } from '../test-utils/render.tsx';
 import { ModerationPage } from './moderation-page.tsx';
@@ -13,7 +12,8 @@ vi.mock('./post-preview.tsx', () => ({
 
 const TAG_ID = '11111111-2222-3333-4444-555555555555';
 const pending = [{ id: 'p1', type: 'post', created_at: 100 }];
-const details = { tags: [], content: 'hello #fresh' };
+const postData = { id: 'p1', type: 'post', created_at: 100, comments: [], owner: null };
+const details = { ...postData, tags: [], content: 'hello #fresh' };
 
 const settle = () => act(async () => { await vi.advanceTimersByTimeAsync(0); });
 const mount = async (posts: unknown[] = pending, extraRoutes = {}) => {
@@ -31,10 +31,8 @@ const mount = async (posts: unknown[] = pending, extraRoutes = {}) => {
 
 beforeEach(() => {
   vi.useFakeTimers();
-  fakeApiSchemas();
   vi.spyOn(window, 'alert').mockImplementation(() => undefined);
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
-  Object.assign(window, { Tribute: class { attach() {} detach() {} } });
 });
 
 afterEach(() => {
@@ -96,7 +94,7 @@ describe('moderation-page', () => {
 
   test('approves a tagged post', async () => {
     const { element, calls } = await mount(pending, {
-      'GET /api/posts/p1': { body: { content: 'hello', tags: [{ id: TAG_ID, name: 'news' }] } },
+      'GET /api/posts/p1': { body: { ...postData, content: 'hello', tags: [{ id: TAG_ID, name: 'news', type: 'text' }] } },
       [`GET /api/tags/${TAG_ID}`]: { body: { id: TAG_ID, name: 'news', type: 'text' } },
     });
     calls.length = 0;

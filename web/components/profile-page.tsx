@@ -1,3 +1,5 @@
+import { DeleteAccountRequestSchema, SessionListResponseSchema, SetUserNameRequestSchema, UserInfoResponseSchema } from '../../lib/api-schemas';
+import { userActions } from '../store/user.ts';
 import { useEffect, useState } from 'react';
 import { request } from '../api.ts';
 import { TranslateText, useTranslate } from '../translations.tsx';
@@ -10,6 +12,8 @@ interface ProfilePageProps {
   /** The session of the visitor, to tell it from the others. */
   sessionId?: string;
 }
+
+type SessionInfo = ReturnType<typeof SessionListResponseSchema.parse>[number];
 
 interface UserTag {
   tag_id: string;
@@ -37,16 +41,16 @@ export const ProfilePage = ({ sessionId }: ProfilePageProps) => {
   useEffect(() => {
     Promise.resolve()
       .then(() => request('GET', '/api/user'))
-      .then(info => setName(ApiSchemas.UserInfoResponseSchema.parse(info).user.name || ''))
+      .then(info => setName(UserInfoResponseSchema.parse(info).user.name || ''))
       .then(() => request('GET', '/api/user/sessions'))
-      .then(list => setSessions(ApiSchemas.SessionListResponseSchema.parse(list)))
+      .then(list => setSessions(SessionListResponseSchema.parse(list)))
       .catch(console.error);
   }, []);
 
   const rename = () => {
     if (!name) return;
 
-    request('PUT', '/api/user/name', ApiSchemas.SetUserNameRequestSchema.parse({ name }))
+    request('PUT', '/api/user/name', SetUserNameRequestSchema.parse({ name }))
       .then(() => location.reload())
       .catch(console.error);
   };
@@ -70,7 +74,7 @@ export const ProfilePage = ({ sessionId }: ProfilePageProps) => {
     if (!code) return;
 
     try {
-      await request('DELETE', '/api/user', ApiSchemas.DeleteAccountRequestSchema.parse({ code }));
+      await request('DELETE', '/api/user', DeleteAccountRequestSchema.parse({ code }));
       location.href = '/';
     } catch (error) {
       alert(translate('profile-page.delete.failed'));

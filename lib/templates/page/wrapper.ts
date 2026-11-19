@@ -8,7 +8,6 @@ interface WrapperProps {
   sessionId?: string;
   content?: string;
   language?: string;
-  initialState?: Record<string, unknown>;
 }
 
 const getSiteName = (props: WrapperProps) => props.siteName || 'Üzenőfal';
@@ -17,9 +16,6 @@ const getHeaders = (props: WrapperProps) => props.headers || '';
 const getSessionId = (props: WrapperProps) => isSessionId(props.sessionId) ? props.sessionId : '';
 const getContent = (props: WrapperProps) => props.content || '';
 const getLanguage = (props: WrapperProps) => escapeHtml(props.language || 'en-GB');
-// Escaping `<` keeps the JSON from closing the script element.
-const getInitialState = (props: WrapperProps) => JSON.stringify(props.initialState || {}).replace(/</g, '\\u003c');
-
 export default (props: WrapperProps = {}) => (`
 <!DOCTYPE html>
 <html lang="${getLanguage(props).substr(0, 2)}">
@@ -32,20 +28,6 @@ export default (props: WrapperProps = {}) => (`
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap&subset=latin-ext" rel="stylesheet">
     <link href="/static/vendor/fontawesome/css/all.min.css" rel="stylesheet">
     <link href="/static/vendor/fontawesome/css/v4-shims.min.css" rel="stylesheet">
-    <script src="/static/vendor/redux.min.js"></script>
-    <script src="/static/vendor/api-schemas.js"></script>
-    <script type="application/json" id="initial-state">${getInitialState(props)}</script>
-    <script src="/static/utils/post.js"></script>
-    <script src="/static/utils/comments.js"></script>
-    <script src="/static/stores/serviceWorker.js"></script>
-    <script src="/static/stores/tags.js"></script>
-    <script src="/static/stores/posts.js"></script>
-    <script src="/static/stores/bounds.js"></script>
-    <script src="/static/stores/postsList.js"></script>
-    <script src="/static/stores/user.js"></script>
-    <script src="/static/stores/comments.js"></script>
-    <script src="/static/stores/links.js"></script>
-    <script src="/static/stores/redux.js"></script>
     ${getHeaders(props)}
   </head>
   <body>

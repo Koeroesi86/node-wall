@@ -1,3 +1,4 @@
+import { SetUserRoleRequestSchema, UserListResponseSchema } from '../../lib/api-schemas';
 import { useEffect, useState } from 'react';
 import { request } from '../api.ts';
 import { TranslateText } from '../translations.tsx';
@@ -5,18 +6,18 @@ import './user-roles.css';
 
 interface User {
   id: string;
-  name?: string;
-  role: string;
+  name?: string | null;
+  role: string | null;
 }
 
 export const UserRoles = () => {
   const [users, setUsers] = useState<User[]>([]);
 
   const load = () => request('GET', '/api/users')
-    .then(list => setUsers(ApiSchemas.UserListResponseSchema.parse(list)))
+    .then(list => setUsers(UserListResponseSchema.parse(list)))
     .catch(console.error);
 
-  const toggle = (user: User) => request('PUT', `/api/users/${encodeURIComponent(user.id)}`, ApiSchemas.SetUserRoleRequestSchema.parse({ role: user.role === 'admin' ? 'user' : 'admin' }))
+  const toggle = (user: User) => request('PUT', `/api/users/${encodeURIComponent(user.id)}`, SetUserRoleRequestSchema.parse({ role: user.role === 'admin' ? 'user' : 'admin' }))
     .then(load)
     .catch(console.error);
 

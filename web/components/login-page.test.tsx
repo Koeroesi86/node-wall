@@ -39,13 +39,6 @@ const type = (input: Element | null, value: string) => fireEvent.change(input as
 beforeEach(() => {
   requests.length = 0;
   vi.stubGlobal('XMLHttpRequest', FakeXhr);
-  Object.assign(window, {
-    ApiSchemas: {
-      ActivateSessionRequestSchema: { parse: (data: unknown) => data },
-      LoginRequestSchema: { parse: (data: unknown) => data },
-      LoginResponseSchema: { parse: (data: unknown) => data },
-    },
-  });
 });
 
 afterEach(() => {

@@ -2,12 +2,12 @@
 import { act, cleanup, fireEvent } from '@testing-library/react';
 import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { fakeApiSchemas } from '../test-utils/api-schemas.ts';
 import { fakeFetch } from '../test-utils/fetch.ts';
 import { renderWithTranslations as render } from '../test-utils/render.tsx';
 import { PostTagsInput, type PostTagsInputHandle } from './post-tags-input.tsx';
 
 const TAG_ID = '11111111-2222-3333-4444-555555555555';
+const NEW_ID = '99999999-2222-3333-4444-555555555555';
 const news = { id: TAG_ID, name: 'news', type: 'text' };
 
 const settle = () => act(async () => { await vi.advanceTimersByTimeAsync(0); });
@@ -22,7 +22,6 @@ const pause = () => act(async () => { await vi.advanceTimersByTimeAsync(200); })
 
 beforeEach(() => {
   vi.useFakeTimers();
-  fakeApiSchemas();
 });
 
 afterEach(() => {
@@ -149,14 +148,14 @@ describe('post-tags-input', () => {
 
   test('creates a tag and lists it', async () => {
     const calls = fakeFetch({
-      'POST /api/tags': { body: { id: 't9', name: 'fresh', type: 'text' } },
-      'GET /api/tags/t9': { body: { id: 't9', name: 'fresh', type: 'text' } },
+      'POST /api/tags': { body: { ...news, id: NEW_ID, name: 'fresh' } },
+      [`GET /api/tags/${NEW_ID}`]: { body: { ...news, id: NEW_ID, name: 'fresh' } },
     });
     const { handle } = mount();
 
     await act(async () => { await handle().createTag('fresh'); });
 
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/tags', body: JSON.stringify({ name: 'fresh', type: 'text' }) });
-    expect(handle().tagIds).toEqual(['t9']);
+    expect(handle().tagIds).toEqual([NEW_ID]);
   });
 });

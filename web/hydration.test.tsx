@@ -5,7 +5,6 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { PageRoot } from './page-root.tsx';
 import { pages } from './pages.ts';
-import { fakeApiSchemas } from './test-utils/api-schemas.ts';
 import { fakeFetch } from './test-utils/fetch.ts';
 import { fakeRedux } from './test-utils/redux.ts';
 
@@ -23,17 +22,15 @@ let redux: ReturnType<typeof fakeRedux>;
 
 beforeEach(() => {
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-  fakeApiSchemas();
   fakeFetch({
     'GET /api/users': { body: [] },
     'GET /api/users/audit': { body: [] },
     'GET /api/posts?status=pending': { body: [] },
-    'GET /api/user': { body: { user: { name: '' } } },
+    'GET /api/user': { body: { user: { id: 'u1', name: '', role: 'user', created_at: 1 }, session: { id: 's1', users_login_id: 'l1', status: 'active', created_at: 1, last_active: null }, login: { id: 'l1', type: 'email', user_id: 'u1', value: 'a@b.c' } } },
     'GET /api/user/sessions': { body: [] },
   });
   redux = fakeRedux();
   redux.setState({ posts: {}, postsList: {}, tags: {}, links: {}, comments: {}, bounds: { newest: null, oldest: null }, user: { received: false, role: 'guest', tags: null, session: null } });
-  Object.assign(window, { Tribute: class { attach() {} detach() {} } });
 });
 
 afterEach(() => {

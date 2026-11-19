@@ -1,3 +1,4 @@
+import { commentsActions } from '../store/comments.ts';
 import { useRef } from 'react';
 import { TranslateText } from '../translations.tsx';
 import { useRedux } from '../use-redux.ts';

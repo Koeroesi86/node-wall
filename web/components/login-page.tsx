@@ -1,3 +1,4 @@
+import { ActivateSessionRequestSchema, LoginRequestSchema, LoginResponseSchema } from '../../lib/api-schemas';
 import { useState, type FormEvent } from 'react';
 import { TranslateText, useTranslation } from '../translations.tsx';
 import './login-page.css';
@@ -30,7 +31,7 @@ export const LoginPage = ({ session }: LoginPageProps) => {
     event.stopPropagation();
     if (code.length !== 6 || !codePattern.test(code)) return;
 
-    post('/login/email', ApiSchemas.ActivateSessionRequestSchema.parse({ session, code }), (request) => {
+    post('/login/email', ActivateSessionRequestSchema.parse({ session, code }), (request) => {
       location.href = request.status === 200 ? '/' : `/login?session=${encodeURIComponent(session ?? '')}`;
     });
   };
@@ -40,10 +41,10 @@ export const LoginPage = ({ session }: LoginPageProps) => {
     event.stopPropagation();
     if (email.length === 0) return;
 
-    post('/api/user', ApiSchemas.LoginRequestSchema.parse({ type: 'email', value: email }), (request) => {
+    post('/api/user', LoginRequestSchema.parse({ type: 'email', value: email }), (request) => {
       if (request.status !== 200) return;
 
-      location.href = `/login?session=${ApiSchemas.LoginResponseSchema.parse(JSON.parse(request.responseText)).sessionId}`;
+      location.href = `/login?session=${LoginResponseSchema.parse(JSON.parse(request.responseText)).sessionId}`;
     });
   };
 

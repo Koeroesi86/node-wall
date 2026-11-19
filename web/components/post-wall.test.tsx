@@ -7,7 +7,6 @@ import { PostWall } from './post-wall.tsx';
 let redux: ReturnType<typeof fakeRedux>;
 
 beforeEach(() => {
-  Object.assign(window, { Tribute: class { attach = vi.fn(); detach = vi.fn(); } });
   redux = fakeRedux();
   redux.setState({ bounds: { newest: null, oldest: null }, postsList: {}, user: { role: 'guest', tags: null } });
 });

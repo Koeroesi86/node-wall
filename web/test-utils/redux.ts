@@ -1,42 +1,38 @@
-/** A stand-in for the page's redux store: the state under test control and the dispatched actions recorded. */
-export const fakeRedux = () => {
-  let state: ReduxState = {};
-  const listeners: ((state: ReduxState, previous?: ReduxState) => void)[] = [];
-  const dispatched: ReduxAction[] = [];
+import { setStore } from '../store/index.ts';
+import type { AnyAction, RootState } from '../store/types.ts';
 
-  Object.assign(window, {
-    connectRedux: (mapState: (state: ReduxState, previous?: ReduxState) => void, connectDispatch: (dispatch: ReduxDispatch) => void) => {
-      listeners.push(mapState);
-      connectDispatch(action => dispatched.push(action));
-      mapState(state);
+/**
+ * A stand-in for the page's redux store: the state is under test control and the dispatched actions
+ * are recorded. The action creators are the real ones, so the actions are what the app would send.
+ */
+export const fakeRedux = () => {
+  let state = {} as RootState;
+  const listeners: (() => void)[] = [];
+  const dispatched: AnyAction[] = [];
+
+  setStore({
+    getState: () => state,
+    dispatch: <A extends AnyAction>(action: A) => {
+      dispatched.push(action);
+
+      return action;
     },
-    disconnectRedux: (mapState: (state: ReduxState) => void) => {
-      listeners.splice(listeners.indexOf(mapState), 1);
+    subscribe: (listener) => {
+      listeners.push(listener);
+
+      return () => {
+        listeners.splice(listeners.indexOf(listener), 1);
+      };
     },
-    postsListActions: {
-      loadMore: (instance: string) => ({ type: 'POSTS_LIST_LOAD_MORE', payload: { instance } }),
-      loadNew: (instance: string) => ({ type: 'POSTS_LIST_LOAD_NEW', payload: { instance } }),
-      createFilter: (instance: string, likedTags: string[], dislikedTags: string[]) => ({ type: 'POSTS_LIST_CREATE_FILTER', payload: { instance, likedTags, dislikedTags } }),
-      setFilterTags: (instance: string, likedTags: string[], dislikedTags: string[]) => ({ type: 'POSTS_LIST_SET_FILTER_TAGS', payload: { instance, likedTags, dislikedTags } }),
-    },
-    tagsActions: { request: (id: string) => ({ type: 'TAG_REQUEST', payload: { id } }) },
-    linksActions: { request: (href: string, postId: string) => ({ type: 'LINKS_REQUEST', payload: { href, postId } }) },
-    commentsActions: {
-      request: (id: string) => ({ type: 'COMMENTS_REQUEST', payload: { id } }),
-      create: (id: string, body: string, parent: string | null) => ({ type: 'COMMENTS_CREATE', payload: { id, parent, body } }),
-    },
-    postsActions: { request: (id: string) => ({ type: 'POSTS_REQUEST', payload: { id } }) },
-    userActions: { request: () => ({ type: 'USER_REQUEST', payload: {} }), requestTags: () => ({ type: 'USER_REQUEST_TAGS', payload: {} }) },
   });
 
   return {
     dispatched,
     clearDispatched: () => dispatched.splice(0),
-    /** Replaces the state and notifies the connected components, like a store update would. */
-    setState: (next: ReduxState) => {
-      const previous = state;
-      state = next;
-      listeners.slice().forEach(listener => listener(next, previous));
+    /** Replaces the state (only the slices a component reads need to be there) and notifies the subscribers. */
+    setState: (next: Partial<Record<keyof RootState, unknown>>) => {
+      state = next as RootState;
+      listeners.slice().forEach(listener => listener());
     },
   };
 };

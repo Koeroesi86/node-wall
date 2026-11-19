@@ -9,7 +9,19 @@ interface TributeOptions {
   collection: { values: (text: string, callback: (tags: unknown) => void) => void; selectTemplate: (item: unknown) => string }[];
 }
 
-let tributeOptions: TributeOptions;
+const tribute = vi.hoisted(() => ({ options: undefined as unknown }));
+
+vi.mock('tributejs', () => ({
+  default: class {
+    constructor(options: unknown) {
+      tribute.options = options;
+    }
+
+    attach() {}
+    detach() {}
+  },
+}));
+const tag = { id: '11111111-2222-3333-4444-555555555555', name: 'news', type: 'text' };
 const requests: { method: string; url: string; respond: (status: number, body: unknown) => void }[] = [];
 
 class FakeXhr {
@@ -41,17 +53,6 @@ const mount = () => {
 
 beforeEach(() => {
   requests.length = 0;
-  Object.assign(window, {
-    escapeHtml: (value: string) => value,
-    ApiSchemas: { TagListResponseSchema: { parse: (data: unknown) => data } },
-    Tribute: class {
-      attach = vi.fn();
-      detach = vi.fn();
-      constructor(options: TributeOptions) {
-        tributeOptions = options;
-      }
-    },
-  });
   vi.stubGlobal('XMLHttpRequest', FakeXhr);
 });
 
@@ -127,9 +128,10 @@ describe('post-editor', () => {
     expect(execCommand).toHaveBeenCalledWith('insertText', false, '<b>raw</b>');
   });
 
-  test('looks up tags for #-completion', () => {
+  test('looks up tags for #-completion', async () => {
     mount();
-    const { values, selectTemplate } = tributeOptions.collection[0];
+    await act(async () => undefined);
+    const { values, selectTemplate } = (tribute.options as TributeOptions).collection[0];
     const callback = vi.fn();
 
     values('', callback);
@@ -137,9 +139,9 @@ describe('post-editor', () => {
 
     values('ne', callback);
     expect(requests[0]).toMatchObject({ method: 'GET', url: '/api/tags?s=ne' });
-    requests[0].respond(200, [{ id: 't1', name: 'news', type: 'text' }]);
-    expect(callback).toHaveBeenCalledWith([{ id: 't1', name: 'news', type: 'text' }]);
+    requests[0].respond(200, [tag]);
+    expect(callback).toHaveBeenCalledWith([tag]);
 
-    expect(selectTemplate({ original: { id: 't1', name: 'news' } })).toBe('<span tag-id="t1" contenteditable="false">#news</span>');
+    expect(selectTemplate({ original: tag })).toBe(`<span tag-id="${tag.id}" contenteditable="false">#news</span>`);
   });
 });

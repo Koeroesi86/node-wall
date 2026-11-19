@@ -8,7 +8,4 @@ interface WallPageProps extends PageProps {
 
 const getInstance = (props: WallPageProps = {}) => props.instance || uuid();
 
-export default (props: WallPageProps = {}) => reactTemplate('wall', { instance: getInstance(props) }, props, `
-    <script src="/static/vendor/tribute.min.js"></script>
-    <script src="/static/utils/post.js"></script>
-`);
+export default (props: WallPageProps = {}) => reactTemplate('wall', { instance: getInstance(props) }, props);

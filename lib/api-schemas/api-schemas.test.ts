@@ -81,15 +81,6 @@ describe('UserInfoResponseSchema', () => {
   });
 });
 
-describe('browser bundle', () => {
-  test('is plain ASCII, as the script is served without a charset', async () => {
-    const { bundleApiSchemas } = await import('../../scripts/bundle-api-schemas.mts');
-    const code = await bundleApiSchemas();
-
-    expect(code).toMatch(/^[\x00-\x7f]*$/);
-  }, 30000);
-});
-
 describe('DeleteAccountRequestSchema', () => {
   test('accepts the emailed code', () => {
     expect(DeleteAccountRequestSchema.parse({ code: ' abc123 ' })).toEqual({ code: 'abc123' });

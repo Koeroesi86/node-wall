@@ -8,4 +8,4 @@ interface TagPageProps extends PageProps {
 export default (props: TagPageProps = {}) => reactTemplate('tag', {
   tagId: props.tag?.id ?? '',
   tagName: props.tag?.name ?? '',
-}, props, '<script src="/static/vendor/tribute.min.js"></script>');
+}, props);

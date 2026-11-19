@@ -1,3 +1,4 @@
+import { createPost } from '../api/posts.ts';
 import { useRef, useState } from 'react';
 import { PostEditor, type PostEditorHandle } from './post-editor.tsx';
 import { TranslateText } from '../translations.tsx';

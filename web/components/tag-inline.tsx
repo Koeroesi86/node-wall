@@ -1,3 +1,6 @@
+import { RemoveUserTagRequestSchema, SetUserTagRequestSchema } from '../../lib/api-schemas';
+import { userActions } from '../store/user.ts';
+import { tagsActions } from '../store/tags.ts';
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import { useRedux } from '../use-redux.ts';
 import { TranslateText } from '../translations.tsx';
@@ -31,11 +34,11 @@ const addTag = (id: string, type: string) => !id
   ? Promise.reject(new Error('Tag id is required'))
   : !['liked', 'disliked'].includes(type)
     ? Promise.reject(new Error('Invalid type'))
-    : send('PUT', ApiSchemas.SetUserTagRequestSchema.parse({ id, type }));
+    : send('PUT', SetUserTagRequestSchema.parse({ id, type }));
 
 const removeTag = (id: string) => !id
   ? Promise.reject(new Error('Tag id is required'))
-  : send('DELETE', ApiSchemas.RemoveUserTagRequestSchema.parse({ id }));
+  : send('DELETE', RemoveUserTagRequestSchema.parse({ id }));
 
 const isInside = (parent: HTMLElement | null, node: EventTarget | null): boolean => node instanceof Node && !!parent?.contains(node);
 
@@ -58,6 +61,7 @@ export const TagInline = ({ tagId }: TagInlineProps) => {
   const choose = (type: string) => (event: MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+    if (!tag) return;
 
     Promise.resolve()
       .then(() => current?.type === type ? removeTag(tag.id) : addTag(tag.id, type))

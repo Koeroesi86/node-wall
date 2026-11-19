@@ -1,4 +1,6 @@
+import { postsActions } from '../store/posts.ts';
 import { useEffect, useRef, useState } from 'react';
+import { formatDate } from '../format.ts';
 import { PostContent } from '../post-content.tsx';
 import { useRedux } from '../use-redux.ts';
 import { TagInline } from './tag-inline.tsx';
@@ -14,7 +16,7 @@ interface Tag {
 }
 
 interface Owner {
-  name?: string;
+  name?: string | null;
 }
 
 const classes = (...names: (string | false)[]) => names.filter(Boolean).join(' ');
@@ -27,7 +29,7 @@ export const PostPreview = ({ postId }: PostPreviewProps) => {
   const [maxHeight, setMaxHeight] = useState<string>();
   const post = state?.posts[postId];
   const tags: Tag[] = post?.tags ?? [];
-  const owner: Owner | undefined = post?.owner;
+  const owner: Owner | null | undefined = post?.owner;
 
   useEffect(() => {
     dispatch(postsActions.request(postId));
@@ -65,7 +67,7 @@ export const PostPreview = ({ postId }: PostPreviewProps) => {
         <div className="sent">
           <TranslateText alias="post-preview.sent-at" />&nbsp;
           <a className="date" href={post ? `/post/${postId}` : undefined}>
-            {post ? new Date(parseInt(post.created_at, 10)).toLocaleString() : undefined}
+            {post ? formatDate(post.created_at) : undefined}
           </a>
         </div>
         <div className="owner">

@@ -55,12 +55,6 @@ beforeEach(() => {
   redux.setState({ tags: {}, ...withUser('guest') });
   vi.useFakeTimers();
   vi.stubGlobal('XMLHttpRequest', FakeXhr);
-  Object.assign(window, {
-    ApiSchemas: {
-      SetUserTagRequestSchema: { parse: (data: unknown) => data },
-      RemoveUserTagRequestSchema: { parse: (data: unknown) => data },
-    },
-  });
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 

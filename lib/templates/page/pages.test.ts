@@ -24,7 +24,6 @@ describe('wrapper', () => {
     expect(html).toContain('<title>Üzenőfal</title>');
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('<meta name="x-language" content="en-GB" />');
-    expect(html).toContain('id="initial-state">{}</script>');
   });
 
   test('renders the given props', () => {
@@ -35,14 +34,12 @@ describe('wrapper', () => {
       sessionId: SID,
       content: '<p>content</p>',
       headers: '<script src="/x.js"></script>',
-      initialState: { a: 1 },
     });
     expect(html).toContain('<title>Wall :: Home</title>');
     expect(html).toContain('<html lang="hu">');
     expect(html).toContain(`<meta name="x-session-id" content="${SID}" />`);
     expect(html).toContain('<p>content</p>');
     expect(html).toContain('<script src="/x.js"></script>');
-    expect(html).toContain('id="initial-state">{"a":1}</script>');
   });
 });
 
@@ -126,12 +123,8 @@ describe('wrapper escaping', () => {
   });
 });
 
-describe('wrapper initial state', () => {
-  test('cannot close the script element', () => {
-    const html = wrapper({ initialState: { a: '</script><script>alert(1)</script>' } });
-    expect(html).not.toContain('</script><script>alert(1)');
-  });
 
+describe('wrapper scripts', () => {
   test('loads third-party scripts from this origin', () => {
     expect(wrapper()).not.toMatch(/src="https?:\/\//);
   });

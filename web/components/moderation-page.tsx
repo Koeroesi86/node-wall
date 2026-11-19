@@ -1,3 +1,4 @@
+import { PostListResponseSchema, PostResponseSchema, SetPostStatusRequestSchema } from '../../lib/api-schemas';
 import { useEffect, useRef, useState } from 'react';
 import { request } from '../api.ts';
 import { TranslateText, useTranslate } from '../translations.tsx';
@@ -19,7 +20,7 @@ const pollDelay = 5 * 1000;
 const hashtag = /#[a-zÀ-ſ0-9]+/gi;
 const word = /[a-zÀ-ſ0-9]+/gi;
 
-const setStatus = (postId: string, status: string) => request('PUT', `/api/posts/${postId}`, ApiSchemas.SetPostStatusRequestSchema.parse({ status }))
+const setStatus = (postId: string, status: string) => request('PUT', `/api/posts/${postId}`, SetPostStatusRequestSchema.parse({ status }))
   .then(() => location.reload())
   .catch(console.error);
 
@@ -30,7 +31,7 @@ const PendingPost = ({ post }: { post: PendingPostData }) => {
 
   useEffect(() => {
     request('GET', `/api/posts/${post.id}`)
-      .then(details => ApiSchemas.PostResponseSchema.parse(details) as PostDetails)
+      .then(details => PostResponseSchema.parse(details) as PostDetails)
       .then((details) => {
         details.tags.forEach(tag => tagsInput.current?.add(tag.id, false));
         setNewTags([...details.content.matchAll(hashtag)]
@@ -105,7 +106,7 @@ export const ModerationPage = () => {
     let stopped = false;
 
     const poll = () => request('GET', `/api/posts?status=pending${latest.current ? `&since=${Number(latest.current) + 1}` : ''}`)
-      .then(list => ApiSchemas.PostListResponseSchema.parse(list) as PendingPostData[])
+      .then(list => PostListResponseSchema.parse(list) as PendingPostData[])
       .then((fetched) => {
         if (stopped) return;
         const added = fetched.filter(post => !known.current.has(post.id));

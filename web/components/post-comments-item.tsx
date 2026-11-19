@@ -1,4 +1,6 @@
+import { commentsActions } from '../store/comments.ts';
 import { useEffect } from 'react';
+import { formatDate } from '../format.ts';
 import { CommentContent } from '../post-content.tsx';
 import { useRedux } from '../use-redux.ts';
 import './post-comments-item.css';
@@ -15,7 +17,7 @@ export const PostCommentsItem = ({ commentId }: { commentId: string }) => {
   return (
     <div className="post-comments-item" id={anchor}>
       <div className="body">{comment && <CommentContent content={comment.body} />}</div>
-      <a className="createdAt" href={`#${anchor}`}>{comment && new Date(comment.created_at).toLocaleString()}</a>
+      <a className="createdAt" href={`#${anchor}`}>{comment && formatDate(comment.created_at)}</a>
     </div>
   );
 };

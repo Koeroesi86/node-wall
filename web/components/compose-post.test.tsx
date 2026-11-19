@@ -2,9 +2,12 @@
 import { act, cleanup, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { renderWithTranslations as render } from '../test-utils/render.tsx';
+import { createPost } from '../api/posts.ts';
 import { ComposePost } from './compose-post.tsx';
 
-const setCreatePost = (createPost: () => Promise<unknown>) => Object.assign(window, { createPost: vi.fn(createPost) });
+vi.mock('../api/posts.ts', () => ({ createPost: vi.fn() }));
+
+const setCreatePost = (implementation: () => Promise<unknown>) => vi.mocked(createPost).mockImplementation(implementation as typeof createPost);
 
 const compose = () => {
   const { container } = render(<ComposePost />);
@@ -17,7 +20,6 @@ const compose = () => {
 };
 
 beforeEach(() => {
-  Object.assign(window, { Tribute: class { attach = vi.fn(); detach = vi.fn(); } });
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 

@@ -12,7 +12,11 @@ const sessions = [
   { userId: 'u1', sessionId: 's1', sessionStatus: 'active', sessionCreatedAt: 1, loginType: 'email', lastActive: 2, details: { userAgent: 'UA', remoteAddress: null } },
   { userId: 'u1', sessionId: 's2', sessionStatus: 'pending', sessionCreatedAt: 1, loginType: 'other', lastActive: null, details: null },
 ];
-const userInfo = { user: { id: 'u1', name: 'Ann', role: 'user', created_at: 1 } };
+const userInfo = {
+  user: { id: 'u1', name: 'Ann', role: 'user', created_at: 1 },
+  session: { id: 's1', users_login_id: 'l1', status: 'active', created_at: 1, last_active: null },
+  login: { id: 'l1', type: 'email', user_id: 'u1', value: 'a@b.c' },
+};
 const routes = {
   'GET /api/user': { body: userInfo },
   'GET /api/user/sessions': { body: sessions },
@@ -31,14 +35,6 @@ const mount = async (extraRoutes = {}) => {
 beforeEach(() => {
   redux = fakeRedux();
   redux.setState({ tags: {}, user: { role: 'user', tags: null } });
-  Object.assign(window, {
-    ApiSchemas: {
-      UserInfoResponseSchema: { parse: (data: unknown) => data },
-      SessionListResponseSchema: { parse: (data: unknown) => data },
-      SetUserNameRequestSchema: { parse: (data: unknown) => data },
-      DeleteAccountRequestSchema: { parse: (data: unknown) => data },
-    },
-  });
   vi.spyOn(window, 'alert').mockImplementation(() => undefined);
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });

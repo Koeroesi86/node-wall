@@ -1,3 +1,4 @@
+import { AuditListResponseSchema } from '../../lib/api-schemas';
 import { useEffect, useState } from 'react';
 import { request } from '../api.ts';
 import { TranslateText } from '../translations.tsx';
@@ -16,7 +17,7 @@ export const AuditLog = () => {
 
   useEffect(() => {
     request('GET', '/api/users/audit')
-      .then(list => setEntries(ApiSchemas.AuditListResponseSchema.parse(list)))
+      .then(list => setEntries(AuditListResponseSchema.parse(list)))
       .catch(console.error);
   }, []);
 

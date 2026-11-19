@@ -1,14 +1,11 @@
 // @vitest-environment jsdom
 import { act, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, expect, test } from 'vitest';
-import { fakeApiSchemas } from '../test-utils/api-schemas.ts';
 import { fakeFetch } from '../test-utils/fetch.ts';
 import { renderWithTranslations as render } from '../test-utils/render.tsx';
 import { AuditLog } from './audit-log.tsx';
 
 const flush = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
-
-beforeEach(fakeApiSchemas);
 
 afterEach(cleanup);
 

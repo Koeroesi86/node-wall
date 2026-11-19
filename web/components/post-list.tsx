@@ -1,3 +1,4 @@
+import { postsListActions } from '../store/posts-list.ts';
 import { useEffect, useRef } from 'react';
 import { PostPreview } from './post-preview.tsx';
 import { useRedux } from '../use-redux.ts';
@@ -14,7 +15,7 @@ export const PostList = ({ instance = '' }: PostListProps) => {
   const notification = useRef<HTMLAudioElement>(null);
   const oldest = useRef<unknown>(null);
   const { dispatch, state } = useRedux((next, previous) => {
-    if (previous?.bounds.newest && next.bounds.newest > previous.bounds.newest) {
+    if (previous?.bounds.newest && Number(next.bounds.newest) > Number(previous.bounds.newest)) {
       setTimeout(() => {
         notification.current?.play();
         dispatch(postsListActions.loadNew(instance));

@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   oxc: { jsx: { runtime: 'automatic' } },
   test: {
+    setupFiles: ['web/test-utils/setup.ts'],
     include: ['*.test.ts', 'lib/**/*.test.ts', 'migrations/**/*.test.ts', 'public/**/*.test.ts', 'web/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',

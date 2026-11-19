@@ -1,3 +1,4 @@
+import { AddPostTagRequestSchema, CreateTagRequestSchema, TagListResponseSchema, TagResponseSchema } from '../../lib/api-schemas';
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
 import { request } from '../api.ts';
 import { TranslateText, useTranslate } from '../translations.tsx';
@@ -37,9 +38,9 @@ export const PostTagsInput = ({ postId, ref }: PostTagsInputProps) => {
   const adding = useRef(false);
   const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const assignTag = (tagId: string) => request('POST', `/api/posts/${postId}/tags`, ApiSchemas.AddPostTagRequestSchema.parse({ id: tagId })).catch(() => undefined);
+  const assignTag = (tagId: string) => request('POST', `/api/posts/${postId}/tags`, AddPostTagRequestSchema.parse({ id: tagId })).catch(() => undefined);
 
-  const getTag = (id: string) => request('GET', `/api/tags/${id}`).then(tag => ApiSchemas.TagResponseSchema.parse(tag));
+  const getTag = (id: string) => request('GET', `/api/tags/${id}`).then(tag => TagResponseSchema.parse(tag));
 
   const add = async (tagId: string, assign = true): Promise<void> => {
     if (adding.current) {
@@ -69,14 +70,14 @@ export const PostTagsInput = ({ postId, ref }: PostTagsInputProps) => {
   };
 
   const createTag = async (name: string, type = 'text') => {
-    const tag = ApiSchemas.TagResponseSchema.parse(await request('POST', '/api/tags', ApiSchemas.CreateTagRequestSchema.parse({ name, type })));
+    const tag = TagResponseSchema.parse(await request('POST', '/api/tags', CreateTagRequestSchema.parse({ name, type })));
 
     await add(tag.id, true);
   };
 
   const search = async (text: string): Promise<void> => {
     try {
-      const found = ApiSchemas.TagListResponseSchema.parse(await request('GET', `/api/tags?s=${text}`)) as Tag[];
+      const found = TagListResponseSchema.parse(await request('GET', `/api/tags?s=${text}`)) as Tag[];
       setResults(found.filter(tag => !current.current.some(chosen => chosen.id === tag.id)));
       setSuggestion(found.some(tag => tag.name === text) ? undefined : text);
     } catch {

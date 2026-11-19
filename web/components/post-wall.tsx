@@ -1,3 +1,5 @@
+import { postsListActions } from '../store/posts-list.ts';
+import { userActions } from '../store/user.ts';
 import { useEffect, useRef, useState } from 'react';
 import { useRedux } from '../use-redux.ts';
 import { PostList } from './post-list.tsx';
@@ -33,9 +35,9 @@ export const PostWall = ({ instance = '' }: PostWallProps) => {
     const changed = connected.current && key !== seenTags.current;
     connected.current = true;
     seenTags.current = key;
-    if (!changed || !instance) return;
+    const tags = state.user.tags;
+    if (!changed || !instance || !tags) return;
 
-    const tags: UserTag[] = state.user.tags;
     const likedTags = tagIds(tags, 'liked');
     const dislikedTags = tagIds(tags, 'disliked');
 

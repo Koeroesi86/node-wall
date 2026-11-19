@@ -1,3 +1,5 @@
+import { postsListActions } from '../store/posts-list.ts';
+import { tagsActions } from '../store/tags.ts';
 import { useEffect } from 'react';
 import { useRedux } from '../use-redux.ts';
 import { PostList } from './post-list.tsx';

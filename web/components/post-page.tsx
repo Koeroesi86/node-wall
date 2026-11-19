@@ -1,4 +1,6 @@
+import { postsActions } from '../store/posts.ts';
 import { useEffect } from 'react';
+import { formatDate } from '../format.ts';
 import { PostContent } from '../post-content.tsx';
 import { TranslateText } from '../translations.tsx';
 import { useRedux } from '../use-redux.ts';
@@ -21,7 +23,7 @@ export const PostPage = ({ postId = '' }: { postId?: string }) => {
       <div className="sentDate">
         {post && <>
           <XIcon type="sentDate" />
-          <span>{new Date(parseInt(post.created_at, 10)).toLocaleString()}</span>
+          <span>{formatDate(post.created_at)}</span>
         </>}
       </div>
       <h3 className="tags">{tagIds.map(id => <TagInline tagId={id} key={id} />)}</h3>

@@ -1,3 +1,6 @@
+import { TagListResponseSchema } from '../../lib/api-schemas';
+import escapeHtml from '../../lib/utils/escapeHtml';
+import type { TributeCollection } from 'tributejs';
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
 import { TranslateText } from '../translations.tsx';
 import './post-editor.css';
@@ -11,23 +14,19 @@ interface PostEditorProps {
   ref?: Ref<PostEditorHandle>;
 }
 
-interface TagSuggestion {
-  original: { id: string; name: string };
-}
-
-const trigger = {
+const trigger: TributeCollection<Record<string, unknown>> = {
   // TODO: people lookup for mentions
   // TODO: add new on not found + space
   trigger: '#',
-  selectTemplate: (item: TagSuggestion) => `<span tag-id="${escapeHtml(item.original.id)}" contenteditable="false">#${escapeHtml(item.original.name)}</span>`,
+  selectTemplate: item => `<span tag-id="${escapeHtml(item.original.id)}" contenteditable="false">#${escapeHtml(item.original.name)}</span>`,
   allowSpaces: true,
-  values: (text: string, callback: (tags: unknown) => void) => {
+  values: (text, callback) => {
     if (!text) return;
 
     const request = new XMLHttpRequest();
     request.onreadystatechange = () => {
       if (request.readyState === 4 && request.status === 200) {
-        callback(ApiSchemas.TagListResponseSchema.parse(JSON.parse(request.responseText)));
+        callback(TagListResponseSchema.parse(JSON.parse(request.responseText)));
       }
     };
     request.open('GET', `/api/tags?s=${text}`, true);
@@ -66,11 +65,16 @@ export const PostEditor = ({ ref }: PostEditorProps) => {
   }), []);
 
   useEffect(() => {
-    const tribute = new Tribute({ collection: [trigger] });
-    if (editor.current) tribute.attach(editor.current);
+    const element = editor.current;
+    const attached = import('tributejs').then(({ default: Tribute }) => {
+      const tribute = new Tribute({ collection: [trigger] });
+      if (element) tribute.attach(element);
+
+      return tribute;
+    });
 
     return () => {
-      if (editor.current) tribute.detach(editor.current);
+      attached.then(tribute => element && tribute.detach(element)).catch(console.error);
     };
   }, []);
 

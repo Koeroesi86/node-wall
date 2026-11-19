@@ -1,3 +1,4 @@
+import { userActions } from '../store/user.ts';
 import { useEffect, useState, type ReactNode } from 'react';
 import { TranslateText, useTranslate } from '../translations.tsx';
 import { useRedux } from '../use-redux.ts';
@@ -28,7 +29,7 @@ const Navigation = () => {
   const [dark, setDark] = useState(false);
   const [path, setPath] = useState('');
   const user = state?.user;
-  const session = user?.session;
+  const session = user?.session || undefined;
   const userName: string = user?.name ? user.name : translate('post-preview.unknown-user');
 
   useEffect(() => {
