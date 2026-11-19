@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { renderWithTranslations as render } from '../test-utils/render.tsx';
 import { ComposePost } from './compose-post.tsx';
 
 const setCreatePost = (createPost: () => Promise<unknown>) => Object.assign(window, { createPost: vi.fn(createPost) });
@@ -30,8 +31,8 @@ describe('compose-post', () => {
     const { element, editor, button } = compose();
 
     expect(editor).not.toBeNull();
-    expect(button.querySelector('translate-text')?.getAttribute('alias')).toBe('compose-post.button.to-send');
-    expect(element.querySelector('translate-text[alias="compose-post.button.sending"]')).not.toBeNull();
+    expect(button.querySelector('.toSend')?.textContent).toBe('compose-post.button.to-send');
+    expect(element.querySelector('.inProgress')?.textContent).toBe('compose-post.button.sending');
   });
 
   test('does not send an empty message', () => {

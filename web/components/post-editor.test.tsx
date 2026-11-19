@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { act, cleanup, createEvent, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, createEvent, fireEvent } from '@testing-library/react';
 import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { renderWithTranslations as render } from '../test-utils/render.tsx';
 import { PostEditor, type PostEditorHandle } from './post-editor.tsx';
 
 interface TributeOptions {
@@ -63,7 +64,7 @@ describe('post-editor', () => {
   test('renders a placeholder and an editable area', () => {
     const { element, input } = mount();
 
-    expect(element.querySelector('.postEditorPlaceHolder translate-text')?.getAttribute('alias')).toBe('compose-post.input.placeholder');
+    expect(element.querySelector('.postEditorPlaceHolder .translate-text')?.textContent).toBe('compose-post.input.placeholder');
     expect(input.getAttribute('contenteditable')).toBe('true');
   });
 
@@ -89,7 +90,7 @@ describe('post-editor', () => {
     input.innerHTML = '';
     fireEvent.input(input);
 
-    expect(element.querySelector('.postEditorPlaceHolder translate-text')).not.toBeNull();
+    expect(element.querySelector('.postEditorPlaceHolder .translate-text')?.textContent).toBe('compose-post.input.placeholder');
   });
 
   test('value turns lines into newlines and tags into references', () => {

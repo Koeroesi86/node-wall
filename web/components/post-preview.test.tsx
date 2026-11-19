@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { renderWithTranslations as render } from '../test-utils/render.tsx';
 import { fakeRedux } from '../test-utils/redux.ts';
 import { PostPreview } from './post-preview.tsx';
 
@@ -60,7 +61,7 @@ describe('post-preview', () => {
     expect(element.querySelector('.owner')?.textContent).toContain('Ann');
 
     act(() => redux.setState({ posts: { p1: post({ owner: { id: 'u1', name: 'null' }, content: 'changed' }) } }));
-    expect(element.querySelector('.owner translate-text[alias="post-preview.unknown-user"]')).not.toBeNull();
+    expect(element.querySelector('.owner')?.textContent).toContain('post-preview.unknown-user');
 
     act(() => redux.setState({ posts: { p1: post({ owner: null, content: 'again' }) } }));
     expect(element.querySelector('.owner')?.innerHTML).toBe('');

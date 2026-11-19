@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { PostEditor, type PostEditorHandle } from './post-editor.tsx';
+import { TranslateText } from '../translations.tsx';
 import './compose-post.css';
 
 export const ComposePost = () => {
@@ -25,10 +26,10 @@ export const ComposePost = () => {
       <PostEditor ref={editor} />
       <button className="send" type="button" onClick={send}>
         <span className="toSend">
-          <translate-text alias="compose-post.button.to-send"></translate-text>
+          <TranslateText alias="compose-post.button.to-send" />
         </span>
         <span className="inProgress">
-          <translate-text alias="compose-post.button.sending"></translate-text>
+          <TranslateText alias="compose-post.button.sending" />
         </span>
       </button>
     </div>

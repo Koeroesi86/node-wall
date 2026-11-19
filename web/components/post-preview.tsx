@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRedux } from '../use-redux.ts';
+import { TranslateText } from '../translations.tsx';
 import './post-preview.css';
 
 interface PostPreviewProps {
@@ -45,7 +46,7 @@ export const PostPreview = ({ postId }: PostPreviewProps) => {
 
   return (
     <div className={classes('post-preview', !!post && tags.length === 0 && 'noTags', long && 'long', showAll && 'showAll')}>
-      <div className="loadingIndicator"><translate-text alias="post-preview.loading"></translate-text></div>
+      <div className="loadingIndicator"><TranslateText alias="post-preview.loading" /></div>
       <div className="tags">
         {[...new Set(tags.map(tag => tag.id))].map(id => <tag-inline tag-id={id} key={id}></tag-inline>)}
       </div>
@@ -58,20 +59,20 @@ export const PostPreview = ({ postId }: PostPreviewProps) => {
       <div className="contentToggleWrapper">
         <div className="contentShadow"></div>
         <div className="contentToggle" onClick={expand}>
-          <translate-text alias="post-preview.show-more"></translate-text>
+          <TranslateText alias="post-preview.show-more" />
         </div>
       </div>
       <div className="meta">
         <div className="sent">
-          <translate-text alias="post-preview.sent-at"></translate-text>&nbsp;
+          <TranslateText alias="post-preview.sent-at" />&nbsp;
           <a className="date" href={post ? `/post/${postId}` : undefined}>
             {post ? new Date(parseInt(post.created_at, 10)).toLocaleString() : undefined}
           </a>
         </div>
         <div className="owner">
           {owner && <>
-            <translate-text alias="post-preview.sent-by"></translate-text>
-            &nbsp;{owner.name && owner.name !== 'null' ? owner.name : <translate-text alias="post-preview.unknown-user"></translate-text>}
+            <TranslateText alias="post-preview.sent-by" />
+            &nbsp;{owner.name && owner.name !== 'null' ? owner.name : <TranslateText alias="post-preview.unknown-user" />}
           </>}
         </div>
       </div>

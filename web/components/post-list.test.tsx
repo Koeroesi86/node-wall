@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { renderWithTranslations as render } from '../test-utils/render.tsx';
 import { fakeRedux } from '../test-utils/redux.ts';
 import { PostList } from './post-list.tsx';
 
@@ -39,7 +40,7 @@ describe('post-list', () => {
   test('renders a loading indicator and an end marker', () => {
     const { element } = mount();
 
-    expect(element.querySelector('.end translate-text')?.getAttribute('alias')).toBe('post-list.loading');
+    expect(element.querySelector('.end .translate-text')?.textContent).toBe('post-list.loading');
   });
 
   test('loads more posts shortly after it is shown, and when scrolled', () => {

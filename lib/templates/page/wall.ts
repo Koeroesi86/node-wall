@@ -10,7 +10,7 @@ interface WallPageProps extends PageProps {
 const getInstance = (props: WallPageProps = {}) => props.instance || uuid();
 
 export default (props: WallPageProps = {}) => {
-  const page = reactPage('wall', { instance: getInstance(props) });
+  const page = reactPage('wall', { instance: getInstance(props) }, { language: props.language });
 
   if (!page) throw new Error('The wall is rendered by React: run `npm run build` to create the server rendering bundle.');
 

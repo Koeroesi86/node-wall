@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { PostPreview } from './post-preview.tsx';
 import { useRedux } from '../use-redux.ts';
+import { TranslateText } from '../translations.tsx';
 import './post-list.css';
 
 interface PostListProps {
@@ -51,7 +52,7 @@ export const PostList = ({ instance = '' }: PostListProps) => {
       {posts.map(id => <PostPreview postId={id} key={id} />)}
       <audio src="/static/media/notification.mp3" className="notification" ref={notification}></audio>
       <div className={instanceState?.isLoading ? 'end loading' : 'end'} ref={end}>
-        <div className="indicator"><translate-text alias="post-list.loading"></translate-text></div>
+        <div className="indicator"><TranslateText alias="post-list.loading" /></div>
       </div>
     </div>
   );

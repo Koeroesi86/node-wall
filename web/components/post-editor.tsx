@@ -1,4 +1,5 @@
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
+import { TranslateText } from '../translations.tsx';
 import './post-editor.css';
 
 export interface PostEditorHandle {
@@ -76,7 +77,7 @@ export const PostEditor = ({ ref }: PostEditorProps) => {
   return (
     <div className={hasContent ? 'post-editor hasContent' : 'post-editor'}>
       <div className={hasContent ? 'postEditorPlaceHolder hidden' : 'postEditorPlaceHolder'}>
-        <translate-text alias="compose-post.input.placeholder"></translate-text>
+        <TranslateText alias="compose-post.input.placeholder" />
       </div>
       <div
         className="postEditorInput"
