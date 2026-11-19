@@ -45,3 +45,17 @@ test('does not cache the instance when migrating fails', async () => {
   await expect(createDatabase()).resolves.toBeDefined();
   expect(knexFactory).toHaveBeenCalledTimes(2);
 });
+
+test('migrates once for callers that arrive while it runs', async () => {
+  const instance = createInstance();
+  knexFactory.mockReturnValue(instance);
+  const { default: createDatabase } = await import('./createDatabase');
+
+  const [first, second, third] = await Promise.all([createDatabase(), createDatabase(), createDatabase()]);
+
+  expect(first).toBe(instance);
+  expect(second).toBe(instance);
+  expect(third).toBe(instance);
+  expect(knexFactory).toHaveBeenCalledOnce();
+  expect(instance.migrate.latest).toHaveBeenCalledOnce();
+});
