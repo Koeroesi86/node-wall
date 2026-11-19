@@ -5,6 +5,6 @@
     flex-direction: column;
 }
 
-.post-wall post-list {
+.post-wall .post-list {
     flex: 1 1;
 }

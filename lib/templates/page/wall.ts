@@ -23,7 +23,6 @@ export default (props: WallPageProps = {}) => {
     <script src="/static/components/tag-inline.js"></script>
     <script src="/static/components/link-preview.js"></script>
     <script src="/static/components/post-preview.js"></script>
-    <script src="/static/components/post-list.js"></script>
     <script src="/static/components/post-editor.js"></script>
     ${page.headers}
   `,

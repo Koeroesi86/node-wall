@@ -14,6 +14,8 @@ declare function connectRedux(mapState?: (state: ReduxState, previousState?: Red
 declare function disconnectRedux(mapState: (state: ReduxState, previousState?: ReduxState) => void): void;
 
 declare const postsListActions: {
+  loadMore: (instance: string) => ReduxAction;
+  loadNew: (instance: string) => ReduxAction;
   createFilter: (instance: string, likedTags?: string[], dislikedTags?: string[]) => ReduxAction;
   setFilterTags: (instance: string, likedTags?: string[], dislikedTags?: string[]) => ReduxAction;
 };

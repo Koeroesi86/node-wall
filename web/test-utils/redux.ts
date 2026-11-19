@@ -14,6 +14,8 @@ export const fakeRedux = () => {
       listeners.splice(listeners.indexOf(mapState), 1);
     },
     postsListActions: {
+      loadMore: (instance: string) => ({ type: 'POSTS_LIST_LOAD_MORE', payload: { instance } }),
+      loadNew: (instance: string) => ({ type: 'POSTS_LIST_LOAD_NEW', payload: { instance } }),
       createFilter: (instance: string, likedTags: string[], dislikedTags: string[]) => ({ type: 'POSTS_LIST_CREATE_FILTER', payload: { instance, likedTags, dislikedTags } }),
       setFilterTags: (instance: string, likedTags: string[], dislikedTags: string[]) => ({ type: 'POSTS_LIST_SET_FILTER_TAGS', payload: { instance, likedTags, dislikedTags } }),
     },
