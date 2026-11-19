@@ -1,3 +1,4 @@
+import { renderMarkup } from './translation-markup.tsx';
 import { createContext, useContext, type ReactNode } from 'react';
 
 export type Translations = Record<string, string>;
@@ -18,7 +19,5 @@ export const useTranslate = () => {
   return (alias: string) => translations[alias] ?? '';
 };
 
-/** Some translations hold markup (links, emphasis); they come from the repository's own files, not from users. */
-export const TranslateText = ({ alias }: { alias: string }) => (
-  <span className="translate-text" dangerouslySetInnerHTML={{ __html: useTranslation(alias) }}></span>
-);
+/** Some translations hold markup (links, lists); it is read into elements, never inserted as HTML. */
+export const TranslateText = ({ alias }: { alias: string }) => <span className="translate-text">{renderMarkup(useTranslation(alias))}</span>;
