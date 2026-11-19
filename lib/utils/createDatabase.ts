@@ -1,11 +1,8 @@
 import Knex, { type Knex as KnexInstance } from 'knex';
 
-let db: KnexInstance | undefined;
+let db: Promise<KnexInstance> | undefined;
 
-function createDatabase(): Promise<KnexInstance> {
-  if (db) {
-    return Promise.resolve(db);
-  }
+function connect(): Promise<KnexInstance> {
   const { DB_DRIVER, DB_DATABASE } = process.env;
   const knex = Knex({
     client: DB_DRIVER,
@@ -15,12 +12,18 @@ function createDatabase(): Promise<KnexInstance> {
     useNullAsDefault: true,
     pool: { min: 0, max: 1 }
   });
-  return knex.migrate
-    .latest()
-    .then(() => {
-      db = knex;
-      return Promise.resolve(knex);
-    });
+
+  return knex.migrate.latest().then(() => knex);
+}
+
+/** Callers that arrive while the migrations run share them, since two migrations on one sqlite file lock each other out. */
+function createDatabase(): Promise<KnexInstance> {
+  db ??= connect().catch((error) => {
+    db = undefined;
+    throw error;
+  });
+
+  return db;
 }
 
 export default createDatabase;

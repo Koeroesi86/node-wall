@@ -8,6 +8,11 @@ import getUserInfoFromSession from '../lib/utils/getUserInfoFromSession';
 vi.mock('../lib/utils/createDatabase', async () => ({
   default: async () => (await import('../lib/test-utils/fakeDb')).fakeDb.knex,
 }));
+vi.mock('../lib/utils/loadRenderer', async () => {
+  // the server rendering bundle only exists after a build, so the tests render the React source
+  const { renderPage } = await import('../web/render-page.tsx');
+  return { loadRenderer: () => renderPage };
+});
 vi.mock('../lib/utils/getUserInfoFromSession');
 
 const ID = '11111111-2222-3333-4444-555555555555';
@@ -69,7 +74,7 @@ describe('pages', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.headers).toMatchObject({ 'Content-Type': 'text/html', 'Content-Security-Policy': expect.stringContaining("script-src 'self'") });
-    expect(response.body).toContain('<welcome-page>');
+    expect(response.body).toContain('<div class="welcome-page">');
     expect(response.body).toContain('<html lang="hu">');
     expect(response.body).toContain(`<meta name="x-session-id" content="${SESSION_ID}" />`);
   });
@@ -77,17 +82,17 @@ describe('pages', () => {
   test('/privacy renders the privacy notice without a session', async () => {
     const response = await request({ path: 'privacy' });
     expect(response.statusCode).toBe(200);
-    expect(response.body).toContain('<privacy-page');
+    expect(response.body).toContain('<div class="privacy-page">');
   });
 
   test('/wall renders the wall', async () => {
-    expect((await request({ path: 'wall' })).body).toContain('<post-wall');
+    expect((await request({ path: 'wall' })).body).toContain('<div class="post-wall">');
   });
 
   test('unknown paths render the welcome page with 404', async () => {
     const response = await request({ path: 'nope' });
     expect(response.statusCode).toBe(404);
-    expect(response.body).toContain('<welcome-page>');
+    expect(response.body).toContain('<div class="welcome-page">');
   });
 
   test('/tag/:id renders an existing tag', async () => {
@@ -95,7 +100,7 @@ describe('pages', () => {
 
     const response = await request({ path: `tag/${ID}` });
 
-    expect(response.body).toContain(`<tag-page tag-id="${ID}" tag-name="news" tag-type="text">`);
+    expect(response.body).toContain('<div class="tag-page"><h2>#news</h2>');
     expect(fakeDb.calls).toContainEqual(['where', { id: ID }]);
   });
 
@@ -110,7 +115,7 @@ describe('pages', () => {
 
     const response = await request({ path: `post/${ID}` });
 
-    expect(response.body).toContain(`<post-page post-id="${ID}">`);
+    expect(response.body).toContain(`"postId":"${ID}"`);
     expect(fakeDb.calls).toContainEqual(['where', { id: ID, type: 'post', status: 'public' }]);
   });
 
@@ -132,7 +137,7 @@ describe('/moderation', () => {
 
   test('renders for admins', async () => {
     vi.mocked(getUserInfoFromSession).mockResolvedValue(userInfo('admin'));
-    expect((await request({ path: 'moderation' })).body).toContain('<moderation-page>');
+    expect((await request({ path: 'moderation' })).body).toContain('<div class="moderation-page">');
   });
 });
 
@@ -143,7 +148,7 @@ describe('/profile', () => {
 
   test('renders for logged in users', async () => {
     vi.mocked(getUserInfoFromSession).mockResolvedValue(userInfo('user'));
-    expect((await request({ path: 'profile' })).body).toContain(`<profile-page session-id="${SESSION_ID}">`);
+    expect((await request({ path: 'profile' })).body).toContain('<div class="profile-page">');
   });
 });
 
@@ -183,12 +188,12 @@ describe('/login', () => {
 
   test('renders the login page for new visitors', async () => {
     const response = await request({ path: 'login', headers: anonymous });
-    expect(response.body).toContain('<login-page>');
+    expect(response.body).toContain('<div class="login-page">');
   });
 
   test('renders the login page for a pending session', async () => {
     vi.mocked(getUserInfoFromSession).mockResolvedValue(null);
-    expect((await request({ path: 'login' })).body).toContain('<login-page>');
+    expect((await request({ path: 'login' })).body).toContain('<div class="login-page">');
   });
 
   test('redirects to / when already logged in', async () => {
@@ -197,7 +202,7 @@ describe('/login', () => {
   });
 
   test('renders the login page when the cookie refers to an unknown session', async () => {
-    expect((await request({ path: 'login' })).body).toContain('<login-page>');
+    expect((await request({ path: 'login' })).body).toContain('<div class="login-page">');
   });
 
   describe('/login/email', () => {

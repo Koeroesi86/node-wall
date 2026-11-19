@@ -1,12 +1,7 @@
 import type { PageProps } from '../../types';
-import escapeHtml from '../../utils/escapeHtml';
-import wrapper from './wrapper';
+import reactTemplate from './reactTemplate';
 
-export default (props: PageProps = {}) => wrapper({
-  language: props.language,
-  sessionId: props.sessionId,
-  headers: `
-    <script src="/static/components/privacy-page.js"></script>
-  `,
-  content: `<privacy-page controller="${escapeHtml(process.env.PRIVACY_CONTROLLER ?? '')}" contact="${escapeHtml(process.env.PRIVACY_CONTACT_EMAIL ?? '')}"></privacy-page>`,
-});
+export default (props: PageProps = {}) => reactTemplate('privacy', {
+  controller: process.env.PRIVACY_CONTROLLER ?? '',
+  contact: process.env.PRIVACY_CONTACT_EMAIL ?? '',
+}, props);

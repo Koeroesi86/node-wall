@@ -270,6 +270,7 @@ export = async (event: LambdaEvent, respond: LambdaCallback) => {
           body: loginTemplate({
             language,
             sessionId: cookies.sessionId,
+            session: queryStringParameters?.session,
           }),
           isBase64Encoded: false,
         });
