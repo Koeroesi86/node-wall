@@ -14,8 +14,6 @@ const urlsToCache = [
   '/static/components/content-wrapper.css',
   '/static/components/link-preview.js',
   '/static/components/link-preview.css',
-  '/static/components/login-page.js',
-  '/static/components/login-page.css',
   '/static/components/main-wrapper.js',
   '/static/components/main-wrapper.css',
   '/static/components/moderation-page.js',

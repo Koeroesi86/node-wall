@@ -1,30 +1,30 @@
-login-page {
+.login-page {
     display: block;
     padding: 12px 20px;
 }
 
-login-page .activateSession.hidden,
-login-page .createSession.hidden {
+.login-page .activateSession.hidden,
+.login-page .createSession.hidden {
     display: none;
 }
 
-login-page .note {
+.login-page .note {
     font-size: 12px;
     margin: 6px 0;
 }
 
-login-page .note a {
+.login-page .note a {
     font-size: 12px;
     margin: 6px 0;
     color: inherit;
 }
 
-login-page form.logoutInline {
+.login-page form.logoutInline {
     display: inline;
     margin: 0;
 }
 
-login-page form.logoutInline button {
+.login-page form.logoutInline button {
     display: inline;
     padding: 0;
     border: 0;
@@ -35,19 +35,19 @@ login-page form.logoutInline button {
     cursor: pointer;
 }
 
-login-page form.inline {
+.login-page form.inline {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-login-page .inputGroup {
+.login-page .inputGroup {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-login-page form .input {
+.login-page form .input {
     display: inline-block;
     margin: 0;
     padding: 0 6px;
@@ -62,7 +62,7 @@ login-page form .input {
     color: var(--main-button-text-color);
 }
 
-login-page form .button {
+.login-page form .button {
     display: inline-block;
     margin: 0;
     padding: 0 6px;
@@ -79,6 +79,6 @@ login-page form .button {
     transition: all .2s ease-in-out;
 }
 
-login-page form .button:hover {
+.login-page form .button:hover {
     background: rgba(var(--main-button-background-color-rgb), 0.2);
 }

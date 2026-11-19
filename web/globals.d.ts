@@ -35,6 +35,9 @@ declare const linksActions: {
 declare function escapeHtml(value?: unknown): string;
 declare const ApiSchemas: {
   TagListResponseSchema: { parse(data: unknown): unknown };
+  ActivateSessionRequestSchema: { parse(data: unknown): unknown };
+  LoginRequestSchema: { parse(data: unknown): unknown };
+  LoginResponseSchema: { parse(data: unknown): { sessionId: string } };
   SetUserTagRequestSchema: { parse(data: unknown): unknown };
   RemoveUserTagRequestSchema: { parse(data: unknown): unknown };
 };

@@ -51,7 +51,6 @@ describe('pages', () => {
   const props = { language: 'hu-HU', sessionId: SID };
 
   test.each([
-    ['login', login, '<login-page></login-page>', 'login-page.js'],
     ['moderation', moderation, '<moderation-page></moderation-page>', 'moderation-page.js'],
     ['profile', profile, `<profile-page session-id="${SID}"></profile-page>`, 'profile-page.js'],
   ])('%s renders its component inside the wrapper', (_name, render, content, script) => {
@@ -60,6 +59,11 @@ describe('pages', () => {
     expect(html).toContain(`/static/components/${script}`);
     expect(html).toContain('<html lang="hu">');
     expect(html).toContain(`<meta name="x-session-id" content="${SID}" />`);
+  });
+
+  test('login renders the form and the pending session', () => {
+    expect(login(props)).toContain('<div class="login-page">');
+    expect(login({ ...props, session: 'abc' })).toContain('"session":"abc"');
   });
 
   test('welcome renders inside the wrapper', () => {

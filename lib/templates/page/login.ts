@@ -1,11 +1,9 @@
 import type { PageProps } from '../../types';
-import wrapper from './wrapper';
+import reactTemplate from './reactTemplate';
 
-export default (props: PageProps = {}) => wrapper({
-  language: props.language,
-  sessionId: props.sessionId,
-  headers: `
-    <script src="/static/components/login-page.js"></script>
-  `,
-  content: `<login-page></login-page>`,
-});
+interface LoginPageProps extends PageProps {
+  /** The pending session named in the url. */
+  session?: string;
+}
+
+export default (props: LoginPageProps = {}) => reactTemplate('login', { session: props.session }, props);

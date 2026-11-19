@@ -188,12 +188,12 @@ describe('/login', () => {
 
   test('renders the login page for new visitors', async () => {
     const response = await request({ path: 'login', headers: anonymous });
-    expect(response.body).toContain('<login-page>');
+    expect(response.body).toContain('<div class="login-page">');
   });
 
   test('renders the login page for a pending session', async () => {
     vi.mocked(getUserInfoFromSession).mockResolvedValue(null);
-    expect((await request({ path: 'login' })).body).toContain('<login-page>');
+    expect((await request({ path: 'login' })).body).toContain('<div class="login-page">');
   });
 
   test('redirects to / when already logged in', async () => {
@@ -202,7 +202,7 @@ describe('/login', () => {
   });
 
   test('renders the login page when the cookie refers to an unknown session', async () => {
-    expect((await request({ path: 'login' })).body).toContain('<login-page>');
+    expect((await request({ path: 'login' })).body).toContain('<div class="login-page">');
   });
 
   describe('/login/email', () => {
