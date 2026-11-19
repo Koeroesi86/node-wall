@@ -19,7 +19,8 @@ export const fakeRedux = () => {
       createFilter: (instance: string, likedTags: string[], dislikedTags: string[]) => ({ type: 'POSTS_LIST_CREATE_FILTER', payload: { instance, likedTags, dislikedTags } }),
       setFilterTags: (instance: string, likedTags: string[], dislikedTags: string[]) => ({ type: 'POSTS_LIST_SET_FILTER_TAGS', payload: { instance, likedTags, dislikedTags } }),
     },
-    parsePostContent: (content: string) => content.split('\n').map(line => `<div class="contentLine">${line}</div>`).join(''),
+    tagsActions: { request: (id: string) => ({ type: 'TAG_REQUEST', payload: { id } }) },
+    linksActions: { request: (href: string, postId: string) => ({ type: 'LINKS_REQUEST', payload: { href, postId } }) },
     postsActions: { request: (id: string) => ({ type: 'POSTS_REQUEST', payload: { id } }) },
     userActions: { requestTags: () => ({ type: 'USER_REQUEST_TAGS', payload: {} }) },
   });

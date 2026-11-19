@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent } from '@testing-library/react';
+import { createElement } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { renderWithTranslations as render } from '../test-utils/render.tsx';
 import { fakeRedux } from '../test-utils/redux.ts';
 import { PostList } from './post-list.tsx';
 
 vi.mock('./post-preview.tsx', () => ({
-  PostPreview: ({ postId }: { postId: string }) => <post-preview post-id={postId}></post-preview>,
+  PostPreview: ({ postId }: { postId: string }) => createElement('post-preview', { 'post-id': postId }),
 }));
 
 let redux: ReturnType<typeof fakeRedux>;

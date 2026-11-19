@@ -26,10 +26,17 @@ declare const userActions: {
 declare const postsActions: {
   request: (id: string) => ReduxAction;
 };
-declare function parsePostContent(content: string, postId: string): string;
+declare const tagsActions: {
+  request: (id: string) => ReduxAction;
+};
+declare const linksActions: {
+  request: (href: string, postId: string) => ReduxAction;
+};
 declare function escapeHtml(value?: unknown): string;
 declare const ApiSchemas: {
   TagListResponseSchema: { parse(data: unknown): unknown };
+  SetUserTagRequestSchema: { parse(data: unknown): unknown };
+  RemoveUserTagRequestSchema: { parse(data: unknown): unknown };
 };
 declare class Tribute {
   constructor(options: Record<string, unknown>);

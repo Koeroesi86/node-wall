@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { PostContent } from '../post-content.tsx';
 import { useRedux } from '../use-redux.ts';
+import { TagInline } from './tag-inline.tsx';
 import { TranslateText } from '../translations.tsx';
 import './post-preview.css';
 
@@ -48,14 +50,11 @@ export const PostPreview = ({ postId }: PostPreviewProps) => {
     <div className={classes('post-preview', !!post && tags.length === 0 && 'noTags', long && 'long', showAll && 'showAll')}>
       <div className="loadingIndicator"><TranslateText alias="post-preview.loading" /></div>
       <div className="tags">
-        {[...new Set(tags.map(tag => tag.id))].map(id => <tag-inline tag-id={id} key={id}></tag-inline>)}
+        {[...new Set(tags.map(tag => tag.id))].map(id => <TagInline tagId={id} key={id} />)}
       </div>
-      <div
-        className="content"
-        ref={content}
-        style={{ maxHeight }}
-        dangerouslySetInnerHTML={{ __html: post ? parsePostContent(post.content, postId) : '' }}
-      ></div>
+      <div className="content" ref={content} style={{ maxHeight }}>
+        {post && <PostContent content={post.content} postId={postId} />}
+      </div>
       <div className="contentToggleWrapper">
         <div className="contentShadow"></div>
         <div className="contentToggle" onClick={expand}>

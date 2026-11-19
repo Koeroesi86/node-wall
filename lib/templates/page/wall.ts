@@ -20,8 +20,6 @@ export default (props: WallPageProps = {}) => {
     headers: `
     <script src="/static/vendor/tribute.min.js"></script>
     <script src="/static/utils/post.js"></script>
-    <script src="/static/components/tag-inline.js"></script>
-    <script src="/static/components/link-preview.js"></script>
     ${page.headers}
   `,
     content: page.content,
