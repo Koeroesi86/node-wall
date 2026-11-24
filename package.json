@@ -29,7 +29,7 @@
     "jsdom": "^31.0.1",
     "knex": "^3.3.0",
     "match-all": "^1.2.6",
-    "nodemailer": "^10.5.0",
+    "nodemailer": "^10.6.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "redux": "4.0.5",
@@ -47,7 +47,7 @@
     "@types/nodemailer": "^8.0.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitest/coverage-v8": "^5.1.0",
+    "@vitest/coverage-v8": "^5.1.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"
